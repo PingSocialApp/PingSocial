@@ -8,9 +8,9 @@ import jsQR from 'jsqr';
     styleUrls: ['tab1.page.scss']
 })
 export class Tab1Page {
-    @ViewChild('video', {static: false}) video: ElementRef;
-    @ViewChild('canvas', {static: false}) canvas: ElementRef;
-    @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
+    @ViewChild('video') video: ElementRef;
+    @ViewChild('canvas') canvas: ElementRef;
+    @ViewChild('fileinput') fileinput: ElementRef;
 
     canvasElement: any;
     videoElement: any;

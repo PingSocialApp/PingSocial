@@ -1,9 +1,143 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>userprofile</ion-title>
-  </ion-toolbar>
+    <ion-toolbar>
+        <ion-title>[NAME OF USER]</ion-title>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content>
+    <ion-avatar style="margin: 2% auto;"><img src="https://picsum.photos/400"></ion-avatar>
+    <ion-label style="text-align: center"><h1>[NAME]</h1></ion-label>
+    <ion-label style="text-align: center;"><h3>[BIO]</h3></ion-label>
+    <ion-segment style="margin-top: 2%" value="enemies">
+        <ion-segment-button value="friends">
+            <ion-label>Their Info</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="enemies">
+            <ion-label>My Info</ion-label>
+        </ion-segment-button>
+    </ion-segment>
+    <!--  <ion-list>-->
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="logo-instagram"></ion-icon> Instagram</ion-label>-->
+    <!--      <ion-toggle checked="true"></ion-toggle>-->
+    <!--    </ion-item>-->
 
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="logo-snapchat"></ion-icon> Snapchat</ion-label>-->
+    <!--      <ion-toggle checked="true"></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="logo-facebook"></ion-icon> Facebook</ion-label>-->
+    <!--      <ion-toggle checked="true" ></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="logo-twitter"></ion-icon> Twitter</ion-label>-->
+    <!--      <ion-toggle checked="true"></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="mail"></ion-icon> Email</ion-label>-->
+    <!--      <ion-toggle checked="true"></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="call"></ion-icon> Phone Number</ion-label>-->
+    <!--      <ion-toggle checked="true" ></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="globe"></ion-icon> Website</ion-label>-->
+    <!--      <ion-toggle checked="true" ></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="card"></ion-icon> Venmo</ion-label>-->
+    <!--      <ion-toggle checked="true"></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="musical-notes"></ion-icon> Tiktok</ion-label>-->
+    <!--      <ion-toggle checked="true"></ion-toggle>-->
+    <!--    </ion-item>-->
+
+    <!--    <ion-item>-->
+    <!--      <ion-label><ion-icon name="logo-linkedin"></ion-icon> LinkedIn</ion-label>-->
+    <!--      <ion-toggle checked="true" ></ion-toggle>-->
+    <!--    </ion-item>-->
+    <!--  </ion-list>-->
+    <ion-grid>
+        <ion-row>
+            <ion-col>
+                <ion-button color="success" expand="block">
+                    <ion-icon name="call"></ion-icon>
+                </ion-button>
+            </ion-col>
+            <ion-col>
+                <ion-button expand="block">
+                    <ion-icon name="mail"></ion-icon>
+                </ion-button>
+            </ion-col>
+        </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" class="instabutton">
+            <ion-icon name="logo-instagram"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" class="snapbutton">
+            <ion-icon name="logo-snapchat"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" class="fbbutton">
+            <ion-icon name="logo-facebook"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" class="ttbutton">
+          </ion-button>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" class="twitterbutton">
+            <ion-icon name="logo-twitter"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" class="venmobutton">
+          </ion-button>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" class="linkedinbutton">
+            <ion-icon name="logo-linkedin"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" color="medium">
+            <ion-icon name="mail"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" color="danger">
+            <ion-icon name="globe"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    <!--    <ion-item>-->
+    <!--  <ion-button expand="full">-->
+    <!--    Update-->
+    <!--  </ion-button>-->
 </ion-content>
