@@ -8,42 +8,6 @@
 
 <ion-content [fullscreen]="true">
 
-  <input #fileinput type="file" accept="image/*;capture=camera" hidden (change)="handleFile($event.target.files)">
-
-  <ion-button expand="full" (click)="reset()" color="warning" *ngIf="scanResult">
-    <ion-icon slot="start" name="refresh"></ion-icon>
-    Reset
-  </ion-button>
-
-  <!-- Shows our camera stream -->
-  <video #video [hidden]="!scanActive" width="100%"></video>
-
-  <!-- Used to render the camera stream images -->
-  <canvas #canvas hidden></canvas>
-
-  <!-- Stop our scanner preview if active -->
-  <ion-button expand="full" (click)="stopScan()" color="danger" *ngIf="scanActive">
-    <ion-icon slot="start" name="close"></ion-icon>
-    Stop scan
-  </ion-button>
-
-  <ion-button class="scannerSelect" expand="block" (click)="startScan()">
-    <ion-icon slot="start" name="camera"></ion-icon>
-    Capture Card
-  </ion-button>
-
-  <ion-button class="scannerSelect" expand="block" (click)="captureImage()">
-    <ion-icon slot="start" name="image"></ion-icon>
-    Upload Card
-  </ion-button>
-
-  <ion-card *ngIf="scanResult">
-    <ion-card-header>
-      <ion-card-title>QR Code</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      {{ scanResult }}
-    </ion-card-content>
-  </ion-card>
+<ion-button (click)="scan()">Scan</ion-button>
 
 </ion-content>
