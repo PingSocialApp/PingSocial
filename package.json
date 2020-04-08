@@ -27,14 +27,18 @@
     "@ionic/angular": "^5.0.0",
     "@ionic/pwa-elements": "^1.5.1",
     "brower": "0.0.2",
-    "cordova-android": "^8.1.0",
+    "cordova": "^9.0.0",
+    "cordova-android": "8.1.0",
     "cordova-browser": "^6.0.0",
     "cordova-common": "^4.0.0",
     "core-js": "^3.6.4",
     "firebase": "^7.13.2",
     "firebaseui": "^4.5.0",
     "firebaseui-angular": "^4.1.0",
+    "i": "^0.3.6",
+    "ionic": "^5.4.16",
     "jsqr": "^1.2.0",
+    "native-run": "^1.0.0",
     "rxjs": "~6.5.1",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"
@@ -80,8 +84,8 @@
       "phonegap-plugin-barcodescanner": {}
     },
     "platforms": [
-      "android",
-      "browser"
+      "browser",
+      "android"
     ]
   }
 }
