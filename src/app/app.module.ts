@@ -13,6 +13,7 @@ import {AngularFireModule} from '@angular/fire';
 import {FirebaseUIModule} from 'firebaseui-angular';
 import {environment} from '../environments/environment';
 
+
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],

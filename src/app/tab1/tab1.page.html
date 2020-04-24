@@ -1,19 +1,25 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
     <ion-title>
-      Scan Card
+      <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-img class="logoimg" src="assets/dolphinwhitepinglogo.png">
+  </ion-img>
+  <h1 class="prompt">Scan to link with friends!</h1>
+
+
  <canvas #canvas hidden></canvas>
 
-<ion-button (click)="scan()">Scan</ion-button>
-  <ion-button expand="full" (click)="captureImage()">
-    <ion-icon slot="start" name="camera"></ion-icon>
-    Capture Image
-  </ion-button>
+  <ion-buttons>
+    <ion-button (click)="scan()"><ion-icon name="camera"></ion-icon></ion-button>
+    <ion-button (click)="captureImage()">
+      <ion-icon name="cloud-upload"></ion-icon>
+    </ion-button>
+  </ion-buttons>
 <input #fileinput type="file" accept="image/*;capture=camera" hidden (change)="handleFile($event.target.files)">
 
   <ion-card *ngIf="scanResult">

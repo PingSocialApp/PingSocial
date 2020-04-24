@@ -3,11 +3,11 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
   {
-    path: '',
+    path: 'tabs',
     loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
   },
   {
-    path: 'login',
+    path: '',
     loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
   },
   {
@@ -15,12 +15,16 @@ const routes: Routes = [
     loadChildren: () => import('./settings/settings.module').then( m => m.SettingsPageModule)
   },
   {
-    path: 'userprofile',
+    path: 'userprofile/:id',
     loadChildren: () => import('./userprofile/userprofile.module').then( m => m.UserprofilePageModule)
   },
   {
     path: 'circledash',
     loadChildren: () => import('./circledash/circledash.module').then( m => m.CircledashPageModule)
+  },
+  {
+    path: 'requests',
+    loadChildren: () => import('./requests/requests.module').then(m => m.RequestsPageModule)
   }
 ];
 @NgModule({

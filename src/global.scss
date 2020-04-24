@@ -24,3 +24,25 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
+
+
+.mainlogo {
+  width: 67px;
+  margin: 0 auto;
+}
+
+ion-title{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.md ion-title{
+  margin-top: 2%;
+}
+
+@font-face {
+  font-family: 'Lobster Two';
+  src: url("src/assets/fonts/LobsterTwo-Regular.ttf");
+}

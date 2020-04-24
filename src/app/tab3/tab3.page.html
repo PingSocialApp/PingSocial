@@ -1,24 +1,53 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-searchbar animated></ion-searchbar>
-  </ion-toolbar>
+    <ion-toolbar>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
+        <ion-buttons slot="primary">
+            <ion-button [routerLink]="['/requests']">
+                <ion-badge *ngIf="requestAmount != 0">{{requestAmount}}</ion-badge>
+                <ion-icon name="person-add"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-button expand="full">Requests</ion-button>
-  <ion-list>
-    <ion-list-header>
-    My Links
-    </ion-list-header>
+    <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
+    <ion-segment (ionChange)="segmentChanged($event)" value="rl">
+        <ion-segment-button value="rl">
+            <ion-label>Received Links</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="sl">
+            <ion-label>Sent Links</ion-label>
+        </ion-segment-button>
+    </ion-segment>
+    <ion-list *ngIf="displayRL">
+        <ion-img *ngIf="rLinks.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
+        <h1 *ngIf="rLinks.length === 0" class="addLinkDisplay">No Received Links Yet!</h1>
+        <ion-item *ngFor="let link of rLinks" [routerLink]="['/userprofile/', link.id]">
+            <ion-avatar slot="start">
+                <ion-img src="{{link.img}}"></ion-img>
+            </ion-avatar>
+            <ion-label>
+                <h2>{{link.name}}</h2>
+                <p>{{link.bio}}</p>
+            </ion-label>
+        </ion-item>
+    </ion-list>
+    <ion-list *ngIf="!displayRL">
+        <ion-img *ngIf="sLinks.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
+        <h1 *ngIf="sLinks.length === 0" class="addLinkDisplay">No Sent Links Yet!</h1>
+        <ion-item *ngFor="let link of sLinks" [routerLink]="['/userprofile/', link.id]">
+            <ion-avatar slot="start">
+                <ion-img src="{{link.img}}"></ion-img>
+            </ion-avatar>
+            <ion-label>
+                <h2>{{link.name}}</h2>
+                <p>{{link.bio}}</p>
+            </ion-label>
+        </ion-item>
+    </ion-list>
 
-    <ion-item>
-      <ion-avatar slot="start">
-        <img src="https://picsum.photos/200">
-      </ion-avatar>
-      <ion-label>
-        <h2>Finn</h2>
-        <h3>I'm a big deal</h3>
-      </ion-label>
-    </ion-item>
-  </ion-list>
 </ion-content>
