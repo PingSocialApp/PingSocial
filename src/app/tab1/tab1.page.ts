@@ -1,6 +1,6 @@
 import {Component, ViewChild, ElementRef} from '@angular/core';
 import {ToastController, LoadingController, Platform} from '@ionic/angular';
-import {BarcodeScanner,BarcodeScannerOptions} from '@ionic-native/barcode-scanner/ngx';
+import {BarcodeScanner, BarcodeScannerOptions} from '@ionic-native/barcode-scanner/ngx';
 import jsQR from 'jsqr';
 
 @Component({
@@ -11,25 +11,26 @@ import jsQR from 'jsqr';
 export class Tab1Page {
     // https://devdactic.com/pwa-qr-scanner-ionic/
 
-    @ViewChild('fileinput', { static: false }) fileinput: ElementRef;
-    @ViewChild('canvas', { static: false }) canvas: ElementRef;
+    @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
+    @ViewChild('canvas', {static: false}) canvas: ElementRef;
 
     canvasElement: any;
     videoElement: any;
     canvasContext: any;
     scanResult = null;
 
-    constructor(public barcodeScanner: BarcodeScanner,  private toastCtrl: ToastController) {
+    constructor(public barcodeScanner: BarcodeScanner, private toastCtrl: ToastController) {
     }
 
-   scan(){
-       // Function doesn't work on web version
-       this.barcodeScanner.scan().then(barcodeData => {
-           console.log('Barcode data', barcodeData);
-       }).catch(err => {
-           console.log('Error', err);
-       });
-   }
+
+    scan() {
+        // Function doesn't work on web version
+        this.barcodeScanner.scan().then(barcodeData => {
+            console.log('Barcode data', barcodeData);
+        }).catch(err => {
+            console.log('Error', err);
+        });
+    }
 
     captureImage() {
         this.fileinput.nativeElement.click();
@@ -38,7 +39,9 @@ export class Tab1Page {
     handleFile(files: FileList) {
         const file = files.item(0);
         const img = new Image();
-        img.onload = () => {
+        this.canvasElement = this.canvas.nativeElement;
+        this.canvasContext = this.canvasElement.getContext('2d');
+        img.onload = async () => {
             this.canvasContext.drawImage(img, 0, 0, this.canvasElement.width, this.canvasElement.height);
             const imageData = this.canvasContext.getImageData(
                 0,
@@ -52,25 +55,14 @@ export class Tab1Page {
 
             if (code) {
                 this.scanResult = code.data;
-                this.showQrToast();
+            }else{
+                const toast = await this.toastCtrl.create({
+                    message: 'Invalid Code. Please Try Again',
+                    duration: 2000
+                });
+                toast.present();
             }
         };
         img.src = URL.createObjectURL(file);
     }
-    async showQrToast() {
-        const toast = await this.toastCtrl.create({
-            message: `Open ${this.scanResult}?`,
-            position: 'top',
-            buttons: [
-                {
-                    text: 'Open',
-                    handler: () => {
-                        window.open(this.scanResult, '_system', 'location=yes');
-                    }
-                }
-            ]
-        });
-        toast.present();
-    }
-
 }

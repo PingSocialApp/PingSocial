@@ -71,10 +71,10 @@ export class Tab3Page {
             const linkeD = link.payload.doc.data();
             linkeD.userRec.get().then(USdata => {
                 let imgUrl = '';
-                if (this.currentUser.profilepic.startsWith('h')) {
-                    imgUrl = this.currentUser.profilepic;
+                if (USdata.data().profilepic.startsWith('h')) {
+                    imgUrl = USdata.data().profilepic;
                 } else {
-                    this.storage.storage.refFromURL(this.currentUser.profilepic).getDownloadURL().then(url => {
+                    this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
                         imgUrl = url;
                     });
                 }

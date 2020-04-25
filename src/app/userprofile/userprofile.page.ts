@@ -19,17 +19,17 @@ export class UserprofilePage implements OnInit {
     theirInfo: boolean;
     myInfo: boolean;
     img: string;
-     userPhone: string;
-     instagram: string;
-     facebook: string;
-     linkedin: string;
-     professionalEmail: string;
-     tiktok: string;
-     personalEmail: string;
-     twitter: string;
-     website: string;
-     venmo: string;
-     snapchat: string;
+    userPhone: string;
+    instagram: string;
+    facebook: string;
+    linkedin: string;
+    professionalEmail: string;
+    tiktok: string;
+    personalEmail: string;
+    twitter: string;
+    website: string;
+    venmo: string;
+    snapchat: string;
 
     constructor(private acr: ActivatedRoute, private firestore: AngularFirestore, private rps: RequestsProgramService,
                 private storage: AngularFireStorage) {
@@ -42,8 +42,8 @@ export class UserprofilePage implements OnInit {
                 this.userId = res.payload.id;
                 this.userName = userData.name;
                 this.userBio = userData.bio;
-                this.userPhone = userData.numberID.replace('(','').replace(')','')
-                    .replace('-','').replace(' ','');
+                this.userPhone = userData.numberID.replace('(', '').replace(')', '')
+                    .replace('-', '').replace(' ', '');
                 this.instagram = userData.instagramID;
                 this.facebook = userData.facebookID;
                 this.linkedin = userData.linkedinID;
@@ -54,7 +54,7 @@ export class UserprofilePage implements OnInit {
                 this.venmo = userData.venmoID;
                 this.snapchat = userData.snapchatID;
                 this.website = userData.websiteID;
-                if(!(this.website.includes('http://')) && !(this.website.includes('https://')) && this.website.length > 0){
+                if (!(this.website.includes('http://')) && !(this.website.includes('https://')) && this.website.length > 0) {
                     this.website = 'http://' + userData.websiteID;
                 }
 
@@ -71,24 +71,25 @@ export class UserprofilePage implements OnInit {
 
     ngOnInit() {
         this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
-            .where('userRec', '==', this.firestore.collection('users').doc('4CMyPB6tafUbL1CKzCb8').ref).where('pendingRequest', '==', false))
+            .where('userRec', '==', this.firestore.collection('users').doc('4CMyPB6tafUbL1CKzCb8').ref)
+            .where('pendingRequest', '==', false))
             .snapshotChanges().subscribe(data => {
-                this.myInfo = data.length !== 0;
+            this.myInfo = data.length !== 0;
         });
         // tslint:disable-next-line:max-line-length
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.firestore.collection('users').doc('4CMyPB6tafUbL1CKzCb8').ref)
+        this.firestore.collection('links', ref => ref.where('userSent', '==', this.firestore.collection('users')
+            .doc('4CMyPB6tafUbL1CKzCb8').ref)
             .where('userRec', '==', this.userRef.ref).where('pendingRequest', '==', false))
             .snapshotChanges().subscribe(data => {
-                this.theirInfo = data.length !== 0;
+            this.theirInfo = data.length !== 0;
         });
-
     }
 
     segmentChanged(ev: any) {
         this.displayTF = ev.detail.value === 'tf' ? true : false;
     }
 
-    createRequest(id: string){
+    createRequest(id: string) {
         this.rps.sendRequest(id);
     }
 

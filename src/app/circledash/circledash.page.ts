@@ -30,7 +30,8 @@ export class CircledashPage implements OnInit {
 
 
     // tslint:disable-next-line:max-line-length
-  constructor(private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController, private toastController: ToastController, private storage: AngularFireStorage) {
+  constructor(private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController,
+              private toastController: ToastController, private storage: AngularFireStorage) {
     this.currentUser = this.firestore.collection('users').doc(
         '4CMyPB6tafUbL1CKzCb8');
     this.pingArray = [];
