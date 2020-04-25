@@ -19,8 +19,20 @@ export class UserprofilePage implements OnInit {
     theirInfo: boolean;
     myInfo: boolean;
     img: string;
+     userPhone: string;
+     instagram: string;
+     facebook: string;
+     linkedin: string;
+     professionalEmail: string;
+     tiktok: string;
+     personalEmail: string;
+     twitter: string;
+     website: string;
+     venmo: string;
+     snapchat: string;
 
-    constructor(private acr: ActivatedRoute, private firestore: AngularFirestore, private rps: RequestsProgramService, private storage: AngularFireStorage) {
+    constructor(private acr: ActivatedRoute, private firestore: AngularFirestore, private rps: RequestsProgramService,
+                private storage: AngularFireStorage) {
         this.displayTF = true;
         this.userRef = this.firestore.collection('users').doc(this.acr.snapshot.params.id);
         this.userRef.snapshotChanges()
@@ -30,6 +42,23 @@ export class UserprofilePage implements OnInit {
                 this.userId = res.payload.id;
                 this.userName = userData.name;
                 this.userBio = userData.bio;
+                this.userPhone = userData.numberID.replace('(','').replace(')','')
+                    .replace('-','').replace(' ','');
+                this.instagram = userData.instagramID;
+                this.facebook = userData.facebookID;
+                this.linkedin = userData.linkedinID;
+                this.personalEmail = userData.personalEmailID;
+                this.professionalEmail = userData.professionalEmailID;
+                this.tiktok = userData.tiktokID;
+                this.twitter = userData.twitterID;
+                this.venmo = userData.venmoID;
+                this.snapchat = userData.snapchatID;
+                this.website = userData.websiteID;
+                if(!(this.website.includes('http://')) && !(this.website.includes('https://')) && this.website.length > 0){
+                    this.website = 'http://' + userData.websiteID;
+                }
+
+
                 if (res.payload.data().profilepic.startsWith('h')) {
                     this.img = res.payload.data().profilepic;
                 } else {

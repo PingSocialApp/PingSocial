@@ -25,25 +25,26 @@ export interface Ping{
 
 export class CircledashPage implements OnInit {
   currentUser: AngularFirestoreDocument;
-  // pings: Observable<Array<Ping>>;
   pingArray: Array<Ping>;
   responseMessages: Array<string>;
 
 
+    // tslint:disable-next-line:max-line-length
   constructor(private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController, private toastController: ToastController, private storage: AngularFireStorage) {
     this.currentUser = this.firestore.collection('users').doc(
         '4CMyPB6tafUbL1CKzCb8');
     this.pingArray = [];
     this.responseMessages = [];
+      this.currentUser.snapshotChanges()
+          .subscribe(res => {
+              this.renderPings(res.payload.data().unreadPings);
+              this.pingArray = [];
+              this.responseMessages = res.payload.data().responseMessage;
+          });
   }
 
    ngOnInit() {
-       this.currentUser.snapshotChanges()
-           .subscribe(res => {
-               this.renderPings(res.payload.data().unreadPings);
-               this.pingArray = [];
-               this.responseMessages = res.payload.data().responseMessage
-           });
+
   }
 
     async renderPings(unreadPings: any) {
@@ -69,7 +70,6 @@ export class CircledashPage implements OnInit {
                            sentMessage: pingdata.sentMessage,
                            recMessage: ''
                        };
-
                        this.pingArray.push(pingObject);
                    }).catch(e => {
                        console.log(e);
