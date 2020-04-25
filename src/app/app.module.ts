@@ -12,6 +12,8 @@ import { AppComponent } from './app.component';
 import {AngularFireModule} from '@angular/fire';
 import {FirebaseUIModule} from 'firebaseui-angular';
 import {environment} from '../environments/environment';
+import { Deeplinks } from '@ionic-native/deeplinks/ngx';
+
 
 @NgModule({
   declarations: [AppComponent],
@@ -21,6 +23,7 @@ import {environment} from '../environments/environment';
   providers: [
     StatusBar,
     SplashScreen,
+    Deeplinks,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]
