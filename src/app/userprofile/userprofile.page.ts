@@ -32,17 +32,17 @@ export class UserprofilePage implements OnInit {
     userWebsite: string;
     userVenmo: string;
     userSnapchat: string;
-    phone:boolean;
-    email:boolean;
-    instagram:boolean;
-    snapchat:boolean;
-    facebook:boolean;
-    tiktok:boolean;
-    twitter:boolean;
-    venmo:boolean;
-    linkedin:boolean;
-    professionalemail:boolean;
-    website:boolean;
+    phone: boolean;
+    email: boolean;
+    instagram: boolean;
+    snapchat: boolean;
+    facebook: boolean;
+    tiktok: boolean;
+    twitter: boolean;
+    venmo: boolean;
+    linkedin: boolean;
+    professionalemail: boolean;
+    website: boolean;
 
     constructor(private acr: ActivatedRoute, private firestore: AngularFirestore, private rps: RequestsProgramService,
                 private storage: AngularFireStorage, private toastController: ToastController) {
@@ -55,22 +55,6 @@ export class UserprofilePage implements OnInit {
                 this.userId = res.payload.id;
                 this.userName = userData.name;
                 this.userBio = userData.bio;
-                this.userPhone = userData.numberID.replace('(', '').replace(')', '')
-                    .replace('-', '').replace(' ', '');
-                this.userInstagram = userData.instagramID;
-                this.userFacebook = userData.facebookID;
-                this.userLinkedin = userData.linkedinID;
-                this.userPersonalEmail = userData.personalEmailID;
-                this.userProfessionalEmail = userData.professionalEmailID;
-                this.userTiktok = userData.tiktokID;
-                this.userTwitter = userData.twitterID;
-                this.userVenmo = userData.venmoID;
-                this.userSnapchat = userData.snapchatID;
-                this.userWebsite = userData.websiteID;
-                if (!((this.userWebsite.includes('http://')) || (this.userWebsite.includes('https://')) || this.userWebsite.length <= 0)) {
-                    this.userWebsite = 'http://' + userData.websiteID;
-                }
-
 
                 if (res.payload.data().profilepic.startsWith('h')) {
                     this.img = res.payload.data().profilepic;
@@ -79,31 +63,35 @@ export class UserprofilePage implements OnInit {
                         this.img = url;
                     });
                 }
+
+                this.firestore.collection('links', ref => ref.where('userRec', '==', this.userRef.ref)
+                    .where('userSent', '==', this.firestore.collection('users').doc(
+                        '4CMyPB6tafUbL1CKzCb8').ref).where('pendingRequest', '==', false)
+                    .where('pendingRequest', '==', false)).snapshotChanges().subscribe(linkeData => {
+                    if(linkeData.length !== 0) {
+                        this.renderUserPermissions(userData, linkeData[0].payload.doc.data());
+                        this.theirInfo = true;
+                    }else{
+                        this.theirInfo = false;
+                    }
+                });
             });
         this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
-            .where('userRec', '==',this.firestore.collection('users').doc(
-            '4CMyPB6tafUbL1CKzCb8').ref)
+            .where('userRec', '==', this.firestore.collection('users').doc(
+                '4CMyPB6tafUbL1CKzCb8').ref)
             .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
-                this.linkDoc = res[0].payload.doc.ref;
-                this.renderPermissions(res[0].payload.doc.data());
+                if(res.length !== 0){
+                    this.linkDoc = res[0].payload.doc.ref;
+                    this.renderMyPermissions(res[0].payload.doc.data());
+                    this.myInfo = true;
+                }else{
+                    this.myInfo = false;
+                }
         });
 
     }
 
     ngOnInit() {
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
-            .where('userRec', '==', this.firestore.collection('users').doc('4CMyPB6tafUbL1CKzCb8').ref)
-            .where('pendingRequest', '==', false))
-            .snapshotChanges().subscribe(data => {
-            this.myInfo = data.length !== 0;
-        });
-        // tslint:disable-next-line:max-line-length
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.firestore.collection('users')
-            .doc('4CMyPB6tafUbL1CKzCb8').ref)
-            .where('userRec', '==', this.userRef.ref).where('pendingRequest', '==', false))
-            .snapshotChanges().subscribe(data => {
-            this.theirInfo = data.length !== 0;
-        });
     }
 
     segmentChanged(ev: any) {
@@ -111,14 +99,38 @@ export class UserprofilePage implements OnInit {
     }
 
     createRequest(id: string) {
-        this.rps.sendRequest(id,'2047');
+        this.rps.sendRequest(id, '2047');
     }
 
-    renderPermissions(myData: any){
-        let permissions = myData.linkPermissions.substring(0,myData.linkPermissions.indexOf('/'));
+    renderUserPermissions(userData: any, userPermissions: any) {
+        let permissions = userPermissions.linkPermissions.substring(0, userPermissions.linkPermissions.indexOf('/'));
+        permissions = parseInt(permissions, 10).toString(2).split('');
+
+        this.userPhone = permissions[0] % 2 === 1 ? userData.numberID.replace('(', '').replace(')', '')
+            .replace('-', '').replace(' ', '') : '';
+        this.userPersonalEmail = permissions[1] % 2 === 1 ? userData.personalEmailID: '';
+        this.userInstagram = permissions[2] % 2 === 1 ? userData.instagramID : '';
+        this.userSnapchat = permissions[3] % 2 === 1 ? userData.snapchatID : '';
+        this.userFacebook = permissions[4] % 2 === 1 ? userData.facebookID : '';
+        this.userTiktok = permissions[5] % 2 === 1 ? userData.tiktokID : '';
+        this.userTwitter = permissions[6] % 2 === 1 ? userData.twitterID : '';
+        this.userVenmo = permissions[7] % 2 === 1 ? userData.venmoID : '';
+        this.userLinkedin = permissions[8] % 2 === 1 ? userData.linkedinID : '';
+        this.userProfessionalEmail = permissions[9] % 2 === 1 ?  userData.professionalEmailID : '';
+        let website;
+        if (!((userData.websiteID.includes('http://')) || (userData.websiteID.includes('https://')) || userData.websiteID.length <= 0)) {
+            website = 'http://' + userData.websiteID;
+        }else{
+            website = userData.websiteID;
+        }
+        this.userWebsite = permissions[10] % 2 === 1 ?  website : '';
+    }
+
+    renderMyPermissions(myData: any) {
+        let permissions = myData.linkPermissions.substring(0, myData.linkPermissions.indexOf('/'));
         permissions = parseInt(permissions, 10).toString(2).split('');
         this.phone = permissions[0] % 2 === 1 ? true : false;
-        this.email = permissions[1] % 2 === 1 ? true : false
+        this.email = permissions[1] % 2 === 1 ? true : false;
         this.instagram = permissions[2] % 2 === 1 ? true : false;
         this.snapchat = permissions[3] % 2 === 1 ? true : false;
         this.facebook = permissions[4] % 2 === 1 ? true : false;
@@ -130,7 +142,7 @@ export class UserprofilePage implements OnInit {
         this.website = permissions[10] % 2 === 1 ? true : false;
     }
 
-    changePermissions(){
+    changePermissions() {
         // tslint:disable-next-line:no-bitwise
         const phoneVal = +!!this.phone << 10;
         // tslint:disable-next-line:no-bitwise
@@ -165,7 +177,6 @@ export class UserprofilePage implements OnInit {
             toast.present();
         });
     }
-
 
 
 }
