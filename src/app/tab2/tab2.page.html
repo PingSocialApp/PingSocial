@@ -18,86 +18,84 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-    <ion-img class="qrcode" style=""
-             src="https://www.qr-code-generator.com/wp-content/themes/qr/new_structure/markets/core_market_full/generator/dist/generator/assets/images/websiteQRCode_noFrame.png"></ion-img>
+    {{qrData}}
     <ion-list style="margin-top: 2%">
         <ion-item>
             <ion-icon class="displayIcon phicon" name="call"></ion-icon>
             <ion-label>
                 Phone Number
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="phone" checked="true" (ionChange)="updateVals()" ></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon micon" name="mail"></ion-icon>
             <ion-label>
                 Email
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="email" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon igicon" name="logo-instagram"></ion-icon>
             <ion-label>
                 Instagram
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="instagram" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon scicon" name="logo-snapchat"></ion-icon>
             <ion-label>
                 Snapchat
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="snapchat" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon fbicon" name="logo-facebook"></ion-icon>
             <ion-label>
                 Facebook
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="facebook" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon tticon" name="musical-note"></ion-icon>
             <ion-label>
                 TikTok
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="tiktok" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon twicon" name="logo-twitter"></ion-icon>
             <ion-label>
                 Twitter
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="twitter" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon vicon" name="card"></ion-icon>
             <ion-label>
                 Venmo
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="venmo" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon liicon" name="logo-linkedin"></ion-icon>
             <ion-label>
                 LinkedIn
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="linkedin" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
-
         <ion-item>
             <ion-icon class="displayIcon pmicon" name="mail"></ion-icon>
             <ion-label>
                 Professional Email
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="professionalemail" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon gicon" name="globe"></ion-icon>
             <ion-label>
                 Website
             </ion-label>
-            <ion-toggle checked="true"></ion-toggle>
+            <ion-toggle [(ngModel)]="website" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
     </ion-list>
 </ion-content>

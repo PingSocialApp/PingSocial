@@ -12,10 +12,10 @@ import {AngularFirestoreModule} from '@angular/fire/firestore';
     IonicModule,
     CommonModule,
     FormsModule,
-      AngularFirestoreModule,
-    RouterModule.forChild([{ path: '', component: Tab2Page }]),
+    AngularFirestoreModule,
+    RouterModule.forChild([{path: '', component: Tab2Page}]),
   ],
   declarations: [Tab2Page, SettingsPage],
-  entryComponents: [SettingsPage]
+  entryComponents: [SettingsPage],
 })
 export class Tab2PageModule {}

@@ -13,7 +13,7 @@ export class RequestsProgramService {
         '4CMyPB6tafUbL1CKzCb8');
   }
 
-  sendRequest(userId: string){
+  sendRequest(userId: string, optionsData: string){
     this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
         .where('userRec', '==', this.firestore.collection('users').doc(userId).ref).where('pendingRequest', '==', true))
         .snapshotChanges().subscribe(data => {
@@ -24,13 +24,13 @@ export class RequestsProgramService {
               pendingRequest: true,
               userSent: this.firestore.collection('users').doc(
                   '4CMyPB6tafUbL1CKzCb8').ref,
-              userRec: this.firestore.collection('users').doc(userId).ref
+              userRec: this.firestore.collection('users').doc(userId).ref,
+              linkPermissions: optionsData + '/' + userId
             }).then((data) => {
                 this.presentToast('Sent Request!')
             });
           }
     });
-
   }
 
   async presentToast(m: string) {
