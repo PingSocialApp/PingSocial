@@ -41,7 +41,7 @@ export class NewPingPage implements OnInit {
     }
 
     sendPing() {
-        const toggle = (document.getElementsByTagName('ion-toggle') as unknown as Array<any>);
+        const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < toggle.length; i++) {
             if (toggle[i].checked) {
