@@ -2,6 +2,8 @@ import {Component} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestore} from '@angular/fire/firestore';
+import {NotificationsService} from '../notifications.service';
+
 
 @Component({
     selector: 'app-tab2',
@@ -26,12 +28,13 @@ export class Tab2Page {
 
     // tslint:disable-next-line:max-line-length
 
-    constructor(public modalController: ModalController, private firestore: AngularFirestore) {
+    constructor(public modalController: ModalController, private firestore: AngularFirestore, public fcm: NotificationsService) {
         this.firestore.collection('users').doc('4CMyPB6tafUbL1CKzCb8').snapshotChanges().subscribe(ref => {
             // @ts-ignore
             this.unreadPings = ref.payload.data().unreadPings.length;
         });
         this.updateVals();
+        this.fcm.getToken('4CMyPB6tafUbL1CKzCb8');
     }
 
     async presentModal() {

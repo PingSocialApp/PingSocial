@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { Tab2Page } from './tab2.page';
 import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestoreModule} from '@angular/fire/firestore';
+import {NotificationsService} from '../notifications.service';
 
 @NgModule({
   imports: [
@@ -17,5 +18,6 @@ import {AngularFirestoreModule} from '@angular/fire/firestore';
   ],
   declarations: [Tab2Page, SettingsPage],
   entryComponents: [SettingsPage],
+  providers: [NotificationsService]
 })
 export class Tab2PageModule {}
