@@ -8,6 +8,7 @@ ion-content ion-toolbar {
 
 .qrcode{
   margin: 7% auto;
+  margin-bottom: 2%;
   width: 50%;
   border: 5px solid;
   border-color: #8FDEE6;
@@ -16,4 +17,8 @@ ion-content ion-toolbar {
 
 .displayIcon{
   margin-right: 2%;
+}
+
+.downloadButton{
+  margin: 0 auto;
 }

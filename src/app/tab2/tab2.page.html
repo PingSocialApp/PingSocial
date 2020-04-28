@@ -18,14 +18,18 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-    {{qrData}}
+    <ion-img class="qrcode" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{qrData}}">
+    </ion-img>
+    <ion-item style="--background: transparent;">
+        <ion-button href="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{qrData}}&download=1" class="downloadButton">Download</ion-button>
+    </ion-item>
     <ion-list style="margin-top: 2%">
         <ion-item>
             <ion-icon class="displayIcon phicon" name="call"></ion-icon>
             <ion-label>
                 Phone Number
             </ion-label>
-            <ion-toggle [(ngModel)]="phone" checked="true" (ionChange)="updateVals()" ></ion-toggle>
+            <ion-toggle [(ngModel)]="phone" checked="true" (ionChange)="updateVals()"></ion-toggle>
         </ion-item>
         <ion-item>
             <ion-icon class="displayIcon micon" name="mail"></ion-icon>

@@ -7,6 +7,7 @@ import { Tab2Page } from './tab2.page';
 import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestoreModule} from '@angular/fire/firestore';
 import {NotificationsService} from '../notifications.service';
+import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 
 @NgModule({
   imports: [
@@ -18,6 +19,6 @@ import {NotificationsService} from '../notifications.service';
   ],
   declarations: [Tab2Page, SettingsPage],
   entryComponents: [SettingsPage],
-  providers: [NotificationsService]
+  providers: [NotificationsService, BarcodeScanner]
 })
 export class Tab2PageModule {}

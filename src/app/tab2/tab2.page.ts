@@ -4,7 +4,6 @@ import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {NotificationsService} from '../notifications.service';
 
-
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
