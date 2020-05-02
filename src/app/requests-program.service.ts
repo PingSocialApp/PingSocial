@@ -1,20 +1,24 @@
 import { Injectable } from '@angular/core';
 import {AngularFirestoreDocument, AngularFirestore} from '@angular/fire/firestore';
 import {ToastController} from '@ionic/angular';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RequestsProgramService {
-  userRef: AngularFirestoreDocument;
+  currentUserRef: AngularFirestoreDocument;
 
-  constructor(private firestore: AngularFirestore, private toastController: ToastController) {
-    this.userRef = this.firestore.collection('users').doc(
-        '4CMyPB6tafUbL1CKzCb8');
+  constructor(private firestore: AngularFirestore, private toastController: ToastController, private auth: AngularFireAuth) {
+    this.auth.auth.onAuthStateChanged((user) => {
+      if(user) {
+        this.currentUserRef = this.firestore.collection('users').doc(user.uid);
+      }
+    });
   }
 
   sendRequest(userId: string, optionsData: string){
-    this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
+    this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
         .where('userRec', '==', this.firestore.collection('users').doc(userId).ref).where('pendingRequest', '==', true))
         .snapshotChanges().subscribe(data => {
           if(data.length !== 0){
@@ -22,8 +26,7 @@ export class RequestsProgramService {
           }else{
             this.firestore.collection('links').add({
               pendingRequest: true,
-              userSent: this.firestore.collection('users').doc(
-                  '4CMyPB6tafUbL1CKzCb8').ref,
+              userSent: this.currentUserRef.ref,
               userRec: this.firestore.collection('users').doc(userId).ref,
               linkPermissions: optionsData + '/' + userId
             }).then((data) => {

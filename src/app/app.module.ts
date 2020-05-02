@@ -10,7 +10,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 import {AngularFireModule} from '@angular/fire';
-import {FirebaseUIModule} from 'firebaseui-angular';
 import {environment} from '../environments/environment';
 import {AngularFireMessagingModule} from '@angular/fire/messaging';
 import {AngularFirestore} from '@angular/fire/firestore';
@@ -20,7 +19,7 @@ import {NotificationsService} from './notifications.service';
   declarations: [AppComponent],
   entryComponents: [],
   // tslint:disable-next-line:max-line-length
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, FirebaseUIModule, AngularFireModule.initializeApp(environment.firebase), AngularFireMessagingModule],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, AngularFireModule.initializeApp(environment.firebase), AngularFireMessagingModule],
   providers: [
     StatusBar,
     SplashScreen,

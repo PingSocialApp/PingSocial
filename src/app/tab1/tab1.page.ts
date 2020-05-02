@@ -21,9 +21,9 @@ export class Tab1Page {
     scanResult = null;
 
     constructor(public barcodeScanner: BarcodeScanner, private toastCtrl: ToastController, public rs: RequestsProgramService) {
+
     }
 
-// TODO implement requests
     scan() {
         // Function doesn't work on web version
         this.barcodeScanner.scan().then(barcodeData => {

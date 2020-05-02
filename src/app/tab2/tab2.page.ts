@@ -3,14 +3,17 @@ import {ModalController} from '@ionic/angular';
 import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {NotificationsService} from '../notifications.service';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
-    styleUrls: ['tab2.page.scss']
+    styleUrls: ['tab2.page.scss'],
+    providers: [AngularFireAuth]
 })
 
 export class Tab2Page {
+    userId: string;
     unreadPings: number;
     phone = true;
     email = true;
@@ -27,13 +30,14 @@ export class Tab2Page {
 
     // tslint:disable-next-line:max-line-length
 
-    constructor(public modalController: ModalController, private firestore: AngularFirestore, public fcm: NotificationsService) {
-        this.firestore.collection('users').doc('4CMyPB6tafUbL1CKzCb8').snapshotChanges().subscribe(ref => {
+    constructor(public modalController: ModalController, private auth: AngularFireAuth, private firestore: AngularFirestore, public fcm: NotificationsService) {
+        this.userId = this.auth.auth.currentUser.uid;
+        this.firestore.collection('users').doc(this.userId).snapshotChanges().subscribe(ref => {
             // @ts-ignore
             this.unreadPings = ref.payload.data().unreadPings.length;
         });
         this.updateVals();
-        this.fcm.getToken('4CMyPB6tafUbL1CKzCb8');
+        // this.fcm.getToken('4CMyPB6tafUbL1CKzCb8');
     }
 
     async presentModal() {
@@ -68,6 +72,6 @@ export class Tab2Page {
         const websiteVal = +!!this.website << 0;
         // tslint:disable-next-line:no-bitwise max-line-length
         const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal;
-        this.qrData = code + '/' + '4CMyPB6tafUbL1CKzCb8';
+        this.qrData = code + '/' + this.userId;
     }
 }

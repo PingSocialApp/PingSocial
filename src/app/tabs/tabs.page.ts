@@ -17,23 +17,28 @@ export class TabsPage {
   currentUserRef: AngularFirestoreDocument;
 
   constructor(private auth: AngularFireAuth, private db: AngularFirestore, private storage: Storage, private router: Router) {
-    this.auth.authState.subscribe(this.firebaseAuthChangeListener);
-    this.currentUserRef = this.db.collection('users').doc(
-        '4CMyPB6tafUbL1CKzCb8');
-    this.db.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
-        .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
-        this.requestAmount = res.length;
+    // this.auth.authState.subscribe(this.firebaseAuthChangeListener);
+    this.auth.auth.onAuthStateChanged((user) => {
+      if(user){
+        this.currentUserRef = this.db.collection('users').doc(user.uid);
+        this.db.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+            .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
+          this.requestAmount = res.length;
+        });
+      }else{
+        this.router.navigate(['/']);
+      }
     });
   }
 
-  private firebaseAuthChangeListener(response) {
-    // if needed, do a redirect in here
-    if (response) {
-      console.log('Logged in :)');
-    } else {
-      console.log('Logged out :(');
-      this.router.navigate(['/']);
-    }
-  }
+  // private firebaseAuthChangeListener(response) {
+  //   // if needed, do a redirect in here
+  //   if (response) {
+  //     console.log('Logged in :)');
+  //   } else {
+  //     console.log('Logged out :(');
+  //     this.router.navigate(['/']);
+  //   }
+  // }
 
 }

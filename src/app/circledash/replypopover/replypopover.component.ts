@@ -1,7 +1,7 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
-// import {AngularFirestoreDocument} from '@angular/fire/firestore';
 import {NavParams, PopoverController, ToastController} from '@ionic/angular';
 import * as firebase from 'firebase';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
     selector: 'app-replypopover',
@@ -11,9 +11,15 @@ import * as firebase from 'firebase';
 })
 export class ReplypopoverComponent implements OnInit {
     responseMessage: Array<string>;
-
-    constructor(private navParams: NavParams, private popoverController: PopoverController, private toastController: ToastController) {
+    currentUserId: string;
+    constructor(private auth: AngularFireAuth,
+                private navParams: NavParams, private popoverController: PopoverController, private toastController: ToastController) {
         this.responseMessage = this.navParams.get('messages');
+        this.auth.auth.onAuthStateChanged((user) => {
+            if (user) {
+                this.currentUserId = user.uid;
+            }
+        });
     }
 
     ngOnInit() {
@@ -30,7 +36,7 @@ export class ReplypopoverComponent implements OnInit {
                 unreadPings: firebase.firestore.FieldValue.arrayUnion(db.collection('pings').doc(this.navParams.get('pingId')).ref)
             }).then(() => {
                 console.log('User Sent successfully updated!');
-                db.collection('users').doc('4CMyPB6tafUbL1CKzCb8').update({
+                db.collection('users').doc(this.currentUserId).update({
                     unreadPings: firebase.firestore.FieldValue.arrayRemove(db.collection('pings').doc(this.navParams.get('pingId')).ref)
                 }).then(() => {
                     console.log('You successfully updated!');

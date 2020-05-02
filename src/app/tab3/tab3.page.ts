@@ -2,12 +2,13 @@ import {Component} from '@angular/core';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import {Link} from '../circledash/new-ping/new-ping.page';
 import {AngularFireStorage} from '@angular/fire/storage';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
     selector: 'app-tab3',
     templateUrl: 'tab3.page.html',
     styleUrls: ['tab3.page.scss'],
-    providers: [AngularFireStorage]
+    providers: [AngularFireStorage, AngularFireAuth]
 })
 export class Tab3Page {
     currentUserRef: AngularFirestoreDocument;
@@ -18,10 +19,10 @@ export class Tab3Page {
     sLinks: Array<Link>;
     displayRL: boolean;
 
-    constructor(private firestore: AngularFirestore, private storage: AngularFireStorage) {
+    constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
         this.displayRL = true;
         this.currentUserRef = this.firestore.collection('users').doc(
-            '4CMyPB6tafUbL1CKzCb8');
+            this.auth.auth.currentUser.uid);
         this.rLinks = [];
         this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
             .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {

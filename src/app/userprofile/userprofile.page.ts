@@ -4,12 +4,13 @@ import {AngularFirestore, AngularFirestoreDocument, DocumentReference} from '@an
 import {RequestsProgramService} from '../requests-program.service';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {ToastController} from '@ionic/angular';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
     selector: 'app-userprofile',
     templateUrl: './userprofile.page.html',
     styleUrls: ['./userprofile.page.scss'],
-    providers: [RequestsProgramService, AngularFireStorage]
+    providers: [RequestsProgramService, AngularFireStorage, AngularFireAuth]
 })
 export class UserprofilePage implements OnInit {
     userRef: AngularFirestoreDocument;
@@ -44,7 +45,7 @@ export class UserprofilePage implements OnInit {
     professionalemail: boolean;
     website: boolean;
 
-    constructor(private acr: ActivatedRoute, private firestore: AngularFirestore, private rps: RequestsProgramService,
+    constructor(private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
                 private storage: AngularFireStorage, private toastController: ToastController) {
         this.displayTF = true;
         this.userRef = this.firestore.collection('users').doc(this.acr.snapshot.params.id);
@@ -66,7 +67,7 @@ export class UserprofilePage implements OnInit {
 
                 this.firestore.collection('links', ref => ref.where('userRec', '==', this.userRef.ref)
                     .where('userSent', '==', this.firestore.collection('users').doc(
-                        '4CMyPB6tafUbL1CKzCb8').ref).where('pendingRequest', '==', false)
+                        this.auth.auth.currentUser.uid).ref).where('pendingRequest', '==', false)
                     .where('pendingRequest', '==', false)).snapshotChanges().subscribe(linkeData => {
                     if(linkeData.length !== 0) {
                         this.renderUserPermissions(userData, linkeData[0].payload.doc.data());
@@ -78,7 +79,7 @@ export class UserprofilePage implements OnInit {
             });
         this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
             .where('userRec', '==', this.firestore.collection('users').doc(
-                '4CMyPB6tafUbL1CKzCb8').ref)
+                this.auth.auth.currentUser.uid).ref)
             .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
                 if(res.length !== 0){
                     this.linkDoc = res[0].payload.doc.ref;
@@ -168,7 +169,7 @@ export class UserprofilePage implements OnInit {
         // tslint:disable-next-line:no-bitwise max-line-length
         const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal;
         this.firestore.doc(this.linkDoc).update({
-            linkPermissions: code + '/' + '4CMyPB6tafUbL1CKzCb8'
+            linkPermissions: code + '/' + this.auth.auth.currentUser.uid
         }).then(async value => {
             const toast = await this.toastController.create({
                 message: 'User Permissions have been updated!',

@@ -5,7 +5,6 @@ import {Router} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import * as firebase from 'firebase/app';
 import {AngularFireStorage} from '@angular/fire/storage';
-import jsQR from 'jsqr';
 
 @Component({
     selector: 'app-settings',
@@ -20,6 +19,7 @@ export class SettingsPage implements OnInit {
 
     currentUserRef: AngularFirestoreDocument;
     currentUser: any;
+    currentUserId: string;
     sendingMessage: string[];
     responseMessage: string[];
     fileName: string;
@@ -27,23 +27,31 @@ export class SettingsPage implements OnInit {
 
     constructor(private modalCtrl: ModalController, private auth: AngularFireAuth, private r: Router, private firestore: AngularFirestore
         , private toastController: ToastController, private storage: AngularFireStorage) {
-        this.currentUserRef = this.firestore.collection('users').doc('4CMyPB6tafUbL1CKzCb8');
         this.sendingMessage = [];
         this.responseMessage = [];
         this.fileName = null;
         this.latestPhoto = null;
+        this.auth.auth.onAuthStateChanged((user) => {
+            if(user){
+                this.currentUserId = user.uid;
+                this.currentUserRef = this.firestore.collection('users').doc(user.uid);
+            }else{
+                this.closeModal();
+                this.r.navigate(['/']);
+            }
+        });
     }
 
-    ngOnInit() {
-        this.auth.authState.subscribe();
+    ngOnInit(){
         this.currentUserRef.snapshotChanges()
             .subscribe(res => {
                 this.currentUser = res.payload.data();
                 if (this.currentUser.profilepic.startsWith('h')) {
-                    document.getElementById('imagePreview').style.backgroundImage = this.currentUser.profilepic;
+                    // TODO Not Rendering Properly
+                    document.getElementById('imagePreview').style.backgroundImage = 'url('+this.currentUser.profilepic+')';
                 } else {
                     this.storage.storage.refFromURL(this.currentUser.profilepic).getDownloadURL().then(url => {
-                        document.getElementById('imagePreview').style.backgroundImage = 'url('+url+')';;
+                        document.getElementById('imagePreview').style.backgroundImage = 'url('+url+')';
                     });
                 }
             });
@@ -55,15 +63,15 @@ export class SettingsPage implements OnInit {
             this.presentToast('Whoops! Looks like some of your settings might be empty');
         } else {
             if(this.fileName != null){
-                const ref = this.storage.ref('4CMyPB6tafUbL1CKzCb8' + this.fileName);
+                const ref = this.storage.ref(this.currentUserId + this.fileName);
                 if (typeof this.latestPhoto === 'string') {
                     const task = ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
                         console.log(this.fileName);
                         this.firestore.collection('users').doc(
-                            '4CMyPB6tafUbL1CKzCb8'
+                            this.currentUserId
                         ).update({
                             profilepic: 'gs://circles-4d081.appspot.com/' + (
-                                '4CMyPB6tafUbL1CKzCb8'
+                                this.currentUserId
                                 + this.fileName)
                         }).then(value => {
                             this.fileName = null;
@@ -116,8 +124,8 @@ export class SettingsPage implements OnInit {
 
     logout() {
         this.auth.auth.signOut().then(() => {
-            this.r.navigate(['/']);
             this.closeModal();
+            this.r.navigate(['/']);
         });
     }
 
@@ -133,8 +141,6 @@ export class SettingsPage implements OnInit {
 
     handleFile(files: FileList) {
         const file = files.item(0);
-        //TODO Change
-        // const filePath = 'myUserPhoto';
 
         const reader = new FileReader();
         reader.onload = (e) => {

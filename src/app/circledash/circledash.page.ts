@@ -5,6 +5,7 @@ import {Observable} from 'rxjs';
 import {NewPingPage} from './new-ping/new-ping.page';
 import { ReplypopoverComponent} from './replypopover/replypopover.component';
 import {AngularFireStorage} from '@angular/fire/storage';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 export interface Ping{
     id: any;
@@ -19,7 +20,7 @@ export interface Ping{
   selector: 'app-circledash',
   templateUrl: './circledash.page.html',
   styleUrls: ['./circledash.page.scss'],
-    providers: [AngularFireStorage]
+    providers: [AngularFireStorage, AngularFireAuth]
 })
 
 
@@ -31,9 +32,8 @@ export class CircledashPage implements OnInit {
 
     // tslint:disable-next-line:max-line-length
   constructor(private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController,
-              private toastController: ToastController, private storage: AngularFireStorage) {
-    this.currentUser = this.firestore.collection('users').doc(
-        '4CMyPB6tafUbL1CKzCb8');
+              private toastController: ToastController, private auth: AngularFireAuth, private storage: AngularFireStorage) {
+              this.currentUser = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
     this.pingArray = [];
     this.responseMessages = [];
       this.currentUser.snapshotChanges()

@@ -3,6 +3,7 @@ import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestor
 import {ModalController, ToastController} from '@ionic/angular';
 import * as firebase from 'firebase/app';
 import {AngularFireStorage} from '@angular/fire/storage';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 export interface Link {
     id: string;
@@ -15,7 +16,7 @@ export interface Link {
     selector: 'app-new-ping',
     templateUrl: './new-ping.page.html',
     styleUrls: ['./new-ping.page.scss'],
-    providers: [AngularFireStorage]
+    providers: [AngularFireStorage, AngularFireAuth]
 })
 
 export class NewPingPage implements OnInit {
@@ -23,10 +24,9 @@ export class NewPingPage implements OnInit {
     currentUser: any;
     links: Array<Link>;
 
-    constructor(private firestore: AngularFirestore, private modalCtrl: ModalController, private toastController: ToastController, private storage: AngularFireStorage) {
-        this.currentUserRef = this.firestore.collection('users').doc(
-            '4CMyPB6tafUbL1CKzCb8');
-        this.links = [];
+    constructor(private firestore: AngularFirestore, private auth: AngularFireAuth, private modalCtrl: ModalController, private toastController: ToastController, private storage: AngularFireStorage) {
+                this.currentUserRef = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
+                this.links = [];
         this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).snapshotChanges().subscribe(res => {
             this.links = [];
             this.renderLink(res);

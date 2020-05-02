@@ -8,12 +8,14 @@ import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestoreModule} from '@angular/fire/firestore';
 import {NotificationsService} from '../notifications.service';
 import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
+import {AngularFireAuthModule} from '@angular/fire/auth';
 
 @NgModule({
   imports: [
     IonicModule,
     CommonModule,
     FormsModule,
+    AngularFireAuthModule,
     AngularFirestoreModule,
     RouterModule.forChild([{path: '', component: Tab2Page}]),
   ],

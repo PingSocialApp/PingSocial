@@ -37,7 +37,6 @@
     "core-js": "^3.6.4",
     "firebase": "^7.13.2",
     "firebaseui": "^4.5.0",
-    "firebaseui-angular": "^4.1.0",
     "i": "^0.3.6",
     "ionic": "^5.4.16",
     "jsqr": "^1.2.0",

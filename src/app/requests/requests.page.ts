@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import {Link} from '../circledash/new-ping/new-ping.page';
 import {AngularFireStorage} from '@angular/fire/storage';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
     selector: 'app-requests',
@@ -13,9 +14,9 @@ export class RequestsPage implements OnInit {
     currentUser: any;
     links: Array<Link>;
 
-    constructor(private firestore: AngularFirestore, private storage: AngularFireStorage) {
+    constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
         this.currentUserRef = this.firestore.collection('users').doc(
-            '4CMyPB6tafUbL1CKzCb8');
+            this.auth.auth.currentUser.uid);
         this.links = [];
         this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
             .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
