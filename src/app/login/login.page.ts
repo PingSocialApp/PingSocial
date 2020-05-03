@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Router} from '@angular/router';
 import {AngularFireAuth} from '@angular/fire/auth';
+import {ToastController} from '@ionic/angular';
 
 // tslint:disable-next-line:import-spacing
 
@@ -18,7 +19,7 @@ export class LoginPage implements OnInit {
   rePass: string;
 
   // tslint:disable-next-line:no-shadowed-variable
-  constructor(public router: Router, private auth: AngularFireAuth) {
+  constructor(public router: Router, private auth: AngularFireAuth, private toastController: ToastController) {
     this.loginScreen = true;
     // Todo
     this.auth.auth.onAuthStateChanged((user) => {
@@ -37,8 +38,12 @@ export class LoginPage implements OnInit {
   createAccount() {
     if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
       this.auth.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
-      }).catch((error) => {
-        console.log(error);
+      }).catch(async (error) => {
+        const toast = await this.toastController.create({
+          message: error.message,
+          duration: 2000
+        });
+        await toast.present();
       });
     }
   }
@@ -47,8 +52,12 @@ export class LoginPage implements OnInit {
     if (this.email !== '' && this.password !== ''){
       this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then((value) => {
         this.router.navigate(['/tabs']);
-      }).catch((error) => {
-        console.log(error)
+      }).catch(async (error) => {
+        const toast = await this.toastController.create({
+          message: error.message,
+          duration: 2000
+        });
+        await toast.present();
       });
     }
   }

@@ -25,6 +25,7 @@ export class TabsPage {
             .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
           this.requestAmount = res.length;
         });
+        this.router.navigate(['/tabs']);
       }else{
         this.router.navigate(['/']);
       }
