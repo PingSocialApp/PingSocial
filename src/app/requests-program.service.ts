@@ -8,16 +8,22 @@ import {AngularFireAuth} from '@angular/fire/auth';
 })
 export class RequestsProgramService {
   currentUserRef: AngularFirestoreDocument;
+  currentUserId: string;
 
   constructor(private firestore: AngularFirestore, private toastController: ToastController, private auth: AngularFireAuth) {
     this.auth.auth.onAuthStateChanged((user) => {
       if(user) {
+        this.currentUserId = user.uid;
         this.currentUserRef = this.firestore.collection('users').doc(user.uid);
       }
     });
   }
 
   sendRequest(userId: string, optionsData: string){
+    if(this.currentUserId === userId){
+      this.presentToast('Whoops, this is your code!');
+      return;
+    }
     this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
         .where('userRec', '==', this.firestore.collection('users').doc(userId).ref).where('pendingRequest', '==', true))
         .snapshotChanges().subscribe(data => {
@@ -30,7 +36,7 @@ export class RequestsProgramService {
               userRec: this.firestore.collection('users').doc(userId).ref,
               linkPermissions: optionsData + '/' + userId
             }).then((data) => {
-                this.presentToast('Sent Request!')
+                this.presentToast('Sent Request!');
             });
           }
     });
@@ -41,6 +47,6 @@ export class RequestsProgramService {
       message: m,
       duration: 2000
     });
-    toast.present();
+    await toast.present();
   }
 }

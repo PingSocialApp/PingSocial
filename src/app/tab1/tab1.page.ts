@@ -1,8 +1,9 @@
 import {Component, ViewChild, ElementRef} from '@angular/core';
-import {ToastController, LoadingController, Platform} from '@ionic/angular';
-import {BarcodeScanner, BarcodeScannerOptions} from '@ionic-native/barcode-scanner/ngx';
+import {ToastController, AlertController} from '@ionic/angular';
+import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {RequestsProgramService} from '../requests-program.service';
 import jsQR from 'jsqr';
+import {AngularFirestore} from '@angular/fire/firestore';
 
 @Component({
     selector: 'app-tab1',
@@ -20,7 +21,7 @@ export class Tab1Page {
     canvasContext: any;
     scanResult = null;
 
-    constructor(public barcodeScanner: BarcodeScanner, private toastCtrl: ToastController, public rs: RequestsProgramService) {
+    constructor(public barcodeScanner: BarcodeScanner, private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController, public rs: RequestsProgramService) {
 
     }
 
@@ -28,7 +29,7 @@ export class Tab1Page {
         // Function doesn't work on web version
         this.barcodeScanner.scan().then(barcodeData => {
             const dataArray = this.dataReveal(barcodeData.text);
-            this.rs.sendRequest(dataArray[0], dataArray[1]);
+            this.presentAlertConfirm(dataArray);
         }).catch(err => {
             console.log('Error', err);
         });
@@ -38,8 +39,8 @@ export class Tab1Page {
         this.fileinput.nativeElement.click();
     }
 
-    handleFile(files: FileList) {
-        const file = files.item(0);
+    handleFile(target: any) {
+        const file = target.files.item(0);
         const img = new Image();
         this.canvasElement = this.canvas.nativeElement;
         this.canvasContext = this.canvasElement.getContext('2d');
@@ -58,7 +59,7 @@ export class Tab1Page {
             if (code) {
                 this.scanResult = code.data;
                 const dataArray = this.dataReveal(code.data);
-                this.rs.sendRequest(dataArray[0], dataArray[1]);
+                this.presentAlertConfirm(dataArray);
             }else{
                 const toast = await this.toastCtrl.create({
                     message: 'Invalid Code. Please Try Again',
@@ -68,9 +69,36 @@ export class Tab1Page {
             }
         };
         img.src = URL.createObjectURL(file);
+        target.value = '';
     }
 
     dataReveal(rawData: string){
         return [rawData.substring(rawData.indexOf('/')+1),rawData.substring(0,rawData.indexOf('/'))];
+    }
+
+    async presentAlertConfirm(dataArray: Array<string>) {
+        console.log('hey');
+        this.db.collection('users').doc(dataArray[0]).get().subscribe(async (data) => {
+            const alert = await this.alertController.create({
+                header: 'Confirm Request!',
+                message: 'Do you want to link with ' + data.data().name,
+                buttons: [
+                    {
+                        text: 'Cancel',
+                        role: 'cancel',
+                        cssClass: 'secondary',
+                        handler: (blah) => {
+                        }
+                    }, {
+                        text: 'Okay',
+                        handler: () => {
+                            this.rs.sendRequest(dataArray[0], dataArray[1]);
+                        }
+                    }
+                ]
+            });
+
+            await alert.present();
+        });
     }
 }
