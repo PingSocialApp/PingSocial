@@ -32,9 +32,6 @@ export class Tab2Page {
     // tslint:disable-next-line:max-line-length
 
     constructor(public modalController: ModalController, private router: Router, private auth: AngularFireAuth, private firestore: AngularFirestore, public fcm: NotificationsService) {
-        if(this.auth.auth.currentUser.uid === null){
-            this.router.navigate(['/'])
-        }
         this.userId = this.auth.auth.currentUser.uid;
         this.firestore.collection('users').doc(this.userId).snapshotChanges().subscribe(ref => {
             // @ts-ignore

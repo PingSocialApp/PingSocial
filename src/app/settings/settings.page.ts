@@ -37,7 +37,7 @@ export class SettingsPage implements OnInit {
                 this.currentUserRef = this.firestore.collection('users').doc(user.uid);
             }else{
                 this.closeModal();
-                this.r.navigate(['/']);
+                this.r.navigate(['/login']);
             }
         });
     }
@@ -47,7 +47,6 @@ export class SettingsPage implements OnInit {
             .subscribe(res => {
                 this.currentUser = res.payload.data();
                 if (this.currentUser.profilepic.startsWith('h')) {
-                    // TODO Not Rendering Properly
                     document.getElementById('imagePreview').style.backgroundImage = 'url('+this.currentUser.profilepic+')';
                 } else {
                     this.storage.storage.refFromURL(this.currentUser.profilepic).getDownloadURL().then(url => {
@@ -125,7 +124,7 @@ export class SettingsPage implements OnInit {
     logout() {
         this.auth.auth.signOut().then(() => {
             this.closeModal();
-            this.r.navigate(['/']);
+            this.r.navigate(['/login']);
         });
     }
 
