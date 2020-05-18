@@ -1,143 +1,150 @@
 <ion-header>
     <ion-toolbar>
-        <ion-title>[NAME OF USER]</ion-title>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
     </ion-toolbar>
 </ion-header>
 
 <ion-content>
-    <ion-avatar style="margin: 2% auto;"><img src="https://picsum.photos/400"></ion-avatar>
-    <ion-label style="text-align: center"><h1>[NAME]</h1></ion-label>
-    <ion-label style="text-align: center;"><h3>[BIO]</h3></ion-label>
-    <ion-segment style="margin-top: 2%" value="enemies">
-        <ion-segment-button value="friends">
+    <ion-avatar><img src="{{img}}"></ion-avatar>
+    <ion-label style="text-align: center"><h1>{{userName}}</h1></ion-label>
+    <ion-label style="text-align: center;"><h3>{{userBio}}</h3></ion-label>
+    <ion-segment style="margin-top: 2%" value="tf" (ionChange)="segmentChanged($event)">
+        <ion-segment-button value="tf">
             <ion-label>Their Info</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="enemies">
+        <ion-segment-button value="my">
             <ion-label>My Info</ion-label>
         </ion-segment-button>
     </ion-segment>
-    <!--  <ion-list>-->
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="logo-instagram"></ion-icon> Instagram</ion-label>-->
-    <!--      <ion-toggle checked="true"></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="logo-snapchat"></ion-icon> Snapchat</ion-label>-->
-    <!--      <ion-toggle checked="true"></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="logo-facebook"></ion-icon> Facebook</ion-label>-->
-    <!--      <ion-toggle checked="true" ></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="logo-twitter"></ion-icon> Twitter</ion-label>-->
-    <!--      <ion-toggle checked="true"></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="mail"></ion-icon> Email</ion-label>-->
-    <!--      <ion-toggle checked="true"></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="call"></ion-icon> Phone Number</ion-label>-->
-    <!--      <ion-toggle checked="true" ></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="globe"></ion-icon> Website</ion-label>-->
-    <!--      <ion-toggle checked="true" ></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="card"></ion-icon> Venmo</ion-label>-->
-    <!--      <ion-toggle checked="true"></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="musical-notes"></ion-icon> Tiktok</ion-label>-->
-    <!--      <ion-toggle checked="true"></ion-toggle>-->
-    <!--    </ion-item>-->
-
-    <!--    <ion-item>-->
-    <!--      <ion-label><ion-icon name="logo-linkedin"></ion-icon> LinkedIn</ion-label>-->
-    <!--      <ion-toggle checked="true" ></ion-toggle>-->
-    <!--    </ion-item>-->
-    <!--  </ion-list>-->
-    <ion-grid>
-        <ion-row>
-            <ion-col>
-                <ion-button color="success" expand="block">
-                    <ion-icon name="call"></ion-icon>
-                </ion-button>
-            </ion-col>
-            <ion-col>
-                <ion-button expand="block">
-                    <ion-icon name="mail"></ion-icon>
-                </ion-button>
-            </ion-col>
-        </ion-row>
-      <ion-row>
-        <ion-col>
-          <ion-button expand="block" class="instabutton">
-            <ion-icon name="logo-instagram"></ion-icon>
-          </ion-button>
-        </ion-col>
-        <ion-col>
-          <ion-button expand="block" class="snapbutton">
-            <ion-icon name="logo-snapchat"></ion-icon>
-          </ion-button>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col>
-          <ion-button expand="block" class="fbbutton">
-            <ion-icon name="logo-facebook"></ion-icon>
-          </ion-button>
-        </ion-col>
-        <ion-col>
-          <ion-button expand="block" class="ttbutton">
-          </ion-button>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col>
-          <ion-button expand="block" class="twitterbutton">
-            <ion-icon name="logo-twitter"></ion-icon>
-          </ion-button>
-        </ion-col>
-        <ion-col>
-          <ion-button expand="block" class="venmobutton">
-          </ion-button>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col>
-          <ion-button expand="block" class="linkedinbutton">
-            <ion-icon name="logo-linkedin"></ion-icon>
-          </ion-button>
-        </ion-col>
-        <ion-col>
-          <ion-button expand="block" color="medium">
+    <ion-list *ngIf="displayTF && theirInfo" class="TFDisplay">
+        <ion-button color="success" expand="block" href="tel:{{userPhone}}" *ngIf="userPhone.length !== 0">
+            <ion-icon name="call"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" class="mailbutton" href="mailto:{{userPersonalEmail}}"
+                    *ngIf="userPersonalEmail.length !== 0">
             <ion-icon name="mail"></ion-icon>
-          </ion-button>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col>
-          <ion-button expand="block" color="danger">
+        </ion-button>
+        <ion-button expand="block" class="instabutton" href="https://instagram.com/{{userInstagram}}"
+                    *ngIf="userInstagram.length !== 0">
+            <ion-icon name="logo-instagram"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" class="snapbutton" href="https://snapchat.com/add/{{userSnapchat}}"
+                    *ngIf="userSnapchat.length !== 0">
+            <ion-icon name="logo-snapchat"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" class="fbbutton" href="https://facebook.com/{{userFacebook}}"
+                    *ngIf="userFacebook.length !== 0">
+            <ion-icon name="logo-facebook"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" class="ttbutton" href="https://tiktok.com/{{userTiktok}}" *ngIf="userTiktok.length !== 0">
+            <ion-icon class="displayIcon" name="musical-note"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" class="twitterbutton" href="https://twitter.com/{{userTwitter}}"
+                    *ngIf="userTwitter.length !== 0">
+            <ion-icon name="logo-twitter"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" class="venmobutton" href="https://venmo.com/{{userVenmo}}" *ngIf="userVenmo.length !== 0">
+            <ion-icon class="displayIcon" name="card"></ion-icon>
+        </ion-button>
+        <!-- TODO -->
+        <ion-button expand="block" class="linkedinbutton" href="{{userLinkedin}}" *ngIf="userLinkedin.length !== 0">
+            <ion-icon name="logo-linkedin"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" color="medium" href="mailto:{{userProfessionalEmail}}"
+                    *ngIf="userProfessionalEmail.length !== 0">
+            <ion-icon name="mail"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" color="danger" href="{{userWebsite}}" *ngIf="userWebsite.length !== 0">
             <ion-icon name="globe"></ion-icon>
-          </ion-button>
-        </ion-col>
-        <ion-col>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-    <!--    <ion-item>-->
-    <!--  <ion-button expand="full">-->
-    <!--    Update-->
-    <!--  </ion-button>-->
+        </ion-button>
+    </ion-list>
+    <ion-list *ngIf="!displayTF && myInfo">
+        <ion-item>
+            <ion-icon class="displayIcon phicon" name="call"></ion-icon>
+            <ion-label>
+                Phone Number
+            </ion-label>
+            <ion-toggle [(ngModel)]="phone"  (ionChange)="changePermissions()" ></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon micon" name="mail"></ion-icon>
+            <ion-label>
+                Email
+            </ion-label>
+            <ion-toggle [(ngModel)]="email"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon igicon" name="logo-instagram"></ion-icon>
+            <ion-label>
+                Instagram
+            </ion-label>
+            <ion-toggle [(ngModel)]="instagram"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon scicon" name="logo-snapchat"></ion-icon>
+            <ion-label>
+                Snapchat
+            </ion-label>
+            <ion-toggle [(ngModel)]="snapchat"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon fbicon" name="logo-facebook"></ion-icon>
+            <ion-label>
+                Facebook
+            </ion-label>
+            <ion-toggle [(ngModel)]="facebook"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon tticon" name="musical-note"></ion-icon>
+            <ion-label>
+                TikTok
+            </ion-label>
+            <ion-toggle [(ngModel)]="tiktok"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon twicon" name="logo-twitter"></ion-icon>
+            <ion-label>
+                Twitter
+            </ion-label>
+            <ion-toggle [(ngModel)]="twitter"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon vicon" name="card"></ion-icon>
+            <ion-label>
+                Venmo
+            </ion-label>
+            <ion-toggle [(ngModel)]="venmo"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon liicon" name="logo-linkedin"></ion-icon>
+            <ion-label>
+                LinkedIn
+            </ion-label>
+            <ion-toggle [(ngModel)]="linkedin"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon pmicon" name="mail"></ion-icon>
+            <ion-label>
+                Professional Email
+            </ion-label>
+            <ion-toggle [(ngModel)]="professionalemail"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon gicon" name="globe"></ion-icon>
+            <ion-label>
+                Website
+            </ion-label>
+            <ion-toggle [(ngModel)]="website"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+    </ion-list>
+    <ion-img class="tinoneimg" *ngIf="displayTF && !theirInfo" src="assets/undraw_Add_friends_wa2a.svg">
+    </ion-img>
+    <ion-button expand="full" (click)="createRequest(userId)" class="tinonebutton" *ngIf="displayTF && !theirInfo">
+        Request {{userName}}'s Info
+    </ion-button>
+    <ion-img *ngIf="!displayTF && !myInfo" src="assets/undraw_receipt_ecdd.svg" class="minoneimg">
+    </ion-img>
+    <h1 *ngIf="!displayTF && !myInfo" class="minonealert">{{userName}} has not requested your info</h1>
 </ion-content>

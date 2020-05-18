@@ -1,9 +1,46 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>circledash</ion-title>
-  </ion-toolbar>
+    <ion-toolbar>
+        <!--      <ion-buttons slot="start">-->
+        <!--        <ion-back-button></ion-back-button>-->
+        <!--      </ion-buttons>-->
+        <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content>
-
+    <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
+    <ion-list>
+        <ion-img *ngIf="pingArray.length === 0" src="assets/noping.svg" class="noPingImg"></ion-img>
+        <h1 *ngIf="pingArray.length === 0" class="noPingDisplay">No New Pings!</h1>
+        <ion-item-sliding *ngFor="let ping of pingArray">
+            <ion-item-options side="start" *ngIf="ping.recMessage === ''">
+                <ion-item-option class="left-swipe" (click)="replyPing($event, ping.id, ping.userSentId)">
+                    <ion-icon name="send"></ion-icon>
+                </ion-item-option>
+            </ion-item-options>
+            <ion-item-options side="start" *ngIf="ping.recMessage !== ''">
+                <ion-item-option class="left-swipe">{{ping.sentMessage}}</ion-item-option>
+            </ion-item-options>
+            <ion-item>
+                <ion-avatar slot="start">
+                    <img src="{{ping.userSentImg}}">
+                </ion-avatar>
+                <ion-label>
+                    <h2 *ngIf="ping.recMessage === ''">{{ping.sentMessage}}</h2>
+                    <h2 *ngIf="ping.recMessage !== ''">{{ping.recMessage}}</h2>
+                    <h3>From: {{ping.userSent}}</h3>
+                </ion-label>
+            </ion-item>
+                <ion-item-options side="end">
+                    <ion-item-option color="danger" (click)="deletePing(ping.id)">
+                        <ion-icon name="trash"></ion-icon>
+                    </ion-item-option>
+                </ion-item-options>
+        </ion-item-sliding>
+    </ion-list>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="presentNewPingModal()">
+            <ion-icon name="send"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
 </ion-content>

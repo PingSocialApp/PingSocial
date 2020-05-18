@@ -6,3 +6,28 @@ ion-content ion-toolbar {
   margin: 2%;
   height: 50%;
 }
+
+ion-buttons{
+  height: 25%;
+}
+
+ion-button{
+  margin: 0 auto;
+  height: 100%;
+  font-size: 6em;
+  color: gray;
+}
+
+.logoimg{
+  width: 75%;
+  margin: 0 auto;
+  margin-top: 30%;
+}
+
+.prompt{
+  margin: 0 auto;
+  text-align: center;
+  color: #8FDEE6;
+  font-family: "Lobster Two";
+  font-size: 2em;
+}

@@ -1,78 +1,105 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="presentModal()">
-        <ion-icon name="cog"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title style="text-align: center">
-      Ping
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button href="./circledash">
-        <ion-badge color="accent">25</ion-badge>
-        <ion-icon name="send"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="presentModal()">
+                <ion-icon class="displayIcon" name="cog"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
+        <ion-buttons slot="end">
+            <ion-button [routerLink]="['/circledash']">
+                <ion-badge color="accent" *ngIf="unreadPings !== 0">{{this.unreadPings}}</ion-badge>
+                <ion-icon class="displayIcon" name="send"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-<ion-img style="margin: 2% auto; width: 50%" src="https://www.qr-code-generator.com/wp-content/themes/qr/new_structure/markets/core_market_full/generator/dist/generator/assets/images/websiteQRCode_noFrame.png"></ion-img>
-  <ion-list>
-    <ion-item>
-      <ion-label><ion-icon name="logo-instagram"></ion-icon> Instagram</ion-label>
-      <ion-toggle checked="true"></ion-toggle>
+    <ion-img class="qrcode" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{qrData}}">
+    </ion-img>
+    <ion-item style="--background: transparent;">
+        <ion-button href="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{qrData}}&download=1" class="downloadButton">Download</ion-button>
     </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="logo-snapchat"></ion-icon> Snapchat</ion-label>
-      <ion-toggle checked="true"></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="logo-facebook"></ion-icon> Facebook</ion-label>
-      <ion-toggle checked="true" ></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="logo-twitter"></ion-icon> Twitter</ion-label>
-      <ion-toggle checked="true"></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="mail"></ion-icon> Email</ion-label>
-      <ion-toggle checked="true"></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="call"></ion-icon> Phone Number</ion-label>
-      <ion-toggle checked="true" ></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="globe"></ion-icon> Website</ion-label>
-      <ion-toggle checked="true" ></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="card"></ion-icon> Venmo</ion-label>
-      <ion-toggle checked="true"></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="musical-notes"></ion-icon> Tiktok</ion-label>
-      <ion-toggle checked="true"></ion-toggle>
-    </ion-item>
-
-    <ion-item>
-      <ion-label><ion-icon name="logo-linkedin"></ion-icon> LinkedIn</ion-label>
-      <ion-toggle checked="true" ></ion-toggle>
-    </ion-item>
-  </ion-list>
-<!--    <ion-item>-->
-      <ion-button expand="full">
-        Update
-      </ion-button>
-<!--    </ion-item>-->
+    <ion-list style="margin-top: 2%">
+        <ion-item>
+            <ion-icon class="displayIcon phicon" name="call"></ion-icon>
+            <ion-label>
+                Phone Number
+            </ion-label>
+            <ion-toggle [(ngModel)]="phone" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon micon" name="mail"></ion-icon>
+            <ion-label>
+                Email
+            </ion-label>
+            <ion-toggle [(ngModel)]="email" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon igicon" name="logo-instagram"></ion-icon>
+            <ion-label>
+                Instagram
+            </ion-label>
+            <ion-toggle [(ngModel)]="instagram" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon scicon" name="logo-snapchat"></ion-icon>
+            <ion-label>
+                Snapchat
+            </ion-label>
+            <ion-toggle [(ngModel)]="snapchat" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon fbicon" name="logo-facebook"></ion-icon>
+            <ion-label>
+                Facebook
+            </ion-label>
+            <ion-toggle [(ngModel)]="facebook" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon tticon" name="musical-note"></ion-icon>
+            <ion-label>
+                TikTok
+            </ion-label>
+            <ion-toggle [(ngModel)]="tiktok" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon twicon" name="logo-twitter"></ion-icon>
+            <ion-label>
+                Twitter
+            </ion-label>
+            <ion-toggle [(ngModel)]="twitter" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon vicon" name="card"></ion-icon>
+            <ion-label>
+                Venmo
+            </ion-label>
+            <ion-toggle [(ngModel)]="venmo" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon liicon" name="logo-linkedin"></ion-icon>
+            <ion-label>
+                LinkedIn
+            </ion-label>
+            <ion-toggle [(ngModel)]="linkedin" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon pmicon" name="mail"></ion-icon>
+            <ion-label>
+                Professional Email
+            </ion-label>
+            <ion-toggle [(ngModel)]="professionalemail" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon gicon" name="globe"></ion-icon>
+            <ion-label>
+                Website
+            </ion-label>
+            <ion-toggle [(ngModel)]="website" checked="true" (ionChange)="updateVals()"></ion-toggle>
+        </ion-item>
+    </ion-list>
 </ion-content>

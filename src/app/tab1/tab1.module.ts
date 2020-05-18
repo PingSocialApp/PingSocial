@@ -17,6 +17,7 @@ import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
   providers: [BarcodeScanner],
   declarations: [Tab1Page]
 })
+
 export class Tab1PageModule {
 
 }

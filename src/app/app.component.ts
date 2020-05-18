@@ -3,19 +3,19 @@ import { Component } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { Deeplinks } from '@ionic-native/deeplinks/ngx';
+import {NotificationsService} from './notifications.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss']
+  styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
   constructor(
     private platform: Platform,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
-    private deeplinks: Deeplinks
+    public nfs: NotificationsService
   ) {
     this.initializeApp();
   }
@@ -24,15 +24,7 @@ export class AppComponent {
     this.platform.ready().then(() => {
       this.statusBar.styleDefault();
       this.splashScreen.hide();
-
-      this.deeplinks.route({
-       }).subscribe(match => {
-         alert(JSON.stringify(match))
-       }, nomatch => {
-         alert(JSON.stringify(nomatch))
-       });
-
-
+      this.nfs.listen();
     });
   }
 }
