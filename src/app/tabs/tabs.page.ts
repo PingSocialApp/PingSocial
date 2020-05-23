@@ -1,38 +1,25 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import { Storage } from '@ionic/storage';
-import {Observable} from 'rxjs';
-import {Router} from '@angular/router';
-
+import {NotificationsService} from '../notifications.service';
 
 @Component({
-  selector: 'app-tabs',
-  templateUrl: 'tabs.page.html',
-  styleUrls: ['tabs.page.scss'],
-  providers: [AngularFireAuth]
+    selector: 'app-tabs',
+    templateUrl: 'tabs.page.html',
+    styleUrls: ['tabs.page.scss'],
+    providers: [AngularFireAuth]
 })
 export class TabsPage {
-  requestAmount: number;
-  currentUserRef: AngularFirestoreDocument;
+    requestAmount: number;
+    currentUserRef: AngularFirestoreDocument;
 
-  constructor(private auth: AngularFireAuth, private db: AngularFirestore, private storage: Storage, private router: Router) {
-    // this.auth.authState.subscribe(this.firebaseAuthChangeListener);
-    this.currentUserRef = this.db.collection('users').doc(this.auth.auth.currentUser.uid);
-    this.db.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
-        .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
-      this.requestAmount = res.length;
-    });
-  }
-
-  // private firebaseAuthChangeListener(response) {
-  //   // if needed, do a redirect in here
-  //   if (response) {
-  //     console.log('Logged in :)');
-  //   } else {
-  //     console.log('Logged out :(');
-  //     this.router.navigate(['/']);
-  //   }
-  // }
+    constructor(private auth: AngularFireAuth, private db: AngularFirestore, public notifService: NotificationsService) {
+        this.currentUserRef = this.db.collection('users').doc(this.auth.auth.currentUser.uid);
+        this.db.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+            .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
+            this.requestAmount = res.length;
+        });
+        this.notifService.getToken(this.auth.auth.currentUser.uid);
+    }
 
 }
