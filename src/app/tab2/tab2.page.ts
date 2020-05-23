@@ -2,7 +2,6 @@ import {Component} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {NotificationsService} from '../notifications.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {Router} from '@angular/router';
 
@@ -31,14 +30,13 @@ export class Tab2Page {
 
     // tslint:disable-next-line:max-line-length
 
-    constructor(public modalController: ModalController, private router: Router, private auth: AngularFireAuth, private firestore: AngularFirestore, public fcm: NotificationsService) {
+    constructor(public modalController: ModalController, private router: Router, private auth: AngularFireAuth, private firestore: AngularFirestore) {
         this.userId = this.auth.auth.currentUser.uid;
         this.firestore.collection('users').doc(this.userId).snapshotChanges().subscribe(ref => {
             // @ts-ignore
             this.unreadPings = ref.payload.data().unreadPings.length;
         });
         this.updateVals();
-        // this.fcm.getToken('4CMyPB6tafUbL1CKzCb8');
     }
 
     async presentModal() {
