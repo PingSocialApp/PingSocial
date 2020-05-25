@@ -31,15 +31,8 @@ export class SettingsPage implements OnInit {
         this.responseMessage = [];
         this.fileName = null;
         this.latestPhoto = null;
-        this.auth.auth.onAuthStateChanged((user) => {
-            if(user){
-                this.currentUserId = user.uid;
-                this.currentUserRef = this.firestore.collection('users').doc(user.uid);
-            }else{
-                this.closeModal();
-                this.r.navigate(['/login']);
-            }
-        });
+        this.currentUserId = this.auth.auth.currentUser.uid;
+        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
     }
 
     ngOnInit(){
@@ -87,28 +80,39 @@ export class SettingsPage implements OnInit {
                 sendingMessage: firebase.firestore.FieldValue.arrayRemove(
                     this.sendingMessage.toString()
                 )
-            });
-            this.currentUserRef.update({
-                name: (document.getElementById('username') as HTMLInputElement).value,
-                bio: (document.getElementById('bio') as HTMLInputElement).value,
-                responseMessage: firebase.firestore.FieldValue.arrayUnion(
-                    (document.getElementById('rm0') as HTMLInputElement).value,
-                    (document.getElementById('rm1') as HTMLInputElement).value,
-                    (document.getElementById('rm2') as HTMLInputElement).value,
-                    (document.getElementById('rm3') as HTMLInputElement).value,
-                    (document.getElementById('rm4') as HTMLInputElement).value,
-                ),
-                sendingMessage: firebase.firestore.FieldValue.arrayUnion(
-                    (document.getElementById('sm0') as HTMLInputElement).value,
-                    (document.getElementById('sm1') as HTMLInputElement).value,
-                    (document.getElementById('sm2') as HTMLInputElement).value,
-                    (document.getElementById('sm3') as HTMLInputElement).value,
-                    (document.getElementById('sm4') as HTMLInputElement).value
-                )
             }).then(() => {
-                this.responseMessage = [];
-                this.sendingMessage = [];
-                this.presentToast('Settings Updated!');
+                this.currentUserRef.update({
+                    name: (document.getElementById('username') as HTMLInputElement).value,
+                    bio: (document.getElementById('bio') as HTMLInputElement).value,
+                    facebookID: (document.getElementById('fb') as HTMLInputElement).value,
+                    instagramID: (document.getElementById('ig') as HTMLInputElement).value,
+                    twitterID: (document.getElementById('tw') as HTMLInputElement).value,
+                    personalEmailID: (document.getElementById('peem') as HTMLInputElement).value,
+                    linkedinID: (document.getElementById('li') as HTMLInputElement).value,
+                    professionalEmailID: (document.getElementById('prem') as HTMLInputElement).value,
+                    snapchatID: (document.getElementById('sc') as HTMLInputElement).value,
+                    tiktokID: (document.getElementById('tt') as HTMLInputElement).value,
+                    venmoID: (document.getElementById('ve') as HTMLInputElement).value,
+                    websiteID: (document.getElementById('ws') as HTMLInputElement).value,
+                    responseMessage: firebase.firestore.FieldValue.arrayUnion(
+                        (document.getElementById('rm0') as HTMLInputElement).value,
+                        (document.getElementById('rm1') as HTMLInputElement).value,
+                        (document.getElementById('rm2') as HTMLInputElement).value,
+                        (document.getElementById('rm3') as HTMLInputElement).value,
+                        (document.getElementById('rm4') as HTMLInputElement).value,
+                    ),
+                    sendingMessage: firebase.firestore.FieldValue.arrayUnion(
+                        (document.getElementById('sm0') as HTMLInputElement).value,
+                        (document.getElementById('sm1') as HTMLInputElement).value,
+                        (document.getElementById('sm2') as HTMLInputElement).value,
+                        (document.getElementById('sm3') as HTMLInputElement).value,
+                        (document.getElementById('sm4') as HTMLInputElement).value
+                    )
+                }).then(() => {
+                    this.responseMessage = [];
+                    this.sendingMessage = [];
+                    this.presentToast('Settings Updated!');
+                });
             });
         }
     }
