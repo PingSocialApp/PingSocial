@@ -19,7 +19,8 @@ import {NotificationsService} from './notifications.service';
   declarations: [AppComponent],
   entryComponents: [],
   // tslint:disable-next-line:max-line-length
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, AngularFireModule.initializeApp(environment.firebase), AngularFireMessagingModule],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule
+    ,AngularFireModule.initializeApp(environment.firebase), AngularFireMessagingModule],
   providers: [
     StatusBar,
     SplashScreen,

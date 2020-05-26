@@ -1,0 +1,54 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="closeModal()">
+                <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <div id="choosermap"></div>
+    <div class="eventCreateContainer">
+        <ion-item>
+            <ion-label position="floating">Name</ion-label>
+            <ion-input></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Start Time</ion-label>
+            <ion-datetime displayFormat="D MMM YYYY H:mm" min="2020" max="2020"
+                          [(ngModel)]="this.startTime" ></ion-datetime>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">End Time</ion-label>
+            <ion-datetime displayFormat="D MMM YYYY H:mm" [min]="this.startTime" max="2020"
+                          [(ngModel)]="this.endTime"></ion-datetime>
+        </ion-item>
+        <ion-item>
+            <ion-label>Event Type</ion-label>
+            <ion-select placeholder="Select One">
+                <ion-select-option value="party">Party</ion-select-option>
+                <ion-select-option value="professional">Professional</ion-select-option>
+                <ion-select-option value="hangout">Hangout</ion-select-option>
+            </ion-select>
+        </ion-item>
+        <ion-item>
+            <ion-label>Private Event</ion-label>
+            <ion-toggle></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-label position="floating">Description</ion-label>
+            <ion-textarea></ion-textarea>
+        </ion-item>
+        <div id='geocoder-container'></div>
+        <ion-fab vertical="bottom" horizontal="end" style="position: fixed">
+            <ion-fab-button>
+                <ion-icon name="checkmark"></ion-icon>
+            </ion-fab-button>
+        </ion-fab>
+    </div>
+</ion-content>

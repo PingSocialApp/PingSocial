@@ -36,7 +36,11 @@ const routes: Routes = [
         path: 'requests',
         canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
         loadChildren: () => import('./requests/requests.module').then(m => m.RequestsPageModule)
-    }
+    },
+  {
+    path: 'eventcreator',
+    loadChildren: () => import('./tab2/eventcreator/eventcreator.module').then( m => m.EventcreatorPageModule)
+  }
 ];
 
 @NgModule({

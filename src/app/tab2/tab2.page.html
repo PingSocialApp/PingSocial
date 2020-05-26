@@ -1,7 +1,7 @@
 <ion-header>
     <ion-toolbar>
         <ion-buttons slot="start">
-            <ion-button (click)="presentModal()">
+            <ion-button (click)="presentSettingsModal()">
                 <ion-icon class="displayIcon" name="cog"></ion-icon>
             </ion-button>
         </ion-buttons>
@@ -18,4 +18,18 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+    <div id="map"></div>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button>
+            <ion-icon name="menu"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-list side="start">
+            <ion-fab-button>
+                <ion-icon name="funnel"></ion-icon>
+            </ion-fab-button>
+            <ion-fab-button (click)="presentEventCreatorModal()">
+                <ion-icon name="add-circle"></ion-icon>
+            </ion-fab-button>
+        </ion-fab-list>
+    </ion-fab>
 </ion-content>

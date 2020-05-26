@@ -6,9 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { Tab2Page } from './tab2.page';
 import {SettingsPage} from '../settings/settings.page';
 import {AngularFirestoreModule} from '@angular/fire/firestore';
-import {NotificationsService} from '../notifications.service';
-import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {AngularFireAuthModule} from '@angular/fire/auth';
+import {EventcreatorPage} from './eventcreator/eventcreator.page';
 
 @NgModule({
   imports: [
@@ -19,8 +18,7 @@ import {AngularFireAuthModule} from '@angular/fire/auth';
     AngularFirestoreModule,
     RouterModule.forChild([{path: '', component: Tab2Page}]),
   ],
-  declarations: [Tab2Page, SettingsPage],
-  entryComponents: [SettingsPage],
-  providers: [NotificationsService, BarcodeScanner]
+  declarations: [Tab2Page, EventcreatorPage, SettingsPage],
+  entryComponents: [SettingsPage, EventcreatorPage],
 })
 export class Tab2PageModule {}

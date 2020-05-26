@@ -13,7 +13,10 @@ export const environment = {
     messagingSenderId: '1002096850890',
     appId: '1:1002096850890:web:2d74c84b63048faaccc133',
     measurementId: 'G-LE1HC0KW0F'
-    }
+    },
+  mapbox: {
+    accessToken: 'pk.eyJ1Ijoic3JlZWdyYW5kaGUiLCJhIjoiY2thanhpaDByMDBxZDJybGdxMnQ5ZnNxaiJ9.mkcuMoDmiPapnplpJ_lgaQ'
+  }
 };
 
 /*
