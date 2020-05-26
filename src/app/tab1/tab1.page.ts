@@ -4,25 +4,45 @@ import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {RequestsProgramService} from '../requests-program.service';
 import jsQR from 'jsqr';
 import {AngularFirestore} from '@angular/fire/firestore';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
     selector: 'app-tab1',
     templateUrl: 'tab1.page.html',
     styleUrls: ['tab1.page.scss'],
-    providers: [RequestsProgramService]
+    providers: [RequestsProgramService, AngularFireAuth]
 })
 export class Tab1Page {
 
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
     @ViewChild('canvas', {static: false}) canvas: ElementRef;
 
+    userId: string;
     canvasElement: any;
     videoElement: any;
     canvasContext: any;
     scanResult = null;
+    phone = true;
+    email = true;
+    instagram = true;
+    snapchat = true;
+    facebook = true;
+    tiktok = true;
+    twitter = true;
+    venmo = true;
+    linkedin = true;
+    professionalemail = true;
+    website = true;
+    qrData: string;
+    displayScan: boolean;
 
-    constructor(public barcodeScanner: BarcodeScanner, private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController, public rs: RequestsProgramService) {
+    constructor(private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner, private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController, public rs: RequestsProgramService) {
+        this.userId = this.auth.auth.currentUser.uid;
+        this.updateVals();
+    }
 
+    segmentChanged(ev: any) {
+        this.displayScan = ev.detail.value === 'sc';
     }
 
     scan() {
@@ -100,5 +120,33 @@ export class Tab1Page {
 
             await alert.present();
         });
+    }
+
+    updateVals() {
+        // tslint:disable-next-line:no-bitwise
+        const phoneVal = +!!this.phone << 10;
+        // tslint:disable-next-line:no-bitwise
+        const emailVal = +!!this.email << 9;
+        // tslint:disable-next-line:no-bitwise
+        const instagramVal = +!!this.instagram << 8;
+        // tslint:disable-next-line:no-bitwise
+        const snapVal = +!!this.snapchat << 7;
+        // tslint:disable-next-line:no-bitwise
+        const facebookVal = +!!this.facebook << 6;
+        // tslint:disable-next-line:no-bitwise
+        const tiktokVal = +!!this.tiktok << 5;
+        // tslint:disable-next-line:no-bitwise
+        const twitterVal = +!!this.twitter << 4;
+        // tslint:disable-next-line:no-bitwise
+        const venmoVal = +!!this.venmo << 3;
+        // tslint:disable-next-line:no-bitwise
+        const linkedinVal = +!!this.linkedin << 2;
+        // tslint:disable-next-line:no-bitwise
+        const proemailVal = +!!this.professionalemail << 1;
+        // tslint:disable-next-line:no-bitwise
+        const websiteVal = +!!this.website << 0;
+        // tslint:disable-next-line:no-bitwise max-line-length
+        const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal;
+        this.qrData = code + '/' + this.userId;
     }
 }
