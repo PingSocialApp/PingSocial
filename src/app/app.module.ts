@@ -13,7 +13,6 @@ import {AngularFireModule} from '@angular/fire';
 import {environment} from '../environments/environment';
 import {AngularFireMessagingModule} from '@angular/fire/messaging';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {NotificationsService} from './notifications.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -25,7 +24,6 @@ import {NotificationsService} from './notifications.service';
     StatusBar,
     SplashScreen,
     AngularFirestore,
-    NotificationsService,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent],
