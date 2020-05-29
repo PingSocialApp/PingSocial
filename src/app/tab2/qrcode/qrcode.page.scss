@@ -1,0 +1,52 @@
+ion-content ion-toolbar {
+  --background: translucent;
+}
+
+.scannerSelect{
+  margin: 2%;
+  height: 50%;
+}
+
+ion-buttons{
+  height: 25%;
+}
+
+.scanButtons{
+  margin: 0 auto;
+  height: 100%;
+  font-size: 6em;
+  color: gray;
+}
+
+.logoimg{
+  width: 75%;
+  margin: 0 auto;
+  margin-top: 30%;
+}
+
+.prompt{
+  margin: 0 auto;
+  text-align: center;
+  color: #8FDEE6;
+  font-family: "Lobster Two";
+  font-size: 2em;
+}
+
+
+.qrcode {
+  margin: 7% auto;
+  margin-bottom: 2%;
+  width: 50%;
+  border: 5px solid;
+  border-color: #8FDEE6;
+  padding: 5%;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+}
+
+.displayIcon {
+  margin-right: 2%;
+}
+
+.downloadButton {
+  margin: 0 auto;
+}

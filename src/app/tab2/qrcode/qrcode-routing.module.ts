@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { PersonalizationPage } from './personalization.page';
+import { QrcodePage } from './qrcode.page';
 
 const routes: Routes = [
   {
     path: '',
-    component: PersonalizationPage
+    component: QrcodePage
   }
 ];
 
@@ -14,4 +14,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class PersonalizationPageRoutingModule {}
+export class QrcodePageRoutingModule {}

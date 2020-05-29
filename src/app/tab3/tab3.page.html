@@ -1,5 +1,10 @@
 <ion-header [translucent]="true">
     <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="presentSettingsModal()">
+                <ion-icon class="displayIcon" name="cog"></ion-icon>
+            </ion-button>
+        </ion-buttons>
         <ion-title>
             <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
         </ion-title>

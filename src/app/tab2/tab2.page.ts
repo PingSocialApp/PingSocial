@@ -1,6 +1,5 @@
 import {Component} from '@angular/core';
 import {IonSearchbar, ModalController} from '@ionic/angular';
-import {SettingsPage} from '../settings/settings.page';
 import {EventcreatorPage} from './eventcreator/eventcreator.page';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
@@ -8,9 +7,8 @@ import * as mapboxgl from 'mapbox-gl';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
-import {AngularFirestore, QueryDocumentSnapshot} from '@angular/fire/firestore';
-import {PopoverController} from '@ionic/angular';
-import {element} from 'protractor';
+import {AngularFirestore} from '@angular/fire/firestore';
+import {QrcodePage} from './qrcode/qrcode.page';
 
 @Component({
     selector: 'app-tab2',
@@ -30,7 +28,7 @@ export class Tab2Page {
     queryType: string = 'All';
     queryDate: Boolean;
 
-    constructor(public popoverController: PopoverController, private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
+    constructor(private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         let watch = this.geo.watchPosition({
             enableHighAccuracy: true
@@ -163,13 +161,6 @@ export class Tab2Page {
         });
     }
 
-    async presentSettingsModal() {
-        const modal = await this.modalController.create({
-            component: SettingsPage
-        });
-        return await modal.present();
-    }
-
     async presentEventCreatorModal() {
         const modal = await this.modalController.create({
             component: EventcreatorPage
@@ -220,5 +211,12 @@ export class Tab2Page {
                 !shouldShow ? (elements[i] as HTMLElement).style.display = 'none' : null;
             });
         }
+    }
+
+    async presentQRModal() {
+        const modal = await this.modalController.create({
+            component: QrcodePage
+        });
+        return await modal.present();
     }
 }

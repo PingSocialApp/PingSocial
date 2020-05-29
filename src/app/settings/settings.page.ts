@@ -20,15 +20,11 @@ export class SettingsPage implements OnInit {
     currentUserRef: AngularFirestoreDocument;
     currentUser: any;
     currentUserId: string;
-    sendingMessage: string[];
-    responseMessage: string[];
     fileName: string;
     latestPhoto: string | ArrayBuffer;
 
     constructor(private modalCtrl: ModalController, private auth: AngularFireAuth, private r: Router, private firestore: AngularFirestore
         , private toastController: ToastController, private storage: AngularFireStorage) {
-        this.sendingMessage = [];
-        this.responseMessage = [];
         this.fileName = null;
         this.latestPhoto = null;
         this.currentUserId = this.auth.auth.currentUser.uid;
@@ -36,9 +32,9 @@ export class SettingsPage implements OnInit {
     }
 
     ngOnInit(){
-        this.currentUserRef.snapshotChanges()
+        this.currentUserRef.get()
             .subscribe(res => {
-                this.currentUser = res.payload.data();
+                this.currentUser = res.data();
                 if (this.currentUser.profilepic.startsWith('h')) {
                     document.getElementById('imagePreview').style.backgroundImage = 'url('+this.currentUser.profilepic+')';
                 } else {
@@ -50,6 +46,7 @@ export class SettingsPage implements OnInit {
     }
 
     updateSettings() {
+        //TODO Check 5 Interests
         if ((document.getElementById('username') as HTMLInputElement).value === '' ||
             (document.getElementById('bio') as HTMLInputElement).value === '') {
             this.presentToast('Whoops! Looks like some of your settings might be empty');
@@ -57,7 +54,7 @@ export class SettingsPage implements OnInit {
             if(this.fileName != null){
                 const ref = this.storage.ref(this.currentUserId + this.fileName);
                 if (typeof this.latestPhoto === 'string') {
-                    const task = ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
+                    ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
                         console.log(this.fileName);
                         this.firestore.collection('users').doc(
                             this.currentUserId
@@ -72,15 +69,6 @@ export class SettingsPage implements OnInit {
                     });
                 }
             }
-;
-            this.currentUserRef.update({
-                responseMessage: firebase.firestore.FieldValue.arrayRemove(
-                    this.responseMessage.toString()
-                ),
-                sendingMessage: firebase.firestore.FieldValue.arrayRemove(
-                    this.sendingMessage.toString()
-                )
-            }).then(() => {
                 this.currentUserRef.update({
                     name: (document.getElementById('username') as HTMLInputElement).value,
                     bio: (document.getElementById('bio') as HTMLInputElement).value,
@@ -94,26 +82,9 @@ export class SettingsPage implements OnInit {
                     tiktokID: (document.getElementById('tt') as HTMLInputElement).value,
                     venmoID: (document.getElementById('ve') as HTMLInputElement).value,
                     websiteID: (document.getElementById('ws') as HTMLInputElement).value,
-                    responseMessage: firebase.firestore.FieldValue.arrayUnion(
-                        (document.getElementById('rm0') as HTMLInputElement).value,
-                        (document.getElementById('rm1') as HTMLInputElement).value,
-                        (document.getElementById('rm2') as HTMLInputElement).value,
-                        (document.getElementById('rm3') as HTMLInputElement).value,
-                        (document.getElementById('rm4') as HTMLInputElement).value,
-                    ),
-                    sendingMessage: firebase.firestore.FieldValue.arrayUnion(
-                        (document.getElementById('sm0') as HTMLInputElement).value,
-                        (document.getElementById('sm1') as HTMLInputElement).value,
-                        (document.getElementById('sm2') as HTMLInputElement).value,
-                        (document.getElementById('sm3') as HTMLInputElement).value,
-                        (document.getElementById('sm4') as HTMLInputElement).value
-                    )
                 }).then(() => {
-                    this.responseMessage = [];
-                    this.sendingMessage = [];
                     this.presentToast('Settings Updated!');
                 });
-            });
         }
     }
 

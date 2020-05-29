@@ -4,7 +4,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Tab1Page } from './tab1.page';
-import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {AngularFireAuthModule} from '@angular/fire/auth';
 
 @NgModule({
@@ -15,7 +14,6 @@ import {AngularFireAuthModule} from '@angular/fire/auth';
     FormsModule,
     RouterModule.forChild([{ path: '', component: Tab1Page }]),
   ],
-  providers: [BarcodeScanner],
   declarations: [Tab1Page]
 })
 

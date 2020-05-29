@@ -38,15 +38,6 @@ const routes: Routes = [
         ]
       },
       {
-        path: 'personalize',
-        children: [
-          {
-            path: '',
-            loadChildren: () =>
-                import('../personalization/personalization.module').then( m => m.PersonalizationPageModule)          }
-        ]
-      },
-      {
         path: '',
         redirectTo: '/tabs/tab2',
         pathMatch: 'full'

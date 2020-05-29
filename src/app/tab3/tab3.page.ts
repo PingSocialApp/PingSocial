@@ -3,6 +3,8 @@ import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestor
 import {Link} from '../circledash/new-ping/new-ping.page';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
+import {SettingsPage} from '../settings/settings.page';
+import {ModalController} from '@ionic/angular';
 
 @Component({
     selector: 'app-tab3',
@@ -18,7 +20,7 @@ export class Tab3Page {
     private idArr: Array<string>;
     dataLoaded: boolean = false;
 
-    constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
+    constructor(private modalController: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
         this.currentUserRef = this.firestore.collection('users').doc(
             this.auth.auth.currentUser.uid);
         this.links = [];
@@ -106,5 +108,12 @@ export class Tab3Page {
             this.dataLoaded = true;
             event.target.complete();
         });
+    }
+
+    async presentSettingsModal() {
+        const modal = await this.modalController.create({
+            component: SettingsPage
+        });
+        return await modal.present();
     }
 }
