@@ -9,7 +9,8 @@ import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
 import {AngularFirestore, QueryDocumentSnapshot} from '@angular/fire/firestore';
-import { PopoverController } from '@ionic/angular';
+import {PopoverController} from '@ionic/angular';
+import {element} from 'protractor';
 
 @Component({
     selector: 'app-tab2',
@@ -25,8 +26,9 @@ export class Tab2Page {
     showFilter: boolean;
 
     // tslint:disable-next-line:max-line-length
-    queryStatus: string = "All";
-    queryType: string = "All";
+    queryStatus: string = 'All';
+    queryType: string = 'All';
+    queryDate: Boolean;
 
     constructor(public popoverController: PopoverController, private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
@@ -50,30 +52,40 @@ export class Tab2Page {
         this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)).snapshotChanges()
             .subscribe(eventData => {
                 eventData.map((event) => {
-                    this.renderEvent(event.payload.doc);
+                    this.renderEvent(event.payload.doc.data());
                 });
             });
         this.firestore.collection('events', ref => ref.where('creator', '==', this.fs.currentUserRef.ref)).snapshotChanges()
             .subscribe(eventData => {
                 eventData.map((event) => {
-                    this.renderEvent(event.payload.doc);
+                    this.renderEvent(event.payload.doc.data());
                 });
             });
         this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.fs.currentUserRef.ref)).snapshotChanges()
             .subscribe(eventData => {
                 eventData.map((event) => {
-                    this.renderEvent(event.payload.doc);
+                    this.renderEvent(event.payload.doc.data());
                 });
             });
     }
 
-    renderEvent(doc: QueryDocumentSnapshot<unknown>) {
-        let eventInfo = doc.data();
+    renderEvent(doc) {
+        let eventInfo = doc;
         // @ts-ignore
         let el = this.createMarker();
-        el.setAttribute('data-name',eventInfo.name);
-        el.setAttribute('data-private',eventInfo.isPrivate);
-        el.setAttribute('data-type',eventInfo.type);
+        el.setAttribute('data-name', eventInfo.name);
+        el.setAttribute('data-private', eventInfo.isPrivate);
+        el.setAttribute('data-type', eventInfo.type);
+        el.setAttribute('data-start', eventInfo.startTime);
+
+        let endTime = new Date(eventInfo.endTime);
+        let currentTime = new Date();
+
+        if (currentTime > endTime) {
+            return;
+        }
+
+        el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
         if (!!document.querySelector('#' + el.id)) {
             document.querySelector('#' + el.id).remove();
@@ -167,45 +179,45 @@ export class Tab2Page {
 
     async presentFilter() {
         this.showFilter = !this.showFilter;
-        if(!this.showFilter){
+        if (!this.showFilter) {
             let elements = document.getElementsByClassName('mapboxgl-marker');
             for (let i = 0; i < elements.length; i++) {
-                (elements[i] as HTMLElement).style.display ='block';
+                (elements[i] as HTMLElement).style.display = 'block';
             }
         }
     }
 
-    filterMarkers(){
+    filterMarkers() {
         let elements = document.getElementsByClassName('mapboxgl-marker');
         for (let i = 0; i < elements.length; i++) {
-            if(elements[i].id === 'currentLocation'){
+            (elements[i] as HTMLElement).style.display = 'block';
+            if (elements[i].id === 'currentLocation') {
                 continue;
             }
-            let elementStatus  = elements[i].getAttribute('data-private');
+            let elementStatus = elements[i].getAttribute('data-private');
             let elementType = elements[i].getAttribute('data-type');
-            let changed = false;
+            let elementTime = new Date(elements[i].getAttribute('data-time'));
+            let currentDate = new Date();
 
-            if(this.queryType === 'All' || elementType === this.queryType){
-                (elements[i] as HTMLElement).style.display = 'block';
-            } else {
+            if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() && elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
                 (elements[i] as HTMLElement).style.display = 'none';
-                changed = true;
+                continue;
             }
 
-            if(this.queryStatus === 'All' || this.queryStatus === 'Private' && elementStatus === 'true' || this.queryStatus === 'Public' && elementStatus === 'false') {
-                !changed ? (elements[i] as HTMLElement).style.display = 'block' : null;
-            }else if (this.queryStatus === 'Private' && elementStatus === 'false' || this.queryStatus === 'Public' && elementStatus === 'true'){
+            if (this.queryStatus !== 'All') {
+                elementStatus = elementStatus === 'false' ? 'Public' : ' Private';
+            } else {
+                elementStatus = 'All';
+            }
+
+            if (elementType !== this.queryType && this.queryType !== 'All' || this.queryStatus !== elementStatus) {
                 (elements[i] as HTMLElement).style.display = 'none';
-                changed = true;
+                continue;
             }
 
             (document.getElementById('searchbar') as unknown as IonSearchbar).getInputElement().then((input) => {
                 const shouldShow = elements[i].getAttribute('data-name').toLowerCase().indexOf(input.value.toLowerCase()) > -1;
-                if(!shouldShow  && !changed){
-                    (elements[i] as HTMLElement).style.display = 'none';
-                }else if(shouldShow && !changed){
-                    (elements[i] as HTMLElement).style.display = 'block';
-                }
+                !shouldShow ? (elements[i] as HTMLElement).style.display = 'none' : null;
             });
         }
     }
