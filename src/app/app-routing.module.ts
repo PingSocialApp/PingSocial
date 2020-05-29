@@ -39,7 +39,8 @@ const routes: Routes = [
     },
   {
     path: 'eventcreator',
-    loadChildren: () => import('./tab2/eventcreator/eventcreator.module').then( m => m.EventcreatorPageModule)
+      canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
+      loadChildren: () => import('./tab2/eventcreator/eventcreator.module').then( m => m.EventcreatorPageModule)
   }
 ];
 

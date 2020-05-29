@@ -97,7 +97,6 @@ export class Tab1Page {
     }
 
     async presentAlertConfirm(dataArray: Array<string>) {
-        console.log('hey');
         this.db.collection('users').doc(dataArray[0]).get().subscribe(async (data) => {
             const alert = await this.alertController.create({
                 header: 'Confirm Request!',

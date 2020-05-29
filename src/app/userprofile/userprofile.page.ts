@@ -96,7 +96,7 @@ export class UserprofilePage implements OnInit {
     }
 
     segmentChanged(ev: any) {
-        this.displayTF = ev.detail.value === 'tf' ? true : false;
+        this.displayTF = ev.detail.value === 'tf';
     }
 
     createRequest(id: string) {
@@ -130,16 +130,16 @@ export class UserprofilePage implements OnInit {
     renderMyPermissions(myData: any) {
         let permissions = myData.linkPermissions.substring(0, myData.linkPermissions.indexOf('/'));
         permissions = parseInt(permissions, 10).toString(2).split('');
-        this.phone = permissions[0] % 2 === 1 ? true : false;
-        this.email = permissions[1] % 2 === 1 ? true : false;
-        this.instagram = permissions[2] % 2 === 1 ? true : false;
-        this.snapchat = permissions[3] % 2 === 1 ? true : false;
-        this.facebook = permissions[4] % 2 === 1 ? true : false;
-        this.tiktok = permissions[5] % 2 === 1 ? true : false;
-        this.twitter = permissions[6] % 2 === 1 ? true : false;
-        this.venmo = permissions[7] % 2 === 1 ? true : false;
-        this.linkedin = permissions[8] % 2 === 1 ? true : false;
-        this.professionalemail = permissions[9] % 2 === 1 ? true : false;
+        this.phone = permissions[0] % 2 === 1;
+        this.email = permissions[1] % 2 === 1;
+        this.instagram = permissions[2] % 2 === 1;
+        this.snapchat = permissions[3] % 2 === 1;
+        this.facebook = permissions[4] % 2 === 1;
+        this.tiktok = permissions[5] % 2 === 1;
+        this.twitter = permissions[6] % 2 === 1;
+        this.venmo = permissions[7] % 2 === 1;
+        this.linkedin = permissions[8] % 2 === 1;
+        this.professionalemail = permissions[9] % 2 === 1;
         this.website = permissions[10] % 2 === 1 ? true : false;
     }
 
