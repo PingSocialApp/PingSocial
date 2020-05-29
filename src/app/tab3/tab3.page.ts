@@ -15,92 +15,96 @@ export class Tab3Page {
     currentUser: any;
     requestAmount: number;
     links: Array<Link>;
-    rLinks: Array<Link>;
-    sLinks: Array<Link>;
-    displayRL: boolean;
+    private idArr: Array<string>;
+    dataLoaded: boolean = false;
 
     constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
-        this.displayRL = true;
         this.currentUserRef = this.firestore.collection('users').doc(
             this.auth.auth.currentUser.uid);
-        this.rLinks = [];
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
-            .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
-            this.rLinks = [];
-            this.renderRLink(res);
-        });
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-            .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
-            this.sLinks = [];
-            this.renderSLink(res);
-        });
-        this.currentUserRef.snapshotChanges()
-            .subscribe(res => {
-                this.currentUser = res.payload.data();
-            });
+        this.links = [];
+        this.getLinks();
+        this.dataLoaded = true;
         this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
             .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
             this.requestAmount = res.length;
         });
     }
 
-    async renderRLink(linkData: Array<any>) {
-        await Promise.all(linkData.map(link => {
-            const linkeD = link.payload.doc.data();
-            linkeD.userSent.get().then(USdata => {
-                let imgUrl = '';
-                if (USdata.data().profilepic.startsWith('h')) {
-                    imgUrl = USdata.data().profilepic;
-                } else {
-                    this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
-                        imgUrl = url;
-                    });
-                }
-                const linkObject: Link = {
-                    id: USdata.id,
-                    img: imgUrl,
-                    name: USdata.data().name,
-                    bio: USdata.data().bio
-                };
-                this.rLinks.push(linkObject);
+    getLinks(){
+        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+            .where('pendingRequest', '==', false)).get().subscribe(userRecData => {
+            this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+                .where('pendingRequest', '==', false)).get().subscribe(userSentData => {
+                this.links = [];
+                this.idArr = [];
+                this.renderRLink(userRecData.docs);
+                this.renderSLink(userSentData.docs);
             });
-        }));
+        });
+        this.links.sort((a,b) => {
+            var textA = a.name.toUpperCase();
+            var textB = b.name.toUpperCase();
+            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+        });
+        return Promise.resolve();
+    }
+
+    async renderRLink(linkData: Array<any>) {
+        linkData.forEach(link => {
+            const linkeD = link.data();
+            linkeD.userSent.get().then(USdata => {
+                if(!(this.idArr.includes(USdata.id))){
+                    this.links.push(this.renderLink(USdata));
+                    this.idArr.push(USdata.id);
+                }
+            });
+        });
     }
 
     async renderSLink(linkData: Array<any>) {
-        await Promise.all(linkData.map(link => {
-            const linkeD = link.payload.doc.data();
+        linkData.map(link => {
+            const linkeD = link.data();
             linkeD.userRec.get().then(USdata => {
-                let imgUrl = '';
-                if (USdata.data().profilepic.startsWith('h')) {
-                    imgUrl = USdata.data().profilepic;
-                } else {
-                    this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
-                        imgUrl = url;
-                    });
+                if(!(this.idArr.includes(USdata.id))){
+                    this.links.push(this.renderLink(USdata));
+                    this.idArr.push(USdata.id);
                 }
-                const linkObject: Link = {
-                    id: USdata.id,
-                    img: imgUrl,
-                    name: USdata.data().name,
-                    bio: USdata.data().bio
-                };
-                this.sLinks.push(linkObject);
             });
-        }));
+        });
+    }
+
+    renderLink(USdata){
+        let imgUrl = '';
+        if (USdata.data().profilepic.startsWith('h')) {
+            imgUrl = USdata.data().profilepic;
+        } else {
+            this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
+                imgUrl = url;
+            });
+        }
+        const linkObject: Link = {
+            id: USdata.id,
+            img: imgUrl,
+            name: USdata.data().name,
+            bio: USdata.data().bio
+        };
+        return linkObject;
     }
 
     handleInput(event) {
         const query = event.target.value.toLowerCase();
-        // console.log(query);
         for (let i = 0; i < document.getElementsByTagName('ion-item').length; i++) {
             const shouldShow = document.getElementsByTagName('h2')[i].textContent.toLowerCase().indexOf(query) > -1;
             document.getElementsByTagName('ion-item')[i].style.display = shouldShow ? 'block' : 'none';
         }
     }
 
-    segmentChanged(ev: any) {
-        this.displayRL = ev.detail.value === 'rl' ? true : false;
-        // console.log('Segment changed', ev);
+    doRefresh(event) {
+        this.dataLoaded = false;
+        console.log('Begin async operation');
+        this.getLinks().then(() => {
+            this.dataLoaded = true;
+            event.target.complete();
+        });
     }
 }

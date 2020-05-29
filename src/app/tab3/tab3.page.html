@@ -14,32 +14,34 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+    <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content
+                pullingIcon="chevron-down-circle-outline"
+                pullingText="Pull to refresh"
+                refreshingSpinner="circles"
+                refreshingText="Refreshing...">
+        </ion-refresher-content>
+    </ion-refresher>
     <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
-    <ion-segment (ionChange)="segmentChanged($event)" value="rl">
-        <ion-segment-button value="rl">
-            <ion-label>Received Links</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="sl">
-            <ion-label>Sent Links</ion-label>
-        </ion-segment-button>
-    </ion-segment>
-    <ion-list *ngIf="displayRL">
-        <ion-img *ngIf="rLinks.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
-        <h1 *ngIf="rLinks.length === 0" class="addLinkDisplay">No Received Links Yet!</h1>
-        <ion-item *ngFor="let link of rLinks" [routerLink]="['/userprofile/', link.id]">
-            <ion-avatar slot="start">
-                <ion-img src="{{link.img}}"></ion-img>
-            </ion-avatar>
-            <ion-label>
-                <h2>{{link.name}}</h2>
-                <p>{{link.bio}}</p>
-            </ion-label>
+    <ion-list *ngIf="!dataLoaded">
+        <ion-item *ngFor="let i of [0,1,2,3,4,5,6,7]">
+        <ion-avatar slot="start">
+        <ion-skeleton-text animated></ion-skeleton-text>
+        </ion-avatar>
+        <ion-label>
+            <p>
+                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+            </p>
+            <p>
+                <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+            </p>
+        </ion-label>
         </ion-item>
     </ion-list>
-    <ion-list *ngIf="!displayRL">
-        <ion-img *ngIf="sLinks.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
-        <h1 *ngIf="sLinks.length === 0" class="addLinkDisplay">No Sent Links Yet!</h1>
-        <ion-item *ngFor="let link of sLinks" [routerLink]="['/userprofile/', link.id]">
+    <ion-list *ngIf="dataLoaded">
+        <ion-img *ngIf="links.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
+        <h1 *ngIf="links.length === 0" class="addLinkDisplay">No Sent Links Yet!</h1>
+        <ion-item *ngFor="let link of links" [routerLink]="['/userprofile/', link.id]">
             <ion-avatar slot="start">
                 <ion-img src="{{link.img}}"></ion-img>
             </ion-avatar>
