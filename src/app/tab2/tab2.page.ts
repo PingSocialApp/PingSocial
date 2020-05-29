@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {ModalController} from '@ionic/angular';
+import {IonSearchbar, ModalController} from '@ionic/angular';
 import {SettingsPage} from '../settings/settings.page';
 import {EventcreatorPage} from './eventcreator/eventcreator.page';
 import {AngularFireAuth} from '@angular/fire/auth';
@@ -9,6 +9,7 @@ import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
 import {AngularFirestore, QueryDocumentSnapshot} from '@angular/fire/firestore';
+import { PopoverController } from '@ionic/angular';
 
 @Component({
     selector: 'app-tab2',
@@ -21,10 +22,13 @@ export class Tab2Page {
     unreadPings: number;
     map: mapboxgl.Map;
     currentLocationMarker: any;
+    showFilter: boolean;
 
     // tslint:disable-next-line:max-line-length
+    queryStatus: string = "All";
+    queryType: string = "All";
 
-    constructor(private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
+    constructor(public popoverController: PopoverController, private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         let watch = this.geo.watchPosition({
             enableHighAccuracy: true
@@ -39,6 +43,7 @@ export class Tab2Page {
             // data.coords.latitude
             // data.coords.longitude
         });
+        this.showFilter = false;
     }
 
     presentEvents() {
@@ -66,6 +71,9 @@ export class Tab2Page {
         let eventInfo = doc.data();
         // @ts-ignore
         let el = this.createMarker();
+        el.setAttribute('data-name',eventInfo.name);
+        el.setAttribute('data-private',eventInfo.isPrivate);
+        el.setAttribute('data-type',eventInfo.type);
         el.id = doc.id;
         if (!!document.querySelector('#' + el.id)) {
             document.querySelector('#' + el.id).remove();
@@ -86,8 +94,8 @@ export class Tab2Page {
 
     createMarker() {
         let el = document.createElement('div');
-        el.style.width = '50px';
-        el.style.height = '50px';
+        el.style.width = '30px';
+        el.style.height = '30px';
         el.style.backgroundSize = 'cover';
         el.style.borderRadius = '50%';
         el.style.border = 'solid 3px #8FDEE6';
@@ -97,6 +105,8 @@ export class Tab2Page {
 
     presentCurrentLocation() {
         let el = this.createMarker();
+        el.style.width = '50px';
+        el.style.height = '50px';
         this.fs.userData.subscribe(ref => {
             if (ref !== null) {
                 // @ts-ignore
@@ -115,6 +125,7 @@ export class Tab2Page {
                 }
             }
         });
+        el.id = 'currentLocation';
         this.currentLocationMarker = new mapboxgl.Marker(el);
     }
 
@@ -152,5 +163,50 @@ export class Tab2Page {
             component: EventcreatorPage
         });
         return await modal.present();
+    }
+
+    async presentFilter() {
+        this.showFilter = !this.showFilter;
+        if(!this.showFilter){
+            let elements = document.getElementsByClassName('mapboxgl-marker');
+            for (let i = 0; i < elements.length; i++) {
+                (elements[i] as HTMLElement).style.display ='block';
+            }
+        }
+    }
+
+    filterMarkers(){
+        let elements = document.getElementsByClassName('mapboxgl-marker');
+        for (let i = 0; i < elements.length; i++) {
+            if(elements[i].id === 'currentLocation'){
+                continue;
+            }
+            let elementStatus  = elements[i].getAttribute('data-private');
+            let elementType = elements[i].getAttribute('data-type');
+            let changed = false;
+
+            if(this.queryType === 'All' || elementType === this.queryType){
+                (elements[i] as HTMLElement).style.display = 'block';
+            } else {
+                (elements[i] as HTMLElement).style.display = 'none';
+                changed = true;
+            }
+
+            if(this.queryStatus === 'All' || this.queryStatus === 'Private' && elementStatus === 'true' || this.queryStatus === 'Public' && elementStatus === 'false') {
+                !changed ? (elements[i] as HTMLElement).style.display = 'block' : null;
+            }else if (this.queryStatus === 'Private' && elementStatus === 'false' || this.queryStatus === 'Public' && elementStatus === 'true'){
+                (elements[i] as HTMLElement).style.display = 'none';
+                changed = true;
+            }
+
+            (document.getElementById('searchbar') as unknown as IonSearchbar).getInputElement().then((input) => {
+                const shouldShow = elements[i].getAttribute('data-name').toLowerCase().indexOf(input.value.toLowerCase()) > -1;
+                if(!shouldShow  && !changed){
+                    (elements[i] as HTMLElement).style.display = 'none';
+                }else if(shouldShow && !changed){
+                    (elements[i] as HTMLElement).style.display = 'block';
+                }
+            });
+        }
     }
 }
