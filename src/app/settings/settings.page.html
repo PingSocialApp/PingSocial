@@ -5,7 +5,9 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-      <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
         <ion-buttons slot="end">
             <ion-button (click)="logout()">
                 <ion-icon name="log-out"></ion-icon>
@@ -18,7 +20,8 @@
     <div class="avatar-upload">
         <div class="avatar-edit">
             <input type="button" (click)="captureImage()">
-            <input type='file' id="imageUpload" accept="image/*;capture=camera" hidden (change)="handleFile($event.target.files)">
+            <input type='file' id="imageUpload" accept="image/*;capture=camera" hidden
+                   (change)="handleFile($event.target.files)">
             <label for="imageUpload">
                 <ion-icon style="font-size: 2em; color: gray" name="pencil"></ion-icon>
             </label>
@@ -30,66 +33,88 @@
     </div>
     <ion-item lines="none">
         <ion-card>
-          <ion-card-content>
-              <ion-item>
-                  <ion-label position="stacked">Name</ion-label>
-                  <ion-input id="username" value='{{currentUser.name}}'></ion-input>
-              </ion-item>
-            <ion-item>
-                <ion-label position="stacked">Bio</ion-label>
-                <ion-input id="bio" value="{{currentUser.bio}}"></ion-input>
-            </ion-item>
-                     </ion-card-content>
+            <ion-card-content>
+                <ion-item>
+                    <ion-label position="stacked">Name</ion-label>
+                    <ion-input id="username" value='{{currentUser.name}}'></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Bio</ion-label>
+                    <ion-input id="bio" value="{{currentUser.bio}}"></ion-input>
+                </ion-item>
+            </ion-card-content>
         </ion-card>
     </ion-item>
-  <ion-item lines="none">
+    <ion-item lines="none">
+        <ion-card>
+            <ion-card-content>
+                <ion-item>
+                    <ion-label position="stacked">Facebook</ion-label>
+                    <ion-input id="fb" value="{{currentUser.facebookID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Instagram</ion-label>
+                    <ion-input id="ig" value="{{currentUser.instagramID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Twitter</ion-label>
+                    <ion-input id="tw" value="{{currentUser.twitterID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">LinkedIn</ion-label>
+                    <ion-input id="li" value="{{currentUser.linkedinID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Personal Email</ion-label>
+                    <ion-input id="peem" value="{{currentUser.personalEmailID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Professional Email</ion-label>
+                    <ion-input id="prem" value="{{currentUser.professionalEmailID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Snapchat</ion-label>
+                    <ion-input id="sc" value="{{currentUser.snapchatID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">TikTok</ion-label>
+                    <ion-input id="tt" value="{{currentUser.tiktokID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Venmo</ion-label>
+                    <ion-input id="ve" value="{{currentUser.venmoID}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Website</ion-label>
+                    <ion-input id="ws" value="{{currentUser.websiteID}}"></ion-input>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+    </ion-item>
     <ion-card>
-      <ion-card-content>
-        <ion-item><ion-label position="stacked">Facebook</ion-label>
-        <ion-input id="fb" value="{{currentUser.facebookID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">Instagram</ion-label>
-        <ion-input id="ig" value="{{currentUser.instagramID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">Twitter</ion-label>
-        <ion-input id="tw" value="{{currentUser.twitterID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">LinkedIn</ion-label>
-        <ion-input id="li" value="{{currentUser.linkedinID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">Personal Email</ion-label>
-        <ion-input id="peem" value="{{currentUser.personalEmailID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">Professional Email</ion-label>
-        <ion-input id="prem" value="{{currentUser.professionalEmailID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">Snapchat</ion-label>
-        <ion-input id="sc" value="{{currentUser.snapchatID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">TikTok</ion-label>
-        <ion-input id="tt" value="{{currentUser.tiktokID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">Venmo</ion-label>
-        <ion-input id="ve" value="{{currentUser.venmoID}}"></ion-input></ion-item>
-        <ion-item><ion-label position="stacked">Website</ion-label>
-        <ion-input id="ws" value="{{currentUser.websiteID}}"></ion-input></ion-item>
-      </ion-card-content>
+        <ion-card-content>
+            <ion-grid>
+                <ion-row class="pingHeader">
+                    <ion-col>
+                        <ion-label>Sending Pings</ion-label>
+                    </ion-col>
+                    <ion-col>
+                        <ion-label>Response Pings</ion-label>
+                    </ion-col>
+                </ion-row>
+                <ion-row *ngFor="let i of [0,1,2,3,4]">
+                    <ion-col>
+                        <ion-input id="sm{{i}}" (change)="sendingMessage.push(currentUser.sendingMessage[i])"
+                                   value="{{currentUser.sendingMessage[i]}}"></ion-input>
+                    </ion-col>
+                    <ion-col>
+                        <ion-input id="rm{{i}}" (change)="responseMessage.push(currentUser.responseMessage[i])"
+                                   value="{{currentUser.responseMessage[i]}}"></ion-input>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+        </ion-card-content>
     </ion-card>
-  </ion-item>
-  <ion-card>
-    <ion-card-content>
-      <ion-grid>
-        <ion-row class="pingHeader">
-          <ion-col>
-            <ion-label>Sending Pings</ion-label>
-          </ion-col>
-          <ion-col>
-            <ion-label>Response Pings</ion-label>
-          </ion-col>
-        </ion-row>
-        <ion-row *ngFor="let i of [0,1,2,3,4]">
-          <ion-col>
-            <ion-input id="sm{{i}}" (change)="sendingMessage.push(currentUser.sendingMessage[i])" value="{{currentUser.sendingMessage[i]}}"></ion-input>
-          </ion-col>
-          <ion-col>
-            <ion-input id="rm{{i}}" (change)="responseMessage.push(currentUser.responseMessage[i])" value="{{currentUser.responseMessage[i]}}"></ion-input>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-card-content>
-  </ion-card>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button class="submit-button" (click)="updateSettings()">
             <ion-icon name="checkmark"></ion-icon>

@@ -1,0 +1,99 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-avatar><img src="{{img}}"></ion-avatar>
+    <ion-label style="text-align: center"><h1>{{userName}}</h1></ion-label>
+    <ion-label style="text-align: center;"><h3>{{userBio}}</h3></ion-label>
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>My Interests</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <ion-list>
+                <ion-item>
+                    <ion-label>
+                        1
+                    </ion-label>
+                    <ion-select>
+                        <ion-select-option>
+                            Football
+                        </ion-select-option>
+                        <ion-select-option>
+                            Soccer
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+                <ion-item>
+                    <ion-label>
+                        2
+                    </ion-label>
+                    <ion-select>
+                        <ion-select-option>
+                            Football
+                        </ion-select-option>
+                        <ion-select-option>
+                            Soccer
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+                <ion-item>
+                    <ion-label>
+                        3
+                    </ion-label>
+                    <ion-select>
+                        <ion-select-option>
+                            Football
+                        </ion-select-option>
+                        <ion-select-option>
+                            Soccer
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+                <ion-item>
+                    <ion-label>
+                        4
+                    </ion-label>
+                    <ion-select>
+                        <ion-select-option>
+                            Football
+                        </ion-select-option>
+                        <ion-select-option>
+                            Soccer
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+                <ion-item>
+                    <ion-label>
+                        5
+                    </ion-label>
+                    <ion-select>
+                        <ion-select-option>
+                            Football
+                        </ion-select-option>
+                        <ion-select-option>
+                            Soccer
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+            </ion-list>
+        </ion-card-content>
+    </ion-card>
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>Match Tolerance</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <ion-range min="10" max="90" step="2">
+                <ion-icon size="small" slot="start" name="person-circle-outline" color="gray"></ion-icon>
+                <ion-icon slot="end" name="person-circle-outline" color="gray"></ion-icon>
+            </ion-range>
+        </ion-card-content>
+    </ion-card>
+
+</ion-content>
