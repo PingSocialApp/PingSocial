@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {AngularFirestoreDocument, AngularFirestore} from '@angular/fire/firestore';
 import {ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
+import {firestore} from 'firebase';
 
 @Injectable({
     providedIn: 'root'
@@ -51,6 +52,13 @@ export class RequestsProgramService {
                     this.presentToast('Sent Request!');
                 });
             }
+        });
+        this.firestore.collection('pings').add({
+            userSent: this.currentUserRef.ref,
+            userRec: this.firestore.collection('users').doc(userId).ref,
+            sentMessage: '',
+            responseMessage: 'New Link Created!',
+            timeStamp: firestore.FieldValue.serverTimestamp()
         });
     }
 

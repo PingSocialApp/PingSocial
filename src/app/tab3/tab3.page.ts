@@ -1,10 +1,16 @@
 import {Component} from '@angular/core';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {Link} from '../circledash/new-ping/new-ping.page';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {SettingsPage} from '../settings/settings.page';
 import {ModalController} from '@ionic/angular';
+
+export interface Link {
+    id: string;
+    img: string;
+    name: string;
+    bio: string;
+}
 
 @Component({
     selector: 'app-tab3',
@@ -12,6 +18,7 @@ import {ModalController} from '@ionic/angular';
     styleUrls: ['tab3.page.scss'],
     providers: [AngularFireStorage, AngularFireAuth]
 })
+
 export class Tab3Page {
     currentUserRef: AngularFirestoreDocument;
     currentUser: any;

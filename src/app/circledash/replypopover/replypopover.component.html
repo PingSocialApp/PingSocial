@@ -1,5 +1,8 @@
-<ion-list>
-    <ion-item button *ngFor="let message of responseMessage" (click)="sendReplyData(message)">
-        {{message}}
-    </ion-item>
-</ion-list>
+<div id="textAreaCont">
+    <ion-textarea maxlength="50" id="textarea" [(ngModel)]="responseMessage"></ion-textarea>
+</div>
+<div>
+    <ion-button id="sendButton" (click)="sendReplyData()">
+        <ion-icon name="send"></ion-icon>
+    </ion-button>
+</div>

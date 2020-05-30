@@ -43,6 +43,11 @@ export class Tab2Page {
             // data.coords.latitude
             // data.coords.longitude
         });
+        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref).orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
+            if (res !== null) {
+                this.unreadPings = res.length;
+            }
+        });
         this.showFilter = false;
     }
 
@@ -121,8 +126,6 @@ export class Tab2Page {
             if (ref !== null) {
                 // @ts-ignore
                 let data = ref.payload.data();
-                // @ts-ignore
-                this.unreadPings = data.unreadPings.length;
                 // @ts-ignore
                 if (data.profilepic.startsWith('h')) {
                     // @ts-ignore

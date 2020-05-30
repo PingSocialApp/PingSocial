@@ -2,9 +2,14 @@ ion-fab-button{
   --background: #8FDEE6;
 }
 
-.left-swipe{
+.left-swipe-1, .right-swipe{
+  --background: #9ae1e9;
+}
+
+.left-swipe-2{
   --background: #7ec3ca;
 }
+
 .noPingDisplay{
   font-family: "Lobster Two";
   color: #8FDEE6;

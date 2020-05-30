@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { CircledashPageRoutingModule } from './circledash-routing.module';
 import {AngularFirestoreModule} from '@angular/fire/firestore';
-import {NewPingPage} from '../circledash/new-ping/new-ping.page';
 import { CircledashPage } from './circledash.page';
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
 
@@ -16,8 +15,8 @@ import {ReplypopoverComponent} from './replypopover/replypopover.component';
     CircledashPageRoutingModule,
     AngularFirestoreModule
   ],
-  declarations: [CircledashPage, NewPingPage, ReplypopoverComponent],
-  entryComponents: [NewPingPage, ReplypopoverComponent],
+  declarations: [CircledashPage, ReplypopoverComponent],
+  entryComponents: [ReplypopoverComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class CircledashPageModule {}

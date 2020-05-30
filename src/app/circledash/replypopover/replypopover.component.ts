@@ -1,6 +1,6 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {NavParams, PopoverController, ToastController} from '@ionic/angular';
-import * as firebase from 'firebase';
+import {firestore} from 'firebase';
 import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
@@ -10,49 +10,37 @@ import {AngularFireAuth} from '@angular/fire/auth';
 
 })
 export class ReplypopoverComponent implements OnInit {
-    responseMessage: Array<string>;
+    responseMessage: string;
     currentUserId: string;
     constructor(private auth: AngularFireAuth,
                 private navParams: NavParams, private popoverController: PopoverController, private toastController: ToastController) {
-        this.responseMessage = this.navParams.get('messages');
-        this.auth.auth.onAuthStateChanged((user) => {
-            if (user) {
-                this.currentUserId = user.uid;
-            }
-        });
+        this.currentUserId = this.auth.auth.currentUser.uid;
     }
 
     ngOnInit() {
 
     }
 
-    sendReplyData(message: string) {
+    sendReplyData() {
         const db = this.navParams.get('fs');
-        db.collection('pings').doc(this.navParams.get('pingId')).update({
-            responseMessage: message
-        }).then(() => {
-            // console.log(this.navParams.get('userSent'));
-              db.collection('users').doc(this.navParams.get('userSent')).update({
-                unreadPings: firebase.firestore.FieldValue.arrayUnion(db.collection('pings').doc(this.navParams.get('pingId')).ref)
+        if(this.responseMessage === ''){
+            this.presentToast('Whoops! You have an empty message');
+            return;
+        }
+        db.collection('pings').doc(this.navParams.get('pingId')).get().subscribe((ref) => {
+            db.collection('pings').doc(this.navParams.get('pingId')).update({
+                responseMessage: this.responseMessage,
+                userRec: ref.data().userSent,
+                userSent: ref.data().userRec,
+                sentMessage: ref.data().responseMessage,
+                timeStamp: firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                console.log('User Sent successfully updated!');
-                db.collection('users').doc(this.currentUserId).update({
-                    unreadPings: firebase.firestore.FieldValue.arrayRemove(db.collection('pings').doc(this.navParams.get('pingId')).ref)
-                }).then(() => {
-                    console.log('You successfully updated!');
-                    this.presentToast('Reply sent!');
-                    this.popoverController.dismiss();
-                }).catch((error) => {
-                    // The document probably doesn't exist.
-                    console.error('Error updating document: ', error);
-                });
+                this.presentToast('Reply Sent!');
+                this.popoverController.dismiss();
             }).catch((error) => {
                 // The document probably doesn't exist.
                 console.error('Error updating document: ', error);
             });
-        }).catch((error) => {
-            // The document probably doesn't exist.
-            console.error('Error updating document: ', error);
         });
     }
 
