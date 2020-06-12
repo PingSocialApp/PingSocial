@@ -10,6 +10,7 @@ import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
 import * as firebase from "firebase/app";
+import { CONTEXT_NAME } from '@angular/compiler/src/render3/view/util';
 
 
 @Component({
@@ -33,21 +34,55 @@ export class Tab2Page {
     constructor(private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         let watch = this.geo.watchPosition({
-            enableHighAccuracy: true
+            enableHighAccuracy: true,
         });
+
+        // references
+        var uid = firebase.auth().currentUser.uid;
+        var locationRef = firebase.database().ref('/location/' + uid);
+        this.updateStatus(uid, locationRef);
+
+        // check if current user is online or not
+        var status = 'Offline';
+        locationRef.child('isOnline').on('value', function(snapshot) {
+            if(snapshot.val()) {
+                status = 'Just Now';
+            }
+        });
+
+        // keep track of place
+        var location = 'Texas';
+
         watch.subscribe((data) => {
             var lng = data.coords.longitude;
             var lat = data.coords.latitude;
-            this.currentLocationMarker.setLngLat([lng, lat]).addTo(this.map);
+
+            // update location
+            locationRef.update({
+                longitude: lng,
+                latitude: lat,
+            });
+
+            var reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
+            fetch(reqStr).then(response => response.json()
+                .then(data => {
+                    location = data.features[2].text;
+                }));
+
+            this.currentLocationMarker
+                .setLngLat([lng, lat])
+                .setPopup(new mapboxgl.Popup({ offset: 15 }) // add popups
+                .setHTML('<h6>You</h6><p>' + status + '</p><p>In ' + location + '</p>'))
+                .addTo(this.map);
             this.map.flyTo({
                 center: [lng, lat],
                 essential: true
             });
-            this.updateStatus(lng, lat);
             // data can be a set of coordinates, or an error (if an error occurred).
             // data.coords.latitude
             // data.coords.longitude
         });
+
         this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref).orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
             if (res !== null) {
                 this.unreadPings = res.length;
@@ -56,25 +91,22 @@ export class Tab2Page {
         this.showFilter = false;
     }
 
-    updateStatus(lng, lat) {
-        // references to database
-        var uid = firebase.auth().currentUser.uid;
-        var locationRef = firebase.database().ref('/location/' + uid);
+    updateStatus(uid, lRef) {
 
         // variables used to set values in database
-        var isOfflineForDatabase = {
+        var offline = {
             id: uid,
-            uid: 'idkyet',
-            longitude: lng,
-            latitude: lat,
+            uid: lRef.push().key,
+            longitude: 0,
+            latitude: 0,
             isOnline: false,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
-        var isOnlineForDatabase = {
+        var online = {
             id: uid,
-            uid: 'idkyet',
-            longitude: lng,
-            latitude: lat,
+            uid: lRef.push().key,
+            longitude: 0,
+            latitude: 0,
             isOnline: true,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
@@ -82,8 +114,8 @@ export class Tab2Page {
         // checks connection and sets values accordingly
         firebase.database().ref('.info/connected').on('value', function(snapshot) {
             if (snapshot.val()) {
-                locationRef.onDisconnect().set(isOfflineForDatabase).then(function() {
-                    locationRef.set(isOnlineForDatabase);
+                lRef.onDisconnect().set(offline).then(function() {
+                    lRef.set(online);
                 });
             };
         });
