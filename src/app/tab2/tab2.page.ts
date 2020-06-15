@@ -7,7 +7,7 @@ import * as mapboxgl from 'mapbox-gl';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
-import {AngularFirestore} from '@angular/fire/firestore';
+import {AngularFirestore, AngularFirestoreDocument, QueryDocumentSnapshot} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
 import * as firebase from "firebase/app";
 import { CONTEXT_NAME } from '@angular/compiler/src/render3/view/util';
@@ -25,6 +25,7 @@ export class Tab2Page {
     map: mapboxgl.Map;
     currentLocationMarker: any;
     showFilter: boolean;
+    allMarkers: any[] = [];
 
     // tslint:disable-next-line:max-line-length
     queryStatus: string = 'All';
@@ -42,17 +43,23 @@ export class Tab2Page {
         var locationRef = firebase.database().ref('/location/' + uid);
         this.updateStatus(uid, locationRef);
 
+        // get user name
+        var uName = '';
+        firebase.firestore().doc('/users/' + uid).get().then(doc => {
+            if(doc.exists) {
+                uName = doc.data().name;
+            }
+        });
+
         // check if current user is online or not
         var status = 'Offline';
-        locationRef.child('isOnline').on('value', function(snapshot) {
-            if(snapshot.val()) {
+        locationRef.on('value', snapshot => {
+            if(snapshot.val().isOnline) {
                 status = 'Just Now';
             }
         });
 
-        // keep track of place
-        var location = 'Texas';
-
+        // update current user location
         watch.subscribe((data) => {
             var lng = data.coords.longitude;
             var lat = data.coords.latitude;
@@ -63,17 +70,10 @@ export class Tab2Page {
                 latitude: lat,
             });
 
-            var reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
-            fetch(reqStr).then(response => response.json()
-                .then(data => {
-                    location = data.features[2].text;
-                }));
+            // use api to get location
+            this.getLocationAndRender({marker: this.currentLocationMarker}, lng, lat, status, uName);
 
-            this.currentLocationMarker
-                .setLngLat([lng, lat])
-                .setPopup(new mapboxgl.Popup({ offset: 15 }) // add popups
-                .setHTML('<h6>You</h6><p>' + status + '</p><p>In ' + location + '</p>'))
-                .addTo(this.map);
+            // just to fly to current user on map
             this.map.flyTo({
                 center: [lng, lat],
                 essential: true
@@ -83,6 +83,8 @@ export class Tab2Page {
             // data.coords.longitude
         });
 
+        this.renderLinks();
+
         this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref).orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
             if (res !== null) {
                 this.unreadPings = res.length;
@@ -91,31 +93,90 @@ export class Tab2Page {
         this.showFilter = false;
     }
 
-    updateStatus(uid, lRef) {
+    // puts marker on the map with user info
+    renderUser(marker, lng, lat, status, location, uName) {
+        marker.setLngLat([lng, lat])
+            .setPopup(new mapboxgl.Popup({ offset: 20 })
+            .setHTML('<h6>' + uName + '</h6><p>' + status + '</p><p>' + location + '</p>'))
+            .addTo(this.map);
+    }
 
+    renderLinks() {
+        this.firestore.collection('links', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)).snapshotChanges().subscribe(res => {
+            this.allMarkers.forEach(tempMarker => {
+                this.map.removeLayer(tempMarker);
+            });
+            res.forEach(doc => {
+                // get other user id to get their doc
+                doc.payload.doc.ref.get().then(otherSnap => {
+                    if(otherSnap.exists) {
+                        var otherId = otherSnap.data().userSent.Pc.path.segments[6];
+                        var otherRef = firebase.database().ref('/location/' + otherId);
+                        // get doc of user
+                        firebase.firestore().doc('/users/' + otherId).get().then(oUserDoc => {
+                            if(oUserDoc.exists) {
+                                var oName = oUserDoc.data().name;
+                                var oUrl = oUserDoc.data().profilepic;
+                                // get location and status information
+                                otherRef.on('value', snapshot => {
+                                    if(snapshot.val()) {
+                                        // get all of the other users data
+                                        var longi = snapshot.val().longitude;
+                                        var latid = snapshot.val().latitude;
+                                        var oStat = snapshot.val().isOnline ? 'Just Now' : 'Offline';
+                                        // create marker and style it
+                                        var el = this.createMarker();
+                                        el.style.width = '50px';
+                                        el.style.height = '50px';
+                                        if (oUrl.startsWith('h')) {
+                                            el.style.backgroundImage = 'url(' + oUrl + ')';
+                                        } else {
+                                            this.storage.storage.refFromURL(oUrl).getDownloadURL().then(url => {
+                                                el.style.backgroundImage = 'url(' + url + ')';
+                                            });
+                                        }
+                                        var oMark = new mapboxgl.Marker(el);
+                                        this.getLocationAndRender({marker: oMark}, longi, latid, oStat, oName);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    getLocationAndRender(o : {marker: any}, lng, lat, status, uName) {
+        console.log(o.marker + ' ' + lng + ' ' + lat + ' ' + status + ' ' + uName);
+        var tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
+        fetch(tempReqStr).then(response => response.json())
+            .then(data => {
+                var locat = data.features[0].text;
+                this.renderUser(o.marker, lng, lat, status, locat, uName);
+            });
+    }
+
+    updateStatus(uid, lRef) {
         // variables used to set values in database
         var offline = {
             id: uid,
-            uid: lRef.push().key,
-            longitude: 0,
-            latitude: 0,
+            uid: 'idk',
             isOnline: false,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
         var online = {
             id: uid,
-            uid: lRef.push().key,
-            longitude: 0,
-            latitude: 0,
+            uid: 'idk',
             isOnline: true,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
 
         // checks connection and sets values accordingly
         firebase.database().ref('.info/connected').on('value', function(snapshot) {
-            if (snapshot.val()) {
-                lRef.onDisconnect().set(offline).then(function() {
-                    lRef.set(online);
+            if(snapshot.val()) {
+                lRef.onDisconnect().update(offline).then(function() {
+                    lRef.update(online);
                 });
             };
         });
