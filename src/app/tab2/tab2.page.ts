@@ -11,6 +11,7 @@ import {AngularFirestore, AngularFirestoreDocument, QueryDocumentSnapshot} from 
 import {QrcodePage} from './qrcode/qrcode.page';
 import * as firebase from "firebase/app";
 import { CONTEXT_NAME } from '@angular/compiler/src/render3/view/util';
+import { ActivatedRouteSnapshot } from '@angular/router';
 
 
 @Component({
@@ -51,8 +52,9 @@ export class Tab2Page {
             }
         });
 
+
         // check if current user is online or not
-        var status = 'Offline';
+        var status = '';
         locationRef.on('value', snapshot => {
             if(snapshot.val().isOnline) {
                 status = 'Just Now';
@@ -95,10 +97,31 @@ export class Tab2Page {
 
     // puts marker on the map with user info
     renderUser(marker, lng, lat, status, location, uName) {
-        marker.setLngLat([lng, lat])
+        try {
+            marker.setLngLat([lng, lat])
             .setPopup(new mapboxgl.Popup({ offset: 20 })
-            .setHTML('<h6>' + uName + '</h6><p>' + status + '</p><p>' + location + '</p>'))
+            .setHTML('<h6>' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
             .addTo(this.map);
+        } catch(e) {
+            location.reload();
+        }
+    }
+
+    getLocationAndRender(o : {marker: any}, lng, lat, status, uName) {
+        //console.log(o.marker + ' | ' + lng + ' | ' + lat + ' | ' + status + ' | ' + uName);
+        // fetch location with mapbox api
+        var tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
+        fetch(tempReqStr).then(response => response.json())
+            .then(data => {
+                var locat = '';
+                data.features.forEach(feat => {
+                    if(!(/\d/.test(feat.text)) && locat === '') {
+                        // get least general feature as location
+                        locat = feat.text;
+                    }
+                });
+                this.renderUser(o.marker, lng, lat, status, locat, uName);
+            });
     }
 
     renderLinks() {
@@ -107,67 +130,92 @@ export class Tab2Page {
                 this.map.removeLayer(tempMarker);
             });
             res.forEach(doc => {
-                // get other user id to get their doc
+                let otherId;;
+                let otherRef;
+                let oName;
+                let oMark;
                 doc.payload.doc.ref.get().then(otherSnap => {
+                    // get other user id and reference
                     if(otherSnap.exists) {
-                        var otherId = otherSnap.data().userSent.Pc.path.segments[6];
-                        var otherRef = firebase.database().ref('/location/' + otherId);
-                        // get doc of user
-                        firebase.firestore().doc('/users/' + otherId).get().then(oUserDoc => {
-                            if(oUserDoc.exists) {
-                                var oName = oUserDoc.data().name;
-                                var oUrl = oUserDoc.data().profilepic;
-                                // get location and status information
-                                otherRef.on('value', snapshot => {
-                                    if(snapshot.val()) {
-                                        // get all of the other users data
-                                        var longi = snapshot.val().longitude;
-                                        var latid = snapshot.val().latitude;
-                                        var oStat = snapshot.val().isOnline ? 'Just Now' : 'Offline';
-                                        // create marker and style it
-                                        var el = this.createMarker();
-                                        el.style.width = '50px';
-                                        el.style.height = '50px';
-                                        if (oUrl.startsWith('h')) {
-                                            el.style.backgroundImage = 'url(' + oUrl + ')';
-                                        } else {
-                                            this.storage.storage.refFromURL(oUrl).getDownloadURL().then(url => {
-                                                el.style.backgroundImage = 'url(' + url + ')';
-                                            });
-                                        }
-                                        var oMark = new mapboxgl.Marker(el);
-                                        this.getLocationAndRender({marker: oMark}, longi, latid, oStat, oName);
-                                    }
+                        otherId = otherSnap.data().userSent.Pc.path.segments[6];
+                        otherRef = firebase.database().ref('/location/' + otherId);
+                    }
+                }).then(() => {
+                    firebase.firestore().doc('/users/' + otherId).get().then(oUserDoc => {
+                        if(oUserDoc.exists) {
+                            // get other user name and profile pic
+                            oName = oUserDoc.data().name;
+                            let oUrl = oUserDoc.data().profilepic;
+
+                            // create marker and style it
+                            let el = this.createMarker();
+                            el.style.width = '50px';
+                            el.style.height = '50px';
+                            if (oUrl.startsWith('h')) {
+                                el.style.backgroundImage = 'url(' + oUrl + ')';
+                            } else {
+                                this.storage.storage.refFromURL(oUrl).getDownloadURL().then(url => {
+                                    el.style.backgroundImage = 'url(' + url + ')';
                                 });
                             }
-                        });
-                    }
+                            oMark = new mapboxgl.Marker(el);
+                        }
+                    }).then(() => {
+                        otherRef.on('value', snapshot => {
+                            if(snapshot.val()) {
+                                // get other users longitude, latitude, and lastOnline vals
+                                let longi = snapshot.val().longitude;
+                                let latid = snapshot.val().latitude;
+                                let lastOn = snapshot.val().lastOnline;
+
+                                // only way ik so far to get current time
+                                let currTime = 0;
+                                let timeRef = firebase.database().ref('currentTime/');
+                                timeRef.set({time: firebase.database.ServerValue.TIMESTAMP});
+                                timeRef.once('value').then(timeSnap => {
+                                    if(timeSnap.val()) {
+                                        currTime = timeSnap.val().time;
+                                    }
+                                }).then(() => {
+                                    // update status and render
+                                    let oStat = this.convertTime(currTime - lastOn);
+                                    this.getLocationAndRender({marker: oMark}, longi, latid, oStat, oName);
+                                });
+                            }
+                        });   
+                    });
                 });
             });
         });
     }
 
-    getLocationAndRender(o : {marker: any}, lng, lat, status, uName) {
-        console.log(o.marker + ' ' + lng + ' ' + lat + ' ' + status + ' ' + uName);
-        var tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
-        fetch(tempReqStr).then(response => response.json())
-            .then(data => {
-                var locat = data.features[0].text;
-                this.renderUser(o.marker, lng, lat, status, locat, uName);
-            });
+    convertTime(t) {
+        if(t >= 86_400_000) {
+            // days
+            return Math.floor(t / 8640000) + 'd ago';
+        } else if(t >= 3_600_000) {
+            // hours
+            return Math.floor(t / 3_600_000) + 'h ago';
+        } else if(t >= 60_000) {
+            // mins
+            return Math.floor(t / 60_000) + 'm ago';
+        } else if(t >= 1000) {
+            // secs
+            return Math.floor(t / 1000) + 's ago';
+        } else {
+            return 'Just Now';
+        }
     }
 
     updateStatus(uid, lRef) {
         // variables used to set values in database
         var offline = {
             id: uid,
-            uid: 'idk',
             isOnline: false,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
         var online = {
             id: uid,
-            uid: 'idk',
             isOnline: true,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
