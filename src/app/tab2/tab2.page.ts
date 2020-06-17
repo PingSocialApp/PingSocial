@@ -39,9 +39,14 @@ export class Tab2Page {
             enableHighAccuracy: true,
         });
 
+        console.log(this.map);
+        this.map.on('click', 'symbols', function(e) {
+            this.map.flyTo({ center: e.features[0].geometry.coordinates });
+        });
+
         // references
         const uid = fs.currentUserId;
-        const locationRef = firebase.database().ref('/location/' + uid);
+        const locationRef = this.rtdb.database.ref('/location/' + uid);
         this.updateStatus(uid, locationRef);
 
         // get user name
@@ -98,11 +103,12 @@ export class Tab2Page {
     renderUser(marker, lng, lat, status, location, uName) {
         try {
             marker.setLngLat([lng, lat])
-                .setPopup(new mapboxgl.Popup({offset: 20})
+                .setPopup(new mapboxgl.Popup({offset: 32})
                     .setHTML('<h6 style="text-align: center">' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
                 .addTo(this.map);
         } catch (e) {
-            location.reload();
+            //window.location.reload();
+            console.log(e.message);
         }
     }
 
@@ -113,9 +119,14 @@ export class Tab2Page {
             .then(data => {
                 var locat = '';
                 data.features.forEach(feat => {
-                    if (!(/\d/.test(feat.text)) && locat === '') {
-                        // get least general feature as location
-                        locat = feat.text;
+                    if(feat.place_type == 'place' || feat.place_type[1] == 'place') {
+                        // get city of location
+                        locat = feat.place_name;
+                        const firstInd = locat.indexOf(',');
+                        const lastInd = locat.lastIndexOf(',');
+                        if(firstInd != lastInd) {
+                            locat = locat.substring(0, locat.lastIndexOf(','));
+                        }
                     }
                 });
                 this.renderUser(o.marker, lng, lat, status, locat, uName);
@@ -128,15 +139,12 @@ export class Tab2Page {
                 this.map.removeLayer(tempMarker);
             });
             res.forEach(doc => {
-                let otherId;
-                let otherRef;
-                let oName;
-                let oMark;
+                let otherId, otherRef, oName, oMark;
                 doc.payload.doc.ref.get().then(otherSnap => {
                     // get other user id and reference
                     if (otherSnap.exists) {
                         otherId = otherSnap.data().userSent.Pc.path.segments[6];
-                        otherRef = firebase.database().ref('/location/' + otherId);
+                        otherRef = this.rtdb.database.ref('/location/' + otherId);
                     }
                 }).then(() => {
                     this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
@@ -167,7 +175,7 @@ export class Tab2Page {
 
                                 // only way ik so far to get current time
                                 let currTime = 0;
-                                let timeRef = firebase.database().ref('currentTime/');
+                                let timeRef = this.rtdb.database.ref('currentTime/');
                                 timeRef.set({time: firebase.database.ServerValue.TIMESTAMP});
                                 timeRef.once('value').then(timeSnap => {
                                     if (timeSnap.val()) {
@@ -189,7 +197,7 @@ export class Tab2Page {
     convertTime(t) {
         if (t >= 86_400_000) {
             // days
-            return Math.floor(t / 8640000) + 'd ago';
+            return Math.floor(t / 86_400_000) + 'd ago';
         } else if (t >= 3_600_000) {
             // hours
             return Math.floor(t / 3_600_000) + 'h ago';
@@ -218,7 +226,7 @@ export class Tab2Page {
         };
 
         // checks connection and sets values accordingly
-        firebase.database().ref('.info/connected').on('value', function (snapshot) {
+        this.rtdb.database.ref('.info/connected').on('value', function (snapshot) {
             if (snapshot.val()) {
                 lRef.onDisconnect().update(offline).then(() => {
                     lRef.update(online);
