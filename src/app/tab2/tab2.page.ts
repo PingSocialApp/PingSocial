@@ -39,11 +39,6 @@ export class Tab2Page {
             enableHighAccuracy: true,
         });
 
-        console.log(this.map);
-        this.map.on('click', 'symbols', function(e) {
-            this.map.flyTo({ center: e.features[0].geometry.coordinates });
-        });
-
         // references
         const uid = fs.currentUserId;
         const locationRef = this.rtdb.database.ref('/location/' + uid);
@@ -54,7 +49,6 @@ export class Tab2Page {
         fs.currentUserRef.ref.get().then(doc => {
             uName = doc.data().name;
         });
-
 
         // check if current user is online or not
         var status = '';
@@ -104,7 +98,7 @@ export class Tab2Page {
         try {
             marker.setLngLat([lng, lat])
                 .setPopup(new mapboxgl.Popup({offset: 32})
-                    .setHTML('<h6 style="text-align: center">' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
+                .setHTML('<h6 style="text-align: center">' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
                 .addTo(this.map);
         } catch (e) {
             //window.location.reload();
