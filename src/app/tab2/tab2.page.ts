@@ -7,18 +7,18 @@ import * as mapboxgl from 'mapbox-gl';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
-import {AngularFirestore, AngularFirestoreDocument, QueryDocumentSnapshot} from '@angular/fire/firestore';
+import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
-import * as firebase from "firebase/app";
-import { CONTEXT_NAME } from '@angular/compiler/src/render3/view/util';
-import { ActivatedRouteSnapshot } from '@angular/router';
+import * as firebase from 'firebase/app';
+import {merge} from 'rxjs';
+import {AngularFireDatabase} from '@angular/fire/database';
 
 
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
     styleUrls: ['tab2.page.scss'],
-    providers: [FirestoreService, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
+    providers: [AngularFireDatabase, FirestoreService, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
 })
 
 export class Tab2Page {
@@ -31,32 +31,30 @@ export class Tab2Page {
     // tslint:disable-next-line:max-line-length
     queryStatus: string = 'All';
     queryType: string = 'All';
-    queryDate: Boolean;
+    queryDate: boolean;
 
-    constructor(private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
+    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        let watch = this.geo.watchPosition({
+        const watch = this.geo.watchPosition({
             enableHighAccuracy: true,
         });
 
         // references
-        var uid = firebase.auth().currentUser.uid;
-        var locationRef = firebase.database().ref('/location/' + uid);
+        const uid = fs.currentUserId;
+        const locationRef = firebase.database().ref('/location/' + uid);
         this.updateStatus(uid, locationRef);
 
         // get user name
         var uName = '';
-        firebase.firestore().doc('/users/' + uid).get().then(doc => {
-            if(doc.exists) {
-                uName = doc.data().name;
-            }
+        fs.currentUserRef.ref.get().then(doc => {
+            uName = doc.data().name;
         });
 
 
         // check if current user is online or not
         var status = '';
         locationRef.on('value', snapshot => {
-            if(snapshot.val().isOnline) {
+            if (snapshot.val().isOnline) {
                 status = 'Just Now';
             }
         });
@@ -87,7 +85,8 @@ export class Tab2Page {
 
         this.renderLinks();
 
-        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref).orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
+        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)
+            .orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
             if (res !== null) {
                 this.unreadPings = res.length;
             }
@@ -99,23 +98,22 @@ export class Tab2Page {
     renderUser(marker, lng, lat, status, location, uName) {
         try {
             marker.setLngLat([lng, lat])
-            .setPopup(new mapboxgl.Popup({ offset: 20 })
-            .setHTML('<h6>' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
-            .addTo(this.map);
-        } catch(e) {
+                .setPopup(new mapboxgl.Popup({offset: 20})
+                    .setHTML('<h6 style="text-align: center">' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
+                .addTo(this.map);
+        } catch (e) {
             location.reload();
         }
     }
 
-    getLocationAndRender(o : {marker: any}, lng, lat, status, uName) {
-        //console.log(o.marker + ' | ' + lng + ' | ' + lat + ' | ' + status + ' | ' + uName);
+    getLocationAndRender(o: { marker: any }, lng, lat, status, uName) {
         // fetch location with mapbox api
         var tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
         fetch(tempReqStr).then(response => response.json())
             .then(data => {
                 var locat = '';
                 data.features.forEach(feat => {
-                    if(!(/\d/.test(feat.text)) && locat === '') {
+                    if (!(/\d/.test(feat.text)) && locat === '') {
                         // get least general feature as location
                         locat = feat.text;
                     }
@@ -130,19 +128,19 @@ export class Tab2Page {
                 this.map.removeLayer(tempMarker);
             });
             res.forEach(doc => {
-                let otherId;;
+                let otherId;
                 let otherRef;
                 let oName;
                 let oMark;
                 doc.payload.doc.ref.get().then(otherSnap => {
                     // get other user id and reference
-                    if(otherSnap.exists) {
+                    if (otherSnap.exists) {
                         otherId = otherSnap.data().userSent.Pc.path.segments[6];
                         otherRef = firebase.database().ref('/location/' + otherId);
                     }
                 }).then(() => {
-                    firebase.firestore().doc('/users/' + otherId).get().then(oUserDoc => {
-                        if(oUserDoc.exists) {
+                    this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
+                        if (oUserDoc.exists) {
                             // get other user name and profile pic
                             oName = oUserDoc.data().name;
                             let oUrl = oUserDoc.data().profilepic;
@@ -160,9 +158,8 @@ export class Tab2Page {
                             }
                             oMark = new mapboxgl.Marker(el);
                         }
-                    }).then(() => {
                         otherRef.on('value', snapshot => {
-                            if(snapshot.val()) {
+                            if (snapshot.val()) {
                                 // get other users longitude, latitude, and lastOnline vals
                                 let longi = snapshot.val().longitude;
                                 let latid = snapshot.val().latitude;
@@ -173,16 +170,16 @@ export class Tab2Page {
                                 let timeRef = firebase.database().ref('currentTime/');
                                 timeRef.set({time: firebase.database.ServerValue.TIMESTAMP});
                                 timeRef.once('value').then(timeSnap => {
-                                    if(timeSnap.val()) {
+                                    if (timeSnap.val()) {
                                         currTime = timeSnap.val().time;
                                     }
                                 }).then(() => {
                                     // update status and render
-                                    let oStat = this.convertTime(currTime - lastOn);
+                                    const oStat = this.convertTime(currTime - lastOn);
                                     this.getLocationAndRender({marker: oMark}, longi, latid, oStat, oName);
                                 });
                             }
-                        });   
+                        });
                     });
                 });
             });
@@ -190,16 +187,16 @@ export class Tab2Page {
     }
 
     convertTime(t) {
-        if(t >= 86_400_000) {
+        if (t >= 86_400_000) {
             // days
             return Math.floor(t / 8640000) + 'd ago';
-        } else if(t >= 3_600_000) {
+        } else if (t >= 3_600_000) {
             // hours
             return Math.floor(t / 3_600_000) + 'h ago';
-        } else if(t >= 60_000) {
+        } else if (t >= 60_000) {
             // mins
             return Math.floor(t / 60_000) + 'm ago';
-        } else if(t >= 1000) {
+        } else if (t >= 1000) {
             // secs
             return Math.floor(t / 1000) + 's ago';
         } else {
@@ -209,50 +206,44 @@ export class Tab2Page {
 
     updateStatus(uid, lRef) {
         // variables used to set values in database
-        var offline = {
+        const offline = {
             id: uid,
             isOnline: false,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
-        var online = {
+        const online = {
             id: uid,
             isOnline: true,
             lastOnline: firebase.database.ServerValue.TIMESTAMP,
         };
 
         // checks connection and sets values accordingly
-        firebase.database().ref('.info/connected').on('value', function(snapshot) {
-            if(snapshot.val()) {
-                lRef.onDisconnect().update(offline).then(function() {
+        firebase.database().ref('.info/connected').on('value', function (snapshot) {
+            if (snapshot.val()) {
+                lRef.onDisconnect().update(offline).then(() => {
                     lRef.update(online);
                 });
-            };
+            }
+            ;
         });
     }
 
     presentEvents() {
-        this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)).snapshotChanges()
-            .subscribe(eventData => {
-                eventData.map((event) => {
-                    this.renderEvent(event.payload.doc.data());
-                });
+        const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false));
+        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.fs.currentUserRef.ref));
+        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.fs.currentUserRef.ref));
+
+        const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
+
+        events.subscribe(eventData => {
+            eventData.map((event) => {
+                this.renderEvent(event.payload.doc);
             });
-        this.firestore.collection('events', ref => ref.where('creator', '==', this.fs.currentUserRef.ref)).snapshotChanges()
-            .subscribe(eventData => {
-                eventData.map((event) => {
-                    this.renderEvent(event.payload.doc.data());
-                });
-            });
-        this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.fs.currentUserRef.ref)).snapshotChanges()
-            .subscribe(eventData => {
-                eventData.map((event) => {
-                    this.renderEvent(event.payload.doc.data());
-                });
-            });
+        });
     }
 
     renderEvent(doc) {
-        let eventInfo = doc;
+        let eventInfo = doc.data();
         // @ts-ignore
         let el = this.createMarker();
         el.setAttribute('data-name', eventInfo.name);
@@ -277,9 +268,9 @@ export class Tab2Page {
             el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
         } else if (eventInfo.type === 'Hangout') {
             // TODO Add Photos per event
-            el.style.backgroundImage = '';
+            el.style.backgroundImage = 'url(\'../assets/undraw_hangout_out_h9ud.svg\')';
         } else {
-            el.style.backgroundImage = '';
+            el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
         }
         let marker = new mapboxgl.Marker(el);
         // @ts-ignore
@@ -303,14 +294,10 @@ export class Tab2Page {
         el.style.height = '50px';
         this.fs.userData.subscribe(ref => {
             if (ref !== null) {
-                // @ts-ignore
-                let data = ref.payload.data();
-                // @ts-ignore
+                const data = ref.payload.data();
                 if (data.profilepic.startsWith('h')) {
-                    // @ts-ignore
                     el.style.backgroundImage = 'url(' + data.profilepic + ')';
                 } else {
-                    // @ts-ignore
                     this.storage.storage.refFromURL(data.profilepic).getDownloadURL().then(url => {
                         el.style.backgroundImage = 'url(' + url + ')';
                     });
@@ -320,7 +307,7 @@ export class Tab2Page {
         el.id = 'currentLocation';
         this.currentLocationMarker = new mapboxgl.Marker(el);
     }
-
+    
     ngAfterViewInit() {
         this.geo.getCurrentPosition().then((resp) => {
             this.buildMap(resp.coords);
