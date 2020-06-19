@@ -37,6 +37,11 @@ export class Tab2Page {
     queryType = 'All';
     queryDate: boolean;
     currentEventId: string;
+    showUserDetails: boolean;
+    otherUserName = '';
+    otherUserLocation: any;
+    otherUserStatus = '';
+    otherUserId: string;
 
     constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
@@ -50,11 +55,6 @@ export class Tab2Page {
         const locationRef = this.rtdb.database.ref('/location/' + uid);
         this.updateStatus(uid, locationRef);
 
-        // get user name
-        let uName = '';
-        fs.currentUserRef.ref.get().then(doc => {
-            uName = doc.data().name;
-        });
 
         // check if current user is online or not
         let status = '';
@@ -76,7 +76,7 @@ export class Tab2Page {
             });
 
             // use api to get location
-            this.getLocationAndRender({marker: this.currentLocationMarker}, lng, lat, status, uName);
+            this.renderUser({marker: this.currentLocationMarker}, lng, lat);
 
             // just to fly to current user on map
             this.map.flyTo({
@@ -98,21 +98,20 @@ export class Tab2Page {
         });
         this.showFilter = false;
         this.showEventDetails = false;
+        this.showUserDetails = false;
     }
 
     // puts marker on the map with user info
-    renderUser(marker, lng, lat, status, location, uName) {
+    renderUser(marker, lng, lat) {
         try {
-            marker.setLngLat([lng, lat])
-                .setPopup(new mapboxgl.Popup({offset: 32})
-                .setHTML('<h6 style="text-align: center">' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
+            marker.marker.setLngLat([lng, lat])
                 .addTo(this.map);
         } catch (e) {
             console.log(e.message);
         }
     }
 
-    getLocationAndRender(o: { marker: any }, lng, lat, status, uName) {
+    getLocation(lng, lat) {
         // fetch location with mapbox api
         const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' +
             mapboxgl.accessToken;
@@ -130,7 +129,8 @@ export class Tab2Page {
                         }
                     }
                 });
-                this.renderUser(o.marker, lng, lat, status, locat, uName);
+                console.log(locat);
+                return locat;
             });
     }
 
@@ -151,7 +151,7 @@ export class Tab2Page {
                     }
                 }).then(() => {
                     this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
-                        if (oUserDoc.exists) {
+                        // if (oUserDoc.exists) {
                             // get other user name and profile pic
                             oName = oUserDoc.data().name;
                             const oUrl = oUserDoc.data().profilepic;
@@ -167,8 +167,7 @@ export class Tab2Page {
                                     el.style.backgroundImage = 'url(' + url + ')';
                                 });
                             }
-                            oMark = new mapboxgl.Marker(el);
-                        }
+                        // }
                         otherRef.on('value', snapshot => {
                             if (snapshot.val()) {
                                 // get other users longitude, latitude, and lastOnline vals
@@ -186,8 +185,17 @@ export class Tab2Page {
                                     }
                                 }).then(() => {
                                     // update status and render
-                                    const oStat = this.convertTime(currTime - lastOn);
-                                    this.getLocationAndRender({marker: oMark}, longi, latid, oStat, oName);
+                                    const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(currTime - lastOn);
+                                    el.id = oUserDoc.id;
+                                    oMark = new mapboxgl.Marker(el);
+                                    el.addEventListener('click', (e) => {
+                                        this.showUserDetails = true;
+                                        this.otherUserName = oName;
+                                        this.otherUserStatus = oStat;
+                                        this.otherUserLocation = this.getLocation(longi,latid);
+                                        this.otherUserId = oUserDoc.id
+                                    });
+                                    this.renderUser({marker: oMark}, longi, latid);
                                 });
                             }
                         });
@@ -229,7 +237,7 @@ export class Tab2Page {
         };
 
         // checks connection and sets values accordingly
-        this.rtdb.database.ref('.info/connected').on('value', function (snapshot) {
+        this.rtdb.database.ref('.info/connected').on('value',  (snapshot) => {
             if (snapshot.val()) {
                 lRef.onDisconnect().update(offline).then(() => {
                     lRef.update(online);
@@ -323,6 +331,13 @@ export class Tab2Page {
                         el.style.backgroundImage = 'url(' + url + ')';
                     });
                 }
+                el.addEventListener('click', (e) => {
+                    this.showUserDetails = true;
+                    this.otherUserName = data.name;
+                    this.otherUserStatus = 'Online';
+                    this.otherUserId = 'currentLocation';
+                    this.otherUserLocation = 'Here';
+                });
             }
         });
         el.id = 'currentLocation';
@@ -351,6 +366,7 @@ export class Tab2Page {
         });
         this.map.on('dragstart', ()=>{
             this.showEventDetails = false;
+            this.showUserDetails = false;
         });
     }
 

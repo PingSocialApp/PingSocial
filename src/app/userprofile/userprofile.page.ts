@@ -14,7 +14,7 @@ import * as firebase from 'firebase';
     selector: 'app-userprofile',
     templateUrl: './userprofile.page.html',
     styleUrls: ['./userprofile.page.scss'],
-    providers: [RequestsProgramService, AngularFireStorage, AngularFireAuth]
+    providers: [RequestsProgramService, AngularFireStorage, AngularFireAuth, AngularFireDatabase]
 })
 export class UserprofilePage implements OnInit {
     userRef: AngularFirestoreDocument;
@@ -245,7 +245,7 @@ export class UserprofilePage implements OnInit {
         // tslint:disable-next-line:no-bitwise max-line-length
         const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal | locationVal;
         this.firestore.doc(this.linkDoc).update({
-            linkPermissions: code + '/' + this.auth.auth.currentUser.uid
+            linkPermissions: code + ''
         }).then(async value => {
             const toast = await this.toastController.create({
                 message: 'User Permissions have been updated!',

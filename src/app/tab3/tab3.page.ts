@@ -25,7 +25,6 @@ export class Tab3Page {
     requestAmount: number;
     links: Array<Link>;
     private idArr: Array<string>;
-    dataLoaded: boolean = false;
 
     constructor(private modalController: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
         this.currentUserRef = this.firestore.collection('users').doc(
