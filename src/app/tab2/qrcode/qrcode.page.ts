@@ -34,6 +34,7 @@ export class QrcodePage implements OnInit {
     website = true;
     qrData: string;
     displayScan: boolean;
+    location = true;
 
     constructor(private modalController: ModalController, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner, private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController, public rs: RequestsProgramService) {
         this.userId = this.auth.auth.currentUser.uid;
@@ -125,6 +126,8 @@ export class QrcodePage implements OnInit {
 
     updateVals() {
         // tslint:disable-next-line:no-bitwise
+        const locationVal = +!!this.location << 11;
+        // tslint:disable-next-line:no-bitwise
         const phoneVal = +!!this.phone << 10;
         // tslint:disable-next-line:no-bitwise
         const emailVal = +!!this.email << 9;
@@ -147,7 +150,7 @@ export class QrcodePage implements OnInit {
         // tslint:disable-next-line:no-bitwise
         const websiteVal = +!!this.website << 0;
         // tslint:disable-next-line:no-bitwise max-line-length
-        const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal;
+        const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal | locationVal;
         this.qrData = code + '/' + this.userId;
     }
 

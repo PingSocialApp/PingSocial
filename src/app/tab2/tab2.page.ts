@@ -37,7 +37,6 @@ export class Tab2Page {
     queryType = 'All';
     queryDate: boolean;
     currentEventId: string;
-    loading: boolean;
 
     constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
@@ -115,7 +114,8 @@ export class Tab2Page {
 
     getLocationAndRender(o: { marker: any }, lng, lat, status, uName) {
         // fetch location with mapbox api
-        const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
+        const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' +
+            mapboxgl.accessToken;
         fetch(tempReqStr).then(response => response.json())
             .then(data => {
                 let locat = '';
@@ -142,6 +142,7 @@ export class Tab2Page {
             });
             res.forEach(doc => {
                 let otherId, otherRef, oName, oMark;
+                // TODO Unsubscribe from all get
                 doc.payload.doc.ref.get().then(otherSnap => {
                     // get other user id and reference
                     if (otherSnap.exists) {
@@ -294,9 +295,6 @@ export class Tab2Page {
            this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
            this.currentEventId = el.id;
         });
-        el.addEventListener('blur', (e)=>{
-            this.showEventDetails = false;
-        });
         const marker = new mapboxgl.Marker(el);
         try {
             marker.setLngLat([eventInfo.location[0], eventInfo.location[1]]).addTo(this.map);
@@ -351,10 +349,9 @@ export class Tab2Page {
             zoom: 18,
             center: [coords.longitude, coords.latitude]
         });
-        this.loading = true;
-        this.map.on('load', ()=>{
-            this.loading = false;
-        })
+        this.map.on('dragstart', ()=>{
+            this.showEventDetails = false;
+        });
     }
 
     async presentEventCreatorModal(data: string) {

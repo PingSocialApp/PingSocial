@@ -34,6 +34,10 @@
   --background: linear-gradient(180deg, rgba(29,112,241,1) 0%, rgba(26,198,251,1) 100%);
 }
 
+.locationButton{
+  --background: darkred;
+}
+
 ion-avatar{
   margin: 2% auto;width: 145px;height: 145px;border: solid 5px lightgray;
   margin-top: 5%
@@ -85,6 +89,10 @@ ion-avatar{
 
 .pmicon{
   color: #92949c;
+}
+
+.locicon{
+  color: darkred;;
 }
 
 .tinoneimg{

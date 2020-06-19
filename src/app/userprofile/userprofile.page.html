@@ -57,7 +57,10 @@
             <ion-icon name="mail"></ion-icon>
         </ion-button>
         <ion-button expand="block" color="danger" href="{{userWebsite}}" *ngIf="userWebsite.length !== 0">
-            <ion-icon name="globe"></ion-icon>
+            <ion-icon name="link"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" class="locationButton" *ngIf="userLocation.length !== 0" (click)="showLocation()">
+            <ion-icon name="location"></ion-icon>
         </ion-button>
     </ion-list>
     <ion-list *ngIf="!displayTF && myInfo">
@@ -132,11 +135,18 @@
             <ion-toggle [(ngModel)]="professionalemail"  (ionChange)="changePermissions()"></ion-toggle>
         </ion-item>
         <ion-item>
-            <ion-icon class="displayIcon gicon" name="globe"></ion-icon>
+            <ion-icon class="displayIcon gicon" name="link"></ion-icon>
             <ion-label>
                 Website
             </ion-label>
             <ion-toggle [(ngModel)]="website"  (ionChange)="changePermissions()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+            <ion-icon class="displayIcon locicon" name="location"></ion-icon>
+            <ion-label>
+                Location
+            </ion-label>
+            <ion-toggle [(ngModel)]="location"  (ionChange)="changePermissions()"></ion-toggle>
         </ion-item>
     </ion-list>
     <ion-img class="tinoneimg" *ngIf="displayTF && !theirInfo" src="assets/undraw_Add_friends_wa2a.svg">

@@ -116,11 +116,18 @@
                 <ion-toggle [(ngModel)]="professionalemail" checked="true" (ionChange)="updateVals()"></ion-toggle>
             </ion-item>
             <ion-item>
-                <ion-icon class="displayIcon gicon" name="globe"></ion-icon>
+                <ion-icon class="displayIcon gicon" name="link"></ion-icon>
                 <ion-label>
                     Website
                 </ion-label>
                 <ion-toggle [(ngModel)]="website" checked="true" (ionChange)="updateVals()"></ion-toggle>
+            </ion-item>
+            <ion-item>
+                <ion-icon class="displayIcon" name="location"></ion-icon>
+                <ion-label>
+                    Location
+                </ion-label>
+                <ion-toggle [(ngModel)]="location" checked="true" (ionChange)="updateVals()"></ion-toggle>
             </ion-item>
         </ion-list>
     </div>

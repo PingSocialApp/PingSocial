@@ -3,8 +3,12 @@ import {ActivatedRoute} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument, DocumentReference} from '@angular/fire/firestore';
 import {RequestsProgramService} from '../requests-program.service';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {ToastController} from '@ionic/angular';
+import {AlertController, ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
+import {AngularFireDatabase} from '@angular/fire/database';
+import {environment} from '../../environments/environment';
+import * as mapboxgl from 'mapbox-gl';
+import * as firebase from 'firebase';
 
 @Component({
     selector: 'app-userprofile',
@@ -44,9 +48,12 @@ export class UserprofilePage implements OnInit {
     linkedin: boolean;
     professionalemail: boolean;
     website: boolean;
+    location: boolean;
+    userLocation: any;
 
-    constructor(private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
+    constructor(private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
                 private storage: AngularFireStorage, private toastController: ToastController) {
+        mapboxgl.accessToken = environment.mapbox.accessToken;
         this.displayTF = true;
         this.userRef = this.firestore.collection('users').doc(this.acr.snapshot.params.id);
         this.userRef.snapshotChanges()
@@ -80,10 +87,10 @@ export class UserprofilePage implements OnInit {
         this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
             .where('userRec', '==', this.firestore.collection('users').doc(
                 this.auth.auth.currentUser.uid).ref)
-            .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
-                if(res.length !== 0){
-                    this.linkDoc = res[0].payload.doc.ref;
-                    this.renderMyPermissions(res[0].payload.doc.data());
+            .where('pendingRequest', '==', false)).get().subscribe(res => {
+                if(!res.empty){
+                    this.linkDoc = res.docs[0].ref;
+                    this.renderMyPermissions(res.docs[0].data());
                     this.myInfo = true;
                 }else{
                     this.myInfo = false;
@@ -107,43 +114,112 @@ export class UserprofilePage implements OnInit {
         let permissions = userPermissions.linkPermissions.substring(0, userPermissions.linkPermissions.indexOf('/'));
         permissions = parseInt(permissions, 10).toString(2).split('');
 
-        this.userPhone = permissions[0] % 2 === 1 ? userData.numberID.replace('(', '').replace(')', '')
+        this.userPhone = this.getPermission(permissions[0]) ? userData.numberID.replace('(', '').replace(')', '')
             .replace('-', '').replace(' ', '') : '';
-        this.userPersonalEmail = permissions[1] % 2 === 1 ? userData.personalEmailID: '';
-        this.userInstagram = permissions[2] % 2 === 1 ? userData.instagramID : '';
-        this.userSnapchat = permissions[3] % 2 === 1 ? userData.snapchatID : '';
-        this.userFacebook = permissions[4] % 2 === 1 ? userData.facebookID : '';
-        this.userTiktok = permissions[5] % 2 === 1 ? userData.tiktokID : '';
-        this.userTwitter = permissions[6] % 2 === 1 ? userData.twitterID : '';
-        this.userVenmo = permissions[7] % 2 === 1 ? userData.venmoID : '';
-        this.userLinkedin = permissions[8] % 2 === 1 ? userData.linkedinID : '';
-        this.userProfessionalEmail = permissions[9] % 2 === 1 ?  userData.professionalEmailID : '';
+        this.userPersonalEmail = this.getPermission(permissions[1]) ? userData.personalEmailID: '';
+        this.userInstagram = this.getPermission(permissions[2]) ? userData.instagramID : '';
+        this.userSnapchat = this.getPermission(permissions[3]) ? userData.snapchatID : '';
+        this.userFacebook = this.getPermission(permissions[4]) ? userData.facebookID : '';
+        this.userTiktok = this.getPermission(permissions[5]) ? userData.tiktokID : '';
+        this.userTwitter = this.getPermission(permissions[6]) ? userData.twitterID : '';
+        this.userVenmo = this.getPermission(permissions[7]) ? userData.venmoID : '';
+        this.userLinkedin = this.getPermission(permissions[8]) ? userData.linkedinID : '';
+        this.userProfessionalEmail = this.getPermission(permissions[9]) ?  userData.professionalEmailID : '';
         let website;
         if (!((userData.websiteID.includes('http://')) || (userData.websiteID.includes('https://')) || userData.websiteID.length <= 0)) {
             website = 'http://' + userData.websiteID;
         }else{
             website = userData.websiteID;
         }
-        this.userWebsite = permissions[10] % 2 === 1 ?  website : '';
+        this.userWebsite = this.getPermission(permissions[10]) ?  website : '';
+        this.userLocation = this.getPermission(permissions[11]) ? this.getLocation(): '';
+
+    }
+
+    convertTime(t) {
+        if (t >= 86_400_000) {
+            // days
+            return Math.floor(t / 86_400_000) + 'd ago';
+        } else if (t >= 3_600_000) {
+            // hours
+            return Math.floor(t / 3_600_000) + 'h ago';
+        } else if (t >= 60_000) {
+            // mins
+            return Math.floor(t / 60_000) + 'm ago';
+        } else if (t >= 1000) {
+            // secs
+            return Math.floor(t / 1000) + 's ago';
+        } else {
+            return 'Just Now';
+        }
+    }
+
+    getLocation(){
+        this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
+            if (snapshot.val()) {
+                // get other users longitude, latitude, and lastOnline vals
+                const longi = snapshot.val().longitude;
+                const latid = snapshot.val().latitude;
+                const lastOn = snapshot.val().lastOnline;
+
+                // only way ik so far to get current time
+                let currTime = 0;
+                const timeRef = this.rtdb.database.ref('currentTime/');
+                timeRef.set({time: firebase.database.ServerValue.TIMESTAMP});
+                timeRef.once('value').then(timeSnap => {
+                    if (timeSnap.val()) {
+                        currTime = timeSnap.val().time;
+                    }
+                }).then(() => {
+                    // update status and render
+                    const oStat = this.convertTime(currTime - lastOn);
+                    const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
+                        mapboxgl.accessToken;
+                    fetch(tempReqStr).then(response => response.json())
+                        .then(data => {
+                            let locat = '';
+                            data.features.forEach(feat => {
+                                if(feat.place_type === 'place' || feat.place_type[1] === 'place') {
+                                    // get city of location
+                                    locat = feat.place_name;
+                                    const firstInd = locat.indexOf(',');
+                                    const lastInd = locat.lastIndexOf(',');
+                                    if(firstInd !== lastInd) {
+                                        locat = locat.substring(0, locat.lastIndexOf(','));
+                                    }
+                                }
+                            });
+                            return oStat + ' in ' + locat;
+                        });
+                });
+            }
+        });
     }
 
     renderMyPermissions(myData: any) {
         let permissions = myData.linkPermissions.substring(0, myData.linkPermissions.indexOf('/'));
         permissions = parseInt(permissions, 10).toString(2).split('');
-        this.phone = permissions[0] % 2 === 1;
-        this.email = permissions[1] % 2 === 1;
-        this.instagram = permissions[2] % 2 === 1;
-        this.snapchat = permissions[3] % 2 === 1;
-        this.facebook = permissions[4] % 2 === 1;
-        this.tiktok = permissions[5] % 2 === 1;
-        this.twitter = permissions[6] % 2 === 1;
-        this.venmo = permissions[7] % 2 === 1;
-        this.linkedin = permissions[8] % 2 === 1;
-        this.professionalemail = permissions[9] % 2 === 1;
-        this.website = permissions[10] % 2 === 1 ? true : false;
+        this.phone = this.getPermission(permissions[0]);
+        this.email = this.getPermission(permissions[1]);
+        this.instagram = this.getPermission(permissions[2]);
+        this.snapchat = this.getPermission(permissions[3]);
+        this.facebook = this.getPermission(permissions[4]);
+        this.tiktok = this.getPermission(permissions[5]);
+        this.twitter = this.getPermission(permissions[6]);
+        this.venmo = this.getPermission(permissions[7]);
+        this.linkedin = this.getPermission(permissions[8]);
+        this.professionalemail = this.getPermission(permissions[9]);
+        this.website = this.getPermission(permissions[10]);
+        this.location = this.getPermission(permissions[11]);
+    }
+
+    getPermission(value: any){
+        return (value % 2 === 1);
     }
 
     changePermissions() {
+        // tslint:disable-next-line:no-bitwise
+        const locationVal = +!!this.location << 11;
         // tslint:disable-next-line:no-bitwise
         const phoneVal = +!!this.phone << 10;
         // tslint:disable-next-line:no-bitwise
@@ -167,7 +243,7 @@ export class UserprofilePage implements OnInit {
         // tslint:disable-next-line:no-bitwise
         const websiteVal = +!!this.website << 0;
         // tslint:disable-next-line:no-bitwise max-line-length
-        const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal;
+        const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal | locationVal;
         this.firestore.doc(this.linkDoc).update({
             linkPermissions: code + '/' + this.auth.auth.currentUser.uid
         }).then(async value => {
@@ -180,4 +256,12 @@ export class UserprofilePage implements OnInit {
     }
 
 
+    async showLocation() {
+        const alert = await this.alertController.create({
+            header: this.userName + ' is ',
+            subHeader: this.userLocation,
+            buttons: ['OK']
+        });
+        await alert.present();
+    }
 }
