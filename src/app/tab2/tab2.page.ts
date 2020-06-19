@@ -55,7 +55,6 @@ export class Tab2Page {
         const locationRef = this.rtdb.database.ref('/location/' + uid);
         this.updateStatus(uid, locationRef);
 
-
         // check if current user is online or not
         let status = '';
         locationRef.on('value', snapshot => {
@@ -119,7 +118,7 @@ export class Tab2Page {
             .then(data => {
                 let locat = '';
                 data.features.forEach(feat => {
-                    if(feat.place_type === 'place' || feat.place_type[1] === 'place') {
+                    if(feat.place_type == 'place' || feat.place_type[1] == 'place') {
                         // get city of location
                         locat = feat.place_name;
                         const firstInd = locat.indexOf(',');
@@ -175,28 +174,18 @@ export class Tab2Page {
                                 const latid = snapshot.val().latitude;
                                 const lastOn = snapshot.val().lastOnline;
 
-                                // only way ik so far to get current time
-                                let currTime = 0;
-                                const timeRef = this.rtdb.database.ref('currentTime/');
-                                timeRef.set({time: firebase.database.ServerValue.TIMESTAMP});
-                                timeRef.once('value').then(timeSnap => {
-                                    if (timeSnap.val()) {
-                                        currTime = timeSnap.val().time;
-                                    }
-                                }).then(() => {
-                                    // update status and render
-                                    const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(currTime - lastOn);
-                                    el.id = oUserDoc.id;
-                                    oMark = new mapboxgl.Marker(el);
-                                    el.addEventListener('click', (e) => {
-                                        this.showUserDetails = true;
-                                        this.otherUserName = oName;
-                                        this.otherUserStatus = oStat;
-                                        this.otherUserLocation = this.getLocation(longi,latid);
-                                        this.otherUserId = oUserDoc.id
-                                    });
-                                    this.renderUser({marker: oMark}, longi, latid);
+                                // update status and render
+                                const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Data.now() - lastOn);
+                                el.id = oUserDoc.id;
+                                oMark = new mapboxgl.Marker(el);
+                                el.addEventListener('click', (e) => {
+                                    this.showUserDetails = true;
+                                    this.otherUserName = oName;
+                                    this.otherUserStatus = oStat;
+                                    this.otherUserLocation = this.getLocation(longi,latid);
+                                    this.otherUserId = oUserDoc.id
                                 });
+                                this.renderUser({marker: oMark}, longi, latid);
                             }
                         });
                     });
