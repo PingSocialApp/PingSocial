@@ -14,6 +14,7 @@ import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 
 
+
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
@@ -27,13 +28,19 @@ export class Tab2Page {
     currentLocationMarker: any;
     showFilter: boolean;
     allMarkers: any[] = [];
+    currentEventTitle: string;
+    currentEventDes: string;
+    showEventDetails: any;
 
     // tslint:disable-next-line:max-line-length
-    queryStatus: string = 'All';
-    queryType: string = 'All';
+    queryStatus = 'All';
+    queryType = 'All';
     queryDate: boolean;
+    currentEventId: string;
+    loading: boolean;
 
-    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService, private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
+    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
+                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         const watch = this.geo.watchPosition({
             enableHighAccuracy: true,
@@ -45,13 +52,13 @@ export class Tab2Page {
         this.updateStatus(uid, locationRef);
 
         // get user name
-        var uName = '';
+        let uName = '';
         fs.currentUserRef.ref.get().then(doc => {
             uName = doc.data().name;
         });
 
         // check if current user is online or not
-        var status = '';
+        let status = '';
         locationRef.on('value', snapshot => {
             if (snapshot.val().isOnline) {
                 status = 'Just Now';
@@ -60,8 +67,8 @@ export class Tab2Page {
 
         // update current user location
         watch.subscribe((data) => {
-            var lng = data.coords.longitude;
-            var lat = data.coords.latitude;
+            const lng = data.coords.longitude;
+            const lat = data.coords.latitude;
 
             // update location
             locationRef.update({
@@ -91,6 +98,7 @@ export class Tab2Page {
             }
         });
         this.showFilter = false;
+        this.showEventDetails = false;
     }
 
     // puts marker on the map with user info
@@ -101,24 +109,23 @@ export class Tab2Page {
                 .setHTML('<h6 style="text-align: center">' + uName + '</h6><p>' + status + ' in ' + location + '</p>'))
                 .addTo(this.map);
         } catch (e) {
-            //window.location.reload();
             console.log(e.message);
         }
     }
 
     getLocationAndRender(o: { marker: any }, lng, lat, status, uName) {
         // fetch location with mapbox api
-        var tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
+        const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxgl.accessToken;
         fetch(tempReqStr).then(response => response.json())
             .then(data => {
-                var locat = '';
+                let locat = '';
                 data.features.forEach(feat => {
-                    if(feat.place_type == 'place' || feat.place_type[1] == 'place') {
+                    if(feat.place_type === 'place' || feat.place_type[1] === 'place') {
                         // get city of location
                         locat = feat.place_name;
                         const firstInd = locat.indexOf(',');
                         const lastInd = locat.lastIndexOf(',');
-                        if(firstInd != lastInd) {
+                        if(firstInd !== lastInd) {
                             locat = locat.substring(0, locat.lastIndexOf(','));
                         }
                     }
@@ -128,7 +135,8 @@ export class Tab2Page {
     }
 
     renderLinks() {
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)).snapshotChanges().subscribe(res => {
+        this.firestore.collection('links',
+            ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)).snapshotChanges().subscribe(res => {
             this.allMarkers.forEach(tempMarker => {
                 this.map.removeLayer(tempMarker);
             });
@@ -145,10 +153,10 @@ export class Tab2Page {
                         if (oUserDoc.exists) {
                             // get other user name and profile pic
                             oName = oUserDoc.data().name;
-                            let oUrl = oUserDoc.data().profilepic;
+                            const oUrl = oUserDoc.data().profilepic;
 
                             // create marker and style it
-                            let el = this.createMarker();
+                            const el = this.createMarker();
                             el.style.width = '50px';
                             el.style.height = '50px';
                             if (oUrl.startsWith('h')) {
@@ -163,13 +171,13 @@ export class Tab2Page {
                         otherRef.on('value', snapshot => {
                             if (snapshot.val()) {
                                 // get other users longitude, latitude, and lastOnline vals
-                                let longi = snapshot.val().longitude;
-                                let latid = snapshot.val().latitude;
-                                let lastOn = snapshot.val().lastOnline;
+                                const longi = snapshot.val().longitude;
+                                const latid = snapshot.val().latitude;
+                                const lastOn = snapshot.val().lastOnline;
 
                                 // only way ik so far to get current time
                                 let currTime = 0;
-                                let timeRef = this.rtdb.database.ref('currentTime/');
+                                const timeRef = this.rtdb.database.ref('currentTime/');
                                 timeRef.set({time: firebase.database.ServerValue.TIMESTAMP});
                                 timeRef.once('value').then(timeSnap => {
                                     if (timeSnap.val()) {
@@ -245,16 +253,16 @@ export class Tab2Page {
     }
 
     renderEvent(doc) {
-        let eventInfo = doc.data();
+        const eventInfo = doc.data();
         // @ts-ignore
-        let el = this.createMarker();
+        const el = this.createMarker();
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
         el.setAttribute('data-start', eventInfo.startTime);
 
-        let endTime = new Date(eventInfo.endTime);
-        let currentTime = new Date();
+        const endTime = new Date(eventInfo.endTime);
+        const currentTime = new Date();
 
         if (currentTime > endTime) {
             return;
@@ -266,32 +274,45 @@ export class Tab2Page {
             document.querySelector('#' + el.id).remove();
         }
         // @ts-ignore
-        if (eventInfo.type === 'Party') {
+        if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
-        } else if (eventInfo.type === 'Hangout') {
-            // TODO Add Photos per event
+        } else if (eventInfo.type === 'hangout') {
             el.style.backgroundImage = 'url(\'../assets/undraw_hangout_out_h9ud.svg\')';
         } else {
             el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
         }
-        let marker = new mapboxgl.Marker(el);
-        // @ts-ignore
-        marker.setLngLat([eventInfo.location[0], eventInfo.location[1]]).addTo(this.map);
+        const startTime = new Date(eventInfo.startTime);
+        let minutes = '';
+        if(startTime.getMinutes() < 10){
+            minutes = '0' + startTime.getMinutes();
+        }else{
+            minutes = '' + startTime.getMinutes();
+        }
+        el.addEventListener('click', (e) => {
+           this.showEventDetails = true;
+           this.currentEventTitle = eventInfo.name;
+           this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+           this.currentEventId = el.id;
+        });
+        el.addEventListener('blur', (e)=>{
+            this.showEventDetails = false;
+        });
+        const marker = new mapboxgl.Marker(el);
+        try {
+            marker.setLngLat([eventInfo.location[0], eventInfo.location[1]]).addTo(this.map);
+        } catch (e) {
+            console.log(e.message);
+        }
     }
 
     createMarker() {
-        let el = document.createElement('div');
-        el.style.width = '30px';
-        el.style.height = '30px';
-        el.style.backgroundSize = 'cover';
-        el.style.borderRadius = '50%';
-        el.style.border = 'solid 3px #8FDEE6';
-        el.style.boxShadow = '0px 0px 25px #000000';
+        const el = document.createElement('div');
+        el.className = 'marker-style';
         return el;
     }
 
     presentCurrentLocation() {
-        let el = this.createMarker();
+        const el = this.createMarker();
         el.style.width = '50px';
         el.style.height = '50px';
         this.fs.userData.subscribe(ref => {
@@ -309,7 +330,7 @@ export class Tab2Page {
         el.id = 'currentLocation';
         this.currentLocationMarker = new mapboxgl.Marker(el);
     }
-    
+
     ngAfterViewInit() {
         this.geo.getCurrentPosition().then((resp) => {
             this.buildMap(resp.coords);
@@ -330,19 +351,26 @@ export class Tab2Page {
             zoom: 18,
             center: [coords.longitude, coords.latitude]
         });
+        this.loading = true;
+        this.map.on('load', ()=>{
+            this.loading = false;
+        })
     }
 
-    async presentEventCreatorModal() {
+    async presentEventCreatorModal(data: string) {
         const modal = await this.modalController.create({
-            component: EventcreatorPage
-        });
+                component: EventcreatorPage,
+                componentProps: {
+                    eventID: data
+                }
+            });
         return await modal.present();
     }
 
     async presentFilter() {
         this.showFilter = !this.showFilter;
         if (!this.showFilter) {
-            let elements = document.getElementsByClassName('mapboxgl-marker');
+            const elements = document.getElementsByClassName('mapboxgl-marker');
             for (let i = 0; i < elements.length; i++) {
                 (elements[i] as HTMLElement).style.display = 'block';
             }
@@ -350,18 +378,19 @@ export class Tab2Page {
     }
 
     filterMarkers() {
-        let elements = document.getElementsByClassName('mapboxgl-marker');
+        const elements = document.getElementsByClassName('mapboxgl-marker');
         for (let i = 0; i < elements.length; i++) {
             (elements[i] as HTMLElement).style.display = 'block';
             if (elements[i].id === 'currentLocation') {
                 continue;
             }
             let elementStatus = elements[i].getAttribute('data-private');
-            let elementType = elements[i].getAttribute('data-type');
-            let elementTime = new Date(elements[i].getAttribute('data-time'));
-            let currentDate = new Date();
+            const elementType = elements[i].getAttribute('data-type');
+            const elementTime = new Date(elements[i].getAttribute('data-time'));
+            const currentDate = new Date();
 
-            if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() && elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
+            if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
+                elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
                 (elements[i] as HTMLElement).style.display = 'none';
                 continue;
             }

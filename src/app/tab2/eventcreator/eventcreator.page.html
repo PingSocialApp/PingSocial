@@ -65,15 +65,20 @@
                             <h2>{{link.name}}</h2>
                             <p>{{link.bio}}</p>
                         </ion-label>
-                        <ion-checkbox id="{{link.id}}"></ion-checkbox>
+                        <ion-checkbox [checked]="link.checked" id="{{link.id}}"></ion-checkbox>
                     </ion-item>
                 </ion-list>
             </ion-card-content>
         </ion-card>
-        <ion-fab vertical="bottom" horizontal="end" style="position: fixed">
-            <ion-fab-button (click)="createEvent()">
+        <ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator">
+            <ion-fab-button (click)="manageEvent()">
                 <ion-icon name="checkmark"></ion-icon>
             </ion-fab-button>
+        </ion-fab>
+        <ion-fab *ngIf="editMode && isCreator" vertical="bottom" horizontal="start" style="position: fixed">
+            <ion-fab-button (click)="deleteEvent()" color="danger">
+                <ion-icon name="trash-outline"></ion-icon>
+                </ion-fab-button>
         </ion-fab>
     </div>
 </ion-content>

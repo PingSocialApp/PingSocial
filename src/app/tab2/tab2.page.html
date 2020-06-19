@@ -42,13 +42,13 @@
                 <ion-select-option value="All">
                     All
                 </ion-select-option>
-                <ion-select-option value="Hangout">
+                <ion-select-option value="hangout">
                     Hangout
                 </ion-select-option>
-                <ion-select-option value="Party">
+                <ion-select-option value="party">
                     Party
                 </ion-select-option>
-                <ion-select-option value="Professional">
+                <ion-select-option value="professional">
                     Professional
                 </ion-select-option>
             </ion-select>
@@ -59,6 +59,15 @@
         </ion-item>
         <ion-button expand="full" (click)="presentFilter()"><ion-icon name="arrow-up-outline"></ion-icon></ion-button>
     </ion-list>
+    <ion-card style="z-index: 3" *ngIf="showEventDetails">
+        <ion-card-content>
+            <ion-card-title>{{currentEventTitle}}</ion-card-title>
+            <ion-card-subtitle>{{currentEventDes}}</ion-card-subtitle>
+            <ion-button expand="block" (click)="presentEventCreatorModal(currentEventId)"><ion-icon name="expand-outline"></ion-icon></ion-button>
+        </ion-card-content>
+    </ion-card>
+    <ion-spinner *ngIf="loading" name="dots"></ion-spinner>
+
     <div id="map"></div>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button>
@@ -68,7 +77,7 @@
             <ion-fab-button (click)="presentFilter()">
                 <ion-icon name="funnel"></ion-icon>
             </ion-fab-button>
-            <ion-fab-button (click)="presentEventCreatorModal()">
+            <ion-fab-button (click)="presentEventCreatorModal('')">
                 <ion-icon name="add-circle"></ion-icon>
             </ion-fab-button>
         </ion-fab-list>
