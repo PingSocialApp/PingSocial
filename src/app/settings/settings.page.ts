@@ -86,6 +86,7 @@ export class SettingsPage implements OnInit {
                     this.presentToast('Settings Updated!');
                 });
         }
+
     }
 
     async presentToast(displayMessage: string) {

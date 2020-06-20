@@ -97,69 +97,110 @@
         </ion-card-header>
         <ion-card-content>
             <ion-list>
-                <ion-item>
+                <ion-item *ngFor="let i of [0,1,2,3,4]">
                     <ion-label>
-                        1
+                        {{i + 1}}
                     </ion-label>
                     <ion-select>
+                        <ion-select-option>
+                            Parties
+                        </ion-select-option>
                         <ion-select-option>
                             Football
                         </ion-select-option>
                         <ion-select-option>
+                            Basketball
+                        </ion-select-option>
+                        <ion-select-option>
                             Soccer
                         </ion-select-option>
+                        <ion-select-option>
+                            Baseball
+                        </ion-select-option>
+                        <ion-select-option>
+                            Tennis
+                        </ion-select-option>
+                        <ion-select-option>
+                            Rap/Hip Hop music
+                        </ion-select-option>
+                        <ion-select-option>
+                            Pop music
+                        </ion-select-option>
+                        <ion-select-option>
+                            Country music
+                        </ion-select-option>
+                        <ion-select-option>
+                            Action/Adventure TV Shows/Movies
+                        </ion-select-option>
+                        <ion-select-option>
+                            Comedy TV Shows/Movies
+                        </ion-select-option>
+                        <ion-select-option>
+                            Drama TV Shows/Movies
+                        </ion-select-option>
+                        <ion-select-option>
+                            Horror/Thriller TV Shows/Movies
+                        </ion-select-option>
+                        <ion-select-option>
+                            Romance TV Shows/Movies
+                        </ion-select-option>
+                        <ion-select-option>
+                            Foodie
+                        </ion-select-option>
+                        <ion-select-option>
+                            FPS Gaming
+                        </ion-select-option>
+                        <ion-select-option>
+                            Multiplayer Online Gaming (League, Dota etc)
+                        </ion-select-option>
+                        <ion-select-option>
+                            Fighting Gaming (Smash, Mortal Combat etc)
+                        </ion-select-option>
+                        <ion-select-option>Sports Gaming</ion-select-option>
+                        <ion-select-option>Weightlifting</ion-select-option>
+                        <ion-select-option>Running</ion-select-option>
+                        <ion-select-option>Yoga</ion-select-option>
+                        <ion-select-option>Cycling</ion-select-option>
+                        <ion-select-option>Hiking</ion-select-option>
+                        <ion-select-option>CrossFit</ion-select-option>
+                        <ion-select-option>Dance</ion-select-option>
+                        <ion-select-option>Politics</ion-select-option>
+                        <ion-select-option>Cooking/Baking</ion-select-option>
+                        <ion-select-option>STEM</ion-select-option>
+                        <ion-select-option>Entrepreneurship</ion-select-option>
                     </ion-select>
                 </ion-item>
-                <ion-item>
-                    <ion-label>
-                        2
-                    </ion-label>
+            </ion-list>
+        </ion-card-content>
+        <ion-card-header>
+            <ion-card-title>Traits I Value</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <ion-list>
+                <ion-item *ngFor="let i of [0,1,2,3,4]">
+                <ion-label>
+                    {{i + 1}}
+                </ion-label>
                     <ion-select>
-                        <ion-select-option>
-                            Football
-                        </ion-select-option>
-                        <ion-select-option>
-                            Soccer
-                        </ion-select-option>
-                    </ion-select>
-                </ion-item>
-                <ion-item>
-                    <ion-label>
-                        3
-                    </ion-label>
-                    <ion-select>
-                        <ion-select-option>
-                            Football
-                        </ion-select-option>
-                        <ion-select-option>
-                            Soccer
-                        </ion-select-option>
-                    </ion-select>
-                </ion-item>
-                <ion-item>
-                    <ion-label>
-                        4
-                    </ion-label>
-                    <ion-select>
-                        <ion-select-option>
-                            Football
-                        </ion-select-option>
-                        <ion-select-option>
-                            Soccer
-                        </ion-select-option>
-                    </ion-select>
-                </ion-item>
-                <ion-item>
-                    <ion-label>
-                        5
-                    </ion-label>
-                    <ion-select>
-                        <ion-select-option>
-                            Football
-                        </ion-select-option>
-                        <ion-select-option>
-                            Soccer
-                        </ion-select-option>
+                            <ion-select-option>Intelligent</ion-select-option>
+                            <ion-select-option>Ambitious</ion-select-option>
+                            <ion-select-option>Adventurous</ion-select-option>
+                            <ion-select-option>Witty</ion-select-option>
+                            <ion-select-option>Sarcastic</ion-select-option>
+                            <ion-select-option>Good Listener</ion-select-option>
+                            <ion-select-option>Non-judgemental</ion-select-option>
+                            <ion-select-option>Charismatic</ion-select-option>
+                            <ion-select-option>Open</ion-select-option>
+                            <ion-select-option>Introverted</ion-select-option>
+                            <ion-select-option>Extroverted</ion-select-option>
+                            <ion-select-option>Laid-back</ion-select-option>
+                            <ion-select-option>Disciplined</ion-select-option>
+                            <ion-select-option>Kind</ion-select-option>
+                            <ion-select-option>Patient</ion-select-option>
+                            <ion-select-option>Optimistic</ion-select-option>
+                            <ion-select-option>Cultured</ion-select-option>
+                            <ion-select-option>Empathetic</ion-select-option>
+                            <ion-select-option>Realistic</ion-select-option>
                     </ion-select>
                 </ion-item>
             </ion-list>
