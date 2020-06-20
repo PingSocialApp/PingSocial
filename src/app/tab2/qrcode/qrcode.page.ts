@@ -114,7 +114,7 @@ export class QrcodePage implements OnInit {
                     }, {
                         text: 'Okay',
                         handler: () => {
-                            this.rs.sendRequest(dataArray[0], dataArray[1]);
+                            this.rs.sendRequest(dataArray[0], parseInt(dataArray[1],10));
                         }
                     }
                 ]

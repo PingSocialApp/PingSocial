@@ -75,7 +75,7 @@ export class UserprofilePage implements OnInit {
                 this.firestore.collection('links', ref => ref.where('userRec', '==', this.userRef.ref)
                     .where('userSent', '==', this.firestore.collection('users').doc(
                         this.auth.auth.currentUser.uid).ref).where('pendingRequest', '==', false)
-                    .where('pendingRequest', '==', false)).snapshotChanges().subscribe(linkeData => {
+                ).snapshotChanges().subscribe(linkeData => {
                     if(linkeData.length !== 0) {
                         this.renderUserPermissions(userData, linkeData[0].payload.doc.data());
                         this.theirInfo = true;
@@ -107,12 +107,12 @@ export class UserprofilePage implements OnInit {
     }
 
     createRequest(id: string) {
-        this.rps.sendRequest(id, '2047');
+        this.rps.sendRequest(id, 2047);
     }
 
     renderUserPermissions(userData: any, userPermissions: any) {
-        let permissions = userPermissions.linkPermissions.substring(0, userPermissions.linkPermissions.indexOf('/'));
-        permissions = parseInt(permissions, 10).toString(2).split('');
+        let permissions = userPermissions.linkPermissions;
+        permissions = permissions.toString(2).split('');
 
         this.userPhone = this.getPermission(permissions[0]) ? userData.numberID.replace('(', '').replace(')', '')
             .replace('-', '').replace(' ', '') : '';
@@ -197,8 +197,8 @@ export class UserprofilePage implements OnInit {
     }
 
     renderMyPermissions(myData: any) {
-        let permissions = myData.linkPermissions.substring(0, myData.linkPermissions.indexOf('/'));
-        permissions = parseInt(permissions, 10).toString(2).split('');
+        let permissions = myData.linkPermissions;
+        permissions = permissions.toString(2).split('');
         this.phone = this.getPermission(permissions[0]);
         this.email = this.getPermission(permissions[1]);
         this.instagram = this.getPermission(permissions[2]);
@@ -245,7 +245,7 @@ export class UserprofilePage implements OnInit {
         // tslint:disable-next-line:no-bitwise max-line-length
         const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal | locationVal;
         this.firestore.doc(this.linkDoc).update({
-            linkPermissions: code + ''
+            linkPermissions: code
         }).then(async value => {
             const toast = await this.toastController.create({
                 message: 'User Permissions have been updated!',

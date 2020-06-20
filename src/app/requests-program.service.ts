@@ -16,7 +16,7 @@ export class RequestsProgramService {
         this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
     }
 
-    sendRequest(userId: string, optionsData: string) {
+    sendRequest(userId: string, optionsData: number) {
         if (this.currentUserId === userId) {
             this.presentToast('Whoops, this is your code!');
             return;
@@ -31,7 +31,7 @@ export class RequestsProgramService {
                     pendingRequest: true,
                     userSent: this.currentUserRef.ref,
                     userRec: this.firestore.collection('users').doc(userId).ref,
-                    linkPermissions: '0'
+                    linkPermissions: 0
                 }).then((data) => {
                     this.presentToast('Sent Request!');
                 });

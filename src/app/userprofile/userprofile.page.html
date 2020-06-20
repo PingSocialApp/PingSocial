@@ -59,7 +59,7 @@
         <ion-button expand="block" color="danger" href="{{userWebsite}}" *ngIf="userWebsite.length !== 0">
             <ion-icon name="link"></ion-icon>
         </ion-button>
-        <ion-button expand="block" class="locationButton" *ngIf="userLocation.length !== 0" (click)="showLocation()">
+        <ion-button expand="block" class="locationButton" *ngIf="userLocation" (click)="showLocation()">
             <ion-icon name="location"></ion-icon>
         </ion-button>
     </ion-list>
