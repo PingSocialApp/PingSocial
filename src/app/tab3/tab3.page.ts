@@ -82,20 +82,19 @@ export class Tab3Page {
     }
 
     renderLink(USdata){
-        let imgUrl = '';
+        const linkObject = {
+            id: USdata.id,
+            name: USdata.data().name,
+            bio: USdata.data().bio,
+            img: ''
+        };
         if (USdata.data().profilepic.startsWith('h')) {
-            imgUrl = USdata.data().profilepic;
+            linkObject.img = USdata.data().profilepic;
         } else {
             this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
-                imgUrl = url;
+                linkObject.img = url;
             });
         }
-        const linkObject: Link = {
-            id: USdata.id,
-            img: imgUrl,
-            name: USdata.data().name,
-            bio: USdata.data().bio
-        };
         return linkObject;
     }
 
