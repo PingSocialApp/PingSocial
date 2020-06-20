@@ -150,7 +150,7 @@ export class QrcodePage implements OnInit {
         // tslint:disable-next-line:no-bitwise
         const websiteVal = +!!this.website << 0;
         // tslint:disable-next-line:no-bitwise max-line-length
-        const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal | locationVal;
+        const code = locationVal | phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal;
         this.qrData = code + '/' + this.userId;
     }
 

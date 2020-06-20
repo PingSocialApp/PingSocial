@@ -27,12 +27,10 @@ export class Tab2Page {
     map: mapboxgl.Map;
     currentLocationMarker: any;
     showFilter: boolean;
-    allMarkers: any[] = [];
+    allUserMarkers: any[] = [];
     currentEventTitle: string;
     currentEventDes: string;
     showEventDetails: any;
-
-    // tslint:disable-next-line:max-line-length
     queryStatus = 'All';
     queryType = 'All';
     queryDate: boolean;
@@ -110,47 +108,23 @@ export class Tab2Page {
         }
     }
 
-    getLocation(lng, lat) {
-        // fetch location with mapbox api
-        const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' +
-            mapboxgl.accessToken;
-        fetch(tempReqStr).then(response => response.json())
-            .then(data => {
-                let locat = '';
-                data.features.forEach(feat => {
-                    if(feat.place_type == 'place' || feat.place_type[1] == 'place') {
-                        // get city of location
-                        locat = feat.place_name;
-                        const firstInd = locat.indexOf(',');
-                        const lastInd = locat.lastIndexOf(',');
-                        if(firstInd !== lastInd) {
-                            locat = locat.substring(0, locat.lastIndexOf(','));
-                        }
-                    }
-                });
-                console.log(locat);
-                return locat;
-            });
-    }
-
     renderLinks() {
         this.firestore.collection('links',
-            ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)).snapshotChanges().subscribe(res => {
-            this.allMarkers.forEach(tempMarker => {
-                this.map.removeLayer(tempMarker);
+            ref => ref.where('userSent', '==', this.fs.currentUserRef.ref).where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
+            this.allUserMarkers.forEach(tempMarker => {
+                tempMarker.remove();
             });
             res.forEach(doc => {
+                // @ts-ignore
+                if(!(doc.payload.doc.data().linkPermissions >= 2048)){
+                    return;
+                }
                 let otherId, otherRef, oName, oMark;
+                // @ts-ignore
+                otherId = doc.payload.doc.data().userRec.id;
+                otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
-                doc.payload.doc.ref.get().then(otherSnap => {
-                    // get other user id and reference
-                    if (otherSnap.exists) {
-                        otherId = otherSnap.data().userSent.Pc.path.segments[6];
-                        otherRef = this.rtdb.database.ref('/location/' + otherId);
-                    }
-                }).then(() => {
                     this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
-                        // if (oUserDoc.exists) {
                             // get other user name and profile pic
                             oName = oUserDoc.data().name;
                             const oUrl = oUserDoc.data().profilepic;
@@ -166,7 +140,6 @@ export class Tab2Page {
                                     el.style.backgroundImage = 'url(' + url + ')';
                                 });
                             }
-                        // }
                         otherRef.on('value', snapshot => {
                             if (snapshot.val()) {
                                 // get other users longitude, latitude, and lastOnline vals
@@ -175,14 +148,33 @@ export class Tab2Page {
                                 const lastOn = snapshot.val().lastOnline;
 
                                 // update status and render
-                                const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Data.now() - lastOn);
+                                const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
                                 el.id = oUserDoc.id;
                                 oMark = new mapboxgl.Marker(el);
-                                el.addEventListener('click', (e) => {
+                                this.allUserMarkers.push(oMark);
+                                el.addEventListener('click', async (e) => {
                                     this.showUserDetails = true;
+                                    this.showEventDetails = false;
                                     this.otherUserName = oName;
                                     this.otherUserStatus = oStat;
-                                    this.otherUserLocation = this.getLocation(longi,latid);
+                                    const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
+                                        mapboxgl.accessToken;
+                                    fetch(tempReqStr).then(response => response.json())
+                                        .then(data => {
+                                            let locat = '';
+                                            data.features.forEach(feat => {
+                                                if (feat.place_type === 'place' || feat.place_type[0] === 'place') {
+                                                    // get city of location
+                                                    locat = feat.place_name;
+                                                    const firstInd = locat.indexOf(',');
+                                                    const lastInd = locat.lastIndexOf(',');
+                                                    if (firstInd !== lastInd) {
+                                                        locat = locat.substring(0, locat.lastIndexOf(','));
+                                                        this.otherUserLocation = locat;
+                                                    }
+                                                }
+                                            });
+                                        });
                                     this.otherUserId = oUserDoc.id
                                 });
                                 this.renderUser({marker: oMark}, longi, latid);
@@ -191,7 +183,6 @@ export class Tab2Page {
                     });
                 });
             });
-        });
     }
 
     convertTime(t) {
@@ -275,7 +266,7 @@ export class Tab2Page {
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
         } else if (eventInfo.type === 'hangout') {
-            el.style.backgroundImage = 'url(\'../assets/undraw_hangout_out_h9ud.svg\')';
+            el.style.backgroundImage = 'url(\'../assets/undraw_hangout_h9ud.svg\')';
         } else {
             el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
         }
@@ -288,6 +279,7 @@ export class Tab2Page {
         }
         el.addEventListener('click', (e) => {
            this.showEventDetails = true;
+           this.showUserDetails = false;
            this.currentEventTitle = eventInfo.name;
            this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
            this.currentEventId = el.id;
@@ -322,6 +314,7 @@ export class Tab2Page {
                 }
                 el.addEventListener('click', (e) => {
                     this.showUserDetails = true;
+                    this.showEventDetails = false;
                     this.otherUserName = data.name;
                     this.otherUserStatus = 'Online';
                     this.otherUserId = 'currentLocation';
