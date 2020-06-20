@@ -26,12 +26,12 @@ export class Tab3Page {
     links: Array<Link>;
     private idArr: Array<string>;
 
-    constructor(private modalController: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
+    constructor(private modalController: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage,
+                private auth: AngularFireAuth) {
         this.currentUserRef = this.firestore.collection('users').doc(
             this.auth.auth.currentUser.uid);
         this.links = [];
         this.getLinks();
-        this.dataLoaded = true;
         this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
             .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
             this.requestAmount = res.length;
@@ -107,10 +107,7 @@ export class Tab3Page {
     }
 
     doRefresh(event) {
-        this.dataLoaded = false;
-        console.log('Begin async operation');
         this.getLinks().then(() => {
-            this.dataLoaded = true;
             event.target.complete();
         });
     }

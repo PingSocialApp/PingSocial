@@ -28,22 +28,7 @@
         </ion-refresher-content>
     </ion-refresher>
     <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
-    <ion-list *ngIf="!dataLoaded">
-        <ion-item *ngFor="let i of [0,1,2,3,4,5,6,7]">
-        <ion-avatar slot="start">
-        <ion-skeleton-text animated></ion-skeleton-text>
-        </ion-avatar>
-        <ion-label>
-            <p>
-                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
-            </p>
-            <p>
-                <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
-            </p>
-        </ion-label>
-        </ion-item>
-    </ion-list>
-    <ion-list *ngIf="dataLoaded">
+    <ion-list>
         <ion-img *ngIf="links.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
         <h1 *ngIf="links.length === 0" class="addLinkDisplay">No Sent Links Yet!</h1>
         <ion-item *ngFor="let link of links" [routerLink]="['/userprofile/', link.id]">
