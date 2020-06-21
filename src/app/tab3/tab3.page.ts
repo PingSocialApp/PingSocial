@@ -38,7 +38,7 @@ export class Tab3Page {
         });
     }
 
-    getLinks(){
+    getLinks() {
         this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
             .where('pendingRequest', '==', false)).get().subscribe(userRecData => {
             this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
@@ -49,7 +49,7 @@ export class Tab3Page {
                 this.renderSLink(userSentData.docs);
             });
         });
-        this.links.sort((a,b) => {
+        this.links.sort((a, b) => {
             var textA = a.name.toUpperCase();
             var textB = b.name.toUpperCase();
             return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
@@ -61,7 +61,7 @@ export class Tab3Page {
         linkData.forEach(link => {
             const linkeD = link.data();
             linkeD.userSent.get().then(USdata => {
-                if(!(this.idArr.includes(USdata.id))){
+                if (!(this.idArr.includes(USdata.id))) {
                     this.links.push(this.renderLink(USdata));
                     this.idArr.push(USdata.id);
                 }
@@ -73,7 +73,7 @@ export class Tab3Page {
         linkData.map(link => {
             const linkeD = link.data();
             linkeD.userRec.get().then(USdata => {
-                if(!(this.idArr.includes(USdata.id))){
+                if (!(this.idArr.includes(USdata.id))) {
                     this.links.push(this.renderLink(USdata));
                     this.idArr.push(USdata.id);
                 }
@@ -81,7 +81,7 @@ export class Tab3Page {
         });
     }
 
-    renderLink(USdata){
+    renderLink(USdata) {
         const linkObject = {
             id: USdata.id,
             name: USdata.data().name,

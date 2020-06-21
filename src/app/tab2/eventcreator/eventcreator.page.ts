@@ -18,8 +18,6 @@ export class EventcreatorPage implements OnInit {
     currentUserRef: AngularFirestoreDocument;
     currentUser: any;
     geocoder: any;
-    startTime: string;
-    endTime: string;
     eventName: string;
     location: Array<any>;
     isPublic: boolean;
@@ -31,6 +29,8 @@ export class EventcreatorPage implements OnInit {
     @Input() eventID: string;
     editMode: boolean;
     isCreator: boolean;
+    eventCreator: any;
+    eventCreatorName: string;
 
     constructor(private alertController: AlertController, private modalController: ModalController, private toastController: ToastController,
                 private firestore: AngularFirestore, private auth: AngularFireAuth, private storage: AngularFireStorage) {
@@ -40,20 +40,21 @@ export class EventcreatorPage implements OnInit {
         this.isPublic = false;
     }
 
+    // tslint:disable-next-line:use-lifecycle-interface
     ngOnInit() {
         this.editMode = this.eventID !== '';
-    }
-
-    ngAfterViewInit() {
-        this.buildMap();
-        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
-        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
+        (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
+        (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
         if (this.editMode) {
             this.firestore.collection('events').doc(this.eventID).get().subscribe((ref) => {
                 const data = ref.data();
-                this.startTime = data.startTime;
-                this.endTime = data.endTime;
+                (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
+                (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
                 this.eventName = data.name;
+                this.eventCreator = data.creator.id;
+                data.creator.get().then((userRef) => {
+                    this.eventCreatorName = userRef.data().name;
+                });
                 this.eventDes = data.description;
                 this.isPublic = data.isPrivate;
                 this.eventType = data.type;
@@ -62,20 +63,41 @@ export class EventcreatorPage implements OnInit {
                     center: this.location,
                     essential: true
                 });
-                if(this.isPublic){
+                if (this.isPublic) {
                     this.members = data.members;
                 }
                 this.isCreator = data.creator.id === this.currentUserRef.ref.id;
                 new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
+            }, () => {
+
+            }, () => {
+                // tslint:disable-next-line:max-line-length
+                this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
+                    this.links = [];
+                    this.renderLink(res.docs);
+                });
             });
         } else {
             this.isCreator = true;
-            this.startTime = new Date().toISOString();
+            this.currentUserRef.ref.get().then((userRef) => {
+                this.eventCreatorName = userRef.data().name;
+            });
+            this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
+                this.links = [];
+                this.renderLink(res.docs);
+            });
         }
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).snapshotChanges().subscribe(res => {
-            this.links = [];
-            this.renderLink(res);
-        });
+    }
+
+    // ngOnInit() {
+    //
+    // }
+
+    // tslint:disable-next-line:use-lifecycle-interface
+    ngAfterViewInit() {
+        this.buildMap();
+        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
+        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
     }
 
     buildMap() {
@@ -106,29 +128,29 @@ export class EventcreatorPage implements OnInit {
 
     async renderLink(linkData: Array<any>) {
         await Promise.all(linkData.map(link => {
-            const linkeD = link.payload.doc.data();
+            const linkeD = link.data();
             linkeD.userRec.get().then(USdata => {
-                let imgUrl = '';
-                if (USdata.data().profilepic.startsWith('h')) {
-                    imgUrl = USdata.data().profilepic;
-                } else {
-                    this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
-                        imgUrl = url;
-                    });
-                }
-                var val = false;
-                this.members.forEach((user) => {
-                    if(user.Pc.path.segments[6] === USdata.id){
-                        val = true;
-                    }
-                });
                 const linkObject = {
                     id: USdata.id,
-                    img: imgUrl,
+                    img: '',
                     name: USdata.data().name,
                     bio: USdata.data().bio,
-                    checked: val
+                    checked: null
                 };
+                if (USdata.data().profilepic.startsWith('h')) {
+                    linkObject.img = USdata.data().profilepic;
+                } else {
+                    this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
+                        linkObject.img = url;
+                    });
+                }
+                this.members.forEach((user) => {
+                    if (user.id === USdata.id) {
+                        linkObject.checked = true;
+                    } else {
+                        linkObject.checked = false;
+                    }
+                });
                 this.links.push(linkObject);
             });
         }));
@@ -136,9 +158,11 @@ export class EventcreatorPage implements OnInit {
 
     manageEvent() {
         let toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
-        if (this.eventName === '' || this.startTime === '' || this.endTime === '' || this.eventDes === '' || this.eventType === ''
+        if (this.eventName === '' || (document.getElementById('startTime') as HTMLInputElement).value === '' || (document.getElementById('endTime') as HTMLInputElement).value === '' || this.eventDes === '' || this.eventType === ''
             || typeof this.location === 'undefined') {
             this.presentToast('Whoops! You have an empty entry');
+        } else if (new Date((document.getElementById('startTime') as HTMLInputElement).value) > new Date((document.getElementById('startTime') as HTMLInputElement).value)) {
+            this.presentToast('Whoops! Your event ended before it started');
         } else {
             if (this.editMode) {
                 if (this.isPublic) {
@@ -163,8 +187,8 @@ export class EventcreatorPage implements OnInit {
                 this.firestore.collection('events').doc(this.eventID).update({
                     name: this.eventName,
                     creator: this.currentUserRef.ref,
-                    startTime: this.startTime,
-                    endTime: this.endTime,
+                    startTime: (document.getElementById('startTime') as HTMLInputElement).value,
+                    endTime: (document.getElementById('endTime') as HTMLInputElement).value,
                     description: this.eventDes,
                     location: this.location,
                     type: this.eventType,
@@ -177,8 +201,8 @@ export class EventcreatorPage implements OnInit {
                 this.firestore.collection('events').add({
                     name: this.eventName,
                     creator: this.currentUserRef.ref,
-                    startTime: this.startTime,
-                    endTime: this.endTime,
+                    startTime: (document.getElementById('startTime') as HTMLInputElement).value,
+                    endTime: (document.getElementById('endTime') as HTMLInputElement).value,
                     description: this.eventDes,
                     location: this.location,
                     type: this.eventType,

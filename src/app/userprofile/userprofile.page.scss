@@ -1,123 +1,128 @@
-.instabutton{
-  --background:linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+.instabutton {
+  --background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
 }
-.linkedinbutton{
+
+.linkedinbutton {
   --background: #0072B1;
 }
 
-.snapbutton{
+.snapbutton {
   --background: #FFFC00;
 }
 
-.fbbutton{
+.fbbutton {
   --background: #3b5998;
 }
 
-.ttbutton{
---background: black;
-  color: white;
-}
-
-.twitterbutton{
-  --background: #00ACEE;
-}
-
-.displayIcon{
-  margin-right: 2%;
-}
-
-.venmobutton{
-  --background: #3396CD;
-}
-
-.mailbutton{
-  --background: linear-gradient(180deg, rgba(29,112,241,1) 0%, rgba(26,198,251,1) 100%);
-}
-
-.locationButton{
-  --background: darkred;
-}
-
-ion-avatar{
-  margin: 2% auto;width: 145px;height: 145px;border: solid 5px lightgray;
-  margin-top: 5%
-}
-
-.igicon{
-  color: #833ab4;
-}
-.liicon{
-  color: #0072B1;
-}
-
-.scicon{
-  color: #FFFC00;
-}
-
-.fbicon{
-  color: #3b5998;
-}
-
-.ttbutton{
+.ttbutton {
   --background: black;
   color: white;
 }
 
-.twicon{
-  color: #00ACEE;
+.twitterbutton {
+  --background: #00ACEE;
 }
 
-.displayIcon{
+.displayIcon {
   margin-right: 2%;
 }
 
-.vicon{
+.venmobutton {
+  --background: #3396CD;
+}
+
+.mailbutton {
+  --background: linear-gradient(180deg, rgba(29, 112, 241, 1) 0%, rgba(26, 198, 251, 1) 100%);
+}
+
+.locationButton {
+  --background: darkred;
+}
+
+ion-avatar {
+  margin: 2% auto;
+  width: 145px;
+  height: 145px;
+  border: solid 5px lightgray;
+  margin-top: 5%
+}
+
+.igicon {
+  color: #833ab4;
+}
+
+.liicon {
+  color: #0072B1;
+}
+
+.scicon {
+  color: #FFFC00;
+}
+
+.fbicon {
+  color: #3b5998;
+}
+
+.ttbutton {
+  --background: black;
+  color: white;
+}
+
+.twicon {
+  color: #00ACEE;
+}
+
+.displayIcon {
+  margin-right: 2%;
+}
+
+.vicon {
   color: #3396CD;
 }
 
-.micon{
-  color: rgba(29,112,241,1);
+.micon {
+  color: rgba(29, 112, 241, 1);
 }
 
-.phicon{
+.phicon {
   color: #2dd36f;
 }
 
-.gicon{
+.gicon {
   color: #eb445a;
 }
 
-.pmicon{
+.pmicon {
   color: #92949c;
 }
 
-.locicon{
+.locicon {
   color: darkred;;
 }
 
-.tinoneimg{
+.tinoneimg {
   width: 300px;
   margin: 0 auto;
   margin-top: 30%;
 }
 
-.tinonebutton{
+.tinonebutton {
 
 }
 
-.minoneimg{
+.minoneimg {
   width: 175px;
   margin: 0 auto;
   margin-top: 20%;
 }
 
-.minonealert{
+.minonealert {
   font-family: "Lobster Two";
   color: #8FDEE6;
   text-align: center;
 }
 
-.TFDisplay ion-button{
+.TFDisplay ion-button {
   margin: 2%;
   display: inline-block;
   width: 46%;

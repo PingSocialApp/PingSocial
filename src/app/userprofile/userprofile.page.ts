@@ -3,12 +3,11 @@ import {ActivatedRoute} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument, DocumentReference} from '@angular/fire/firestore';
 import {RequestsProgramService} from '../requests-program.service';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {AlertController, ToastController} from '@ionic/angular';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {environment} from '../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import * as firebase from 'firebase';
 
 @Component({
     selector: 'app-userprofile',
@@ -51,7 +50,7 @@ export class UserprofilePage implements OnInit {
     location: boolean;
     userLocation = '';
 
-    constructor(private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
+    constructor(private modalController: ModalController, private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
                 private storage: AngularFireStorage, private toastController: ToastController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.displayTF = true;
@@ -76,10 +75,10 @@ export class UserprofilePage implements OnInit {
                     .where('userSent', '==', this.firestore.collection('users').doc(
                         this.auth.auth.currentUser.uid).ref).where('pendingRequest', '==', false)
                 ).snapshotChanges().subscribe(linkeData => {
-                    if(linkeData.length !== 0) {
+                    if (linkeData.length !== 0) {
                         this.renderUserPermissions(userData, linkeData[0].payload.doc.data());
                         this.theirInfo = true;
-                    }else{
+                    } else {
                         this.theirInfo = false;
                     }
                 });
@@ -88,18 +87,19 @@ export class UserprofilePage implements OnInit {
             .where('userRec', '==', this.firestore.collection('users').doc(
                 this.auth.auth.currentUser.uid).ref)
             .where('pendingRequest', '==', false)).get().subscribe(res => {
-                if(!res.empty){
-                    this.linkDoc = res.docs[0].ref;
-                    this.renderMyPermissions(res.docs[0].data());
-                    this.myInfo = true;
-                }else{
-                    this.myInfo = false;
-                }
+            if (!res.empty) {
+                this.linkDoc = res.docs[0].ref;
+                this.renderMyPermissions(res.docs[0].data());
+                this.myInfo = true;
+            } else {
+                this.myInfo = false;
+            }
         });
 
     }
 
     ngOnInit() {
+        this.closeModal();
     }
 
     segmentChanged(ev: any) {
@@ -116,7 +116,7 @@ export class UserprofilePage implements OnInit {
 
         this.userPhone = this.getPermission(permissions[11]) ? userData.numberID.replace('(', '').replace(')', '')
             .replace('-', '').replace(' ', '') : '';
-        this.userPersonalEmail = this.getPermission(permissions[10]) ? userData.personalEmailID: '';
+        this.userPersonalEmail = this.getPermission(permissions[10]) ? userData.personalEmailID : '';
         this.userInstagram = this.getPermission(permissions[9]) ? userData.instagramID : '';
         this.userSnapchat = this.getPermission(permissions[8]) ? userData.snapchatID : '';
         this.userFacebook = this.getPermission(permissions[7]) ? userData.facebookID : '';
@@ -124,14 +124,14 @@ export class UserprofilePage implements OnInit {
         this.userTwitter = this.getPermission(permissions[5]) ? userData.twitterID : '';
         this.userVenmo = this.getPermission(permissions[4]) ? userData.venmoID : '';
         this.userLinkedin = this.getPermission(permissions[3]) ? userData.linkedinID : '';
-        this.userProfessionalEmail = this.getPermission(permissions[2]) ?  userData.professionalEmailID : '';
+        this.userProfessionalEmail = this.getPermission(permissions[2]) ? userData.professionalEmailID : '';
         let website;
         if (!((userData.websiteID.includes('http://')) || (userData.websiteID.includes('https://')) || userData.websiteID.length <= 0)) {
             website = 'http://' + userData.websiteID;
-        }else{
+        } else {
             website = userData.websiteID;
         }
-        this.userWebsite = this.getPermission(permissions[1]) ?  website : '';
+        this.userWebsite = this.getPermission(permissions[1]) ? website : '';
         this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
             if (snapshot.val()) {
                 // get other users longitude, latitude, and lastOnline vals
@@ -140,34 +140,25 @@ export class UserprofilePage implements OnInit {
                 const lastOn = snapshot.val().lastOnline;
 
                 // only way ik so far to get current time
-                let currTime = 0;
-                const timeRef = this.rtdb.database.ref('currentTime/');
-                timeRef.set({time: firebase.database.ServerValue.TIMESTAMP});
-                timeRef.once('value').then(timeSnap => {
-                    if (timeSnap.val()) {
-                        currTime = timeSnap.val().time;
-                    }
-                }).then(() => {
-                    // update status and render
-                    const oStat = this.convertTime(currTime - lastOn);
-                    const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' + mapboxgl.accessToken;
-                    fetch(tempReqStr).then(response => response.json()).catch((e) => {
-                    }).then(data => {
-                        let locat = '';
-                        data.features.forEach(feat => {
-                            // console.log(feat.place_type);
-                            if(feat.place_type === 'place' || feat.place_type[0] === 'place') {
-                                // get city of location
-                                locat = feat.place_name;
-                                const firstInd = locat.indexOf(',');
-                                const lastInd = locat.lastIndexOf(',');
-                                if(firstInd !== lastInd) {
-                                    locat = locat.substring(0, locat.lastIndexOf(','));
-                                }
-                                this.userLocation = this.getPermission(permissions[0]) ? locat + ' ' + oStat: '';
-                                // console.log('hi');
+                const currTime = Date.now();
+                // update status and render
+                const oStat = this.convertTime(currTime - lastOn);
+                const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' + mapboxgl.accessToken;
+                fetch(tempReqStr).then(response => response.json()).catch((e) => {
+                }).then(data => {
+                    let locat = '';
+                    data.features.forEach(feat => {
+                        // console.log(feat.place_type);
+                        if (feat.place_type === 'place' || feat.place_type[0] === 'place') {
+                            // get city of location
+                            locat = feat.place_name;
+                            const firstInd = locat.indexOf(',');
+                            const lastInd = locat.lastIndexOf(',');
+                            if (firstInd !== lastInd) {
+                                locat = locat.substring(0, locat.lastIndexOf(','));
                             }
-                        });
+                            this.userLocation = this.getPermission(permissions[0]) ? locat + ' ' + oStat : '';
+                        }
                     });
                 });
             }
@@ -209,8 +200,16 @@ export class UserprofilePage implements OnInit {
         this.location = this.getPermission(permissions[11]);
     }
 
-    getPermission(value: any){
+    getPermission(value: any) {
         return (value % 2 === 1);
+    }
+
+    closeModal() {
+        // using the injected ModalController this page
+        // can "dismiss" itself and optionally pass back data
+        this.modalController.dismiss({
+            dismissed: true
+        });
     }
 
     changePermissions() {

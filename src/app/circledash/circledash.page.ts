@@ -73,7 +73,7 @@ export class CircledashPage implements OnInit {
     }
 
     async presentAlert(message: string, header: string) {
-        if(message === ''){
+        if (message === '') {
             message = 'Ping Auto Generated Message';
         }
         const alert = await this.alertController.create({
@@ -110,7 +110,7 @@ export class CircledashPage implements OnInit {
     }
 
     deletePing(id: any) {
-        this.firestore.collection('pings').doc(id).delete().then(async function () {
+        this.firestore.collection('pings').doc(id).delete().then(() => {
             console.log('Document successfully deleted!');
             this.presentToast('Ping Successfully Deleted!');
         }).catch((error) => {
@@ -123,7 +123,7 @@ export class CircledashPage implements OnInit {
             message: m,
             duration: 2000
         });
-        toast.present();
+        await toast.present();
     }
 
 }

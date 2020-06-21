@@ -92,115 +92,110 @@
         </ion-card>
     </ion-item>
     <ion-card>
-        <ion-card-header>
-            <ion-card-title>My Interests</ion-card-title>
-        </ion-card-header>
         <ion-card-content>
             <ion-list>
-                <ion-item *ngFor="let i of [0,1,2,3,4]">
-                    <ion-label>
-                        {{i + 1}}
-                    </ion-label>
-                    <ion-select>
-                        <ion-select-option>
+                <ion-item>
+                    <ion-label position="stacked">My Interests</ion-label>
+                    <ion-select multiple="true" [(ngModel)]="myInterests">
+                        <ion-select-option value="parties">
                             Parties
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="football">
                             Football
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="basketball">
                             Basketball
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="soccer">
                             Soccer
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="baseball">
                             Baseball
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="tennis">
                             Tennis
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="rhhmusic">
                             Rap/Hip Hop music
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="pmusic">
                             Pop music
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="cmusic">
                             Country music
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="aatm">
                             Action/Adventure TV Shows/Movies
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="ctm">
                             Comedy TV Shows/Movies
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="dtm">
                             Drama TV Shows/Movies
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="httm">
                             Horror/Thriller TV Shows/Movies
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="rtm">
                             Romance TV Shows/Movies
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="foodie">
                             Foodie
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="fpsgame">
                             FPS Gaming
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="mgame">
                             Multiplayer Online Gaming (League, Dota etc)
                         </ion-select-option>
-                        <ion-select-option>
+                        <ion-select-option value="figame">
                             Fighting Gaming (Smash, Mortal Combat etc)
                         </ion-select-option>
-                        <ion-select-option>Sports Gaming</ion-select-option>
-                        <ion-select-option>Weightlifting</ion-select-option>
-                        <ion-select-option>Running</ion-select-option>
-                        <ion-select-option>Yoga</ion-select-option>
-                        <ion-select-option>Cycling</ion-select-option>
-                        <ion-select-option>Hiking</ion-select-option>
-                        <ion-select-option>CrossFit</ion-select-option>
-                        <ion-select-option>Dance</ion-select-option>
-                        <ion-select-option>Politics</ion-select-option>
-                        <ion-select-option>Cooking/Baking</ion-select-option>
-                        <ion-select-option>STEM</ion-select-option>
-                        <ion-select-option>Entrepreneurship</ion-select-option>
+                        <ion-select-option value="sgame">
+                            Sports Gaming
+                        </ion-select-option>
+                        <ion-select-option value="weight">
+                            Weightlifting
+                        </ion-select-option>
+                        <ion-select-option value="run">Running</ion-select-option>
+                        <ion-select-option value="swim">Swimming</ion-select-option>
+                        <ion-select-option value="yoga">Yoga</ion-select-option>
+                        <ion-select-option value="cycle">Cycling</ion-select-option>
+                        <ion-select-option value="hike">Hiking</ion-select-option>
+                        <ion-select-option value="cf">CrossFit</ion-select-option>
+                        <ion-select-option value="dance">Dance</ion-select-option>
+                        <ion-select-option value="politic">Politics</ion-select-option>
+                        <ion-select-option value="cb">Cooking/Baking</ion-select-option>
+                        <ion-select-option value="stem">STEM</ion-select-option>
+                        <ion-select-option value="ent">Entrepreneurship</ion-select-option>
                     </ion-select>
                 </ion-item>
             </ion-list>
-        </ion-card-content>
-        <ion-card-header>
-            <ion-card-title>Traits I Value</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
             <ion-list>
-                <ion-item *ngFor="let i of [0,1,2,3,4]">
-                <ion-label>
-                    {{i + 1}}
-                </ion-label>
-                    <ion-select>
-                            <ion-select-option>Intelligent</ion-select-option>
-                            <ion-select-option>Ambitious</ion-select-option>
-                            <ion-select-option>Adventurous</ion-select-option>
-                            <ion-select-option>Witty</ion-select-option>
-                            <ion-select-option>Sarcastic</ion-select-option>
-                            <ion-select-option>Good Listener</ion-select-option>
-                            <ion-select-option>Non-judgemental</ion-select-option>
-                            <ion-select-option>Charismatic</ion-select-option>
-                            <ion-select-option>Open</ion-select-option>
-                            <ion-select-option>Introverted</ion-select-option>
-                            <ion-select-option>Extroverted</ion-select-option>
-                            <ion-select-option>Laid-back</ion-select-option>
-                            <ion-select-option>Disciplined</ion-select-option>
-                            <ion-select-option>Kind</ion-select-option>
-                            <ion-select-option>Patient</ion-select-option>
-                            <ion-select-option>Optimistic</ion-select-option>
-                            <ion-select-option>Cultured</ion-select-option>
-                            <ion-select-option>Empathetic</ion-select-option>
-                            <ion-select-option>Realistic</ion-select-option>
+                <ion-item>
+                    <ion-label position="stacked">
+                        Traits I Value
+                    </ion-label>
+                    <ion-select multiple="true" [(ngModel)]="myValues">
+                        <ion-select-option value="intel">Intelligent</ion-select-option>
+                        <ion-select-option value="ambit">Ambitious</ion-select-option>
+                        <ion-select-option value="advent">Adventurous</ion-select-option>
+                        <ion-select-option value="wit">Witty</ion-select-option>
+                        <ion-select-option value="sar">Sarcastic</ion-select-option>
+                        <ion-select-option value="gl">Good Listener</ion-select-option>
+                        <ion-select-option value="nj">Non-judgemental</ion-select-option>
+                        <ion-select-option value="char">Charismatic</ion-select-option>
+                        <ion-select-option value="op">Open</ion-select-option>
+                        <ion-select-option value="intro">Introverted</ion-select-option>
+                        <ion-select-option value="extro">Extroverted</ion-select-option>
+                        <ion-select-option value="lb">Laid-back</ion-select-option>
+                        <ion-select-option value="disc">Disciplined</ion-select-option>
+                        <ion-select-option value="king">Kind</ion-select-option>
+                        <ion-select-option value="pati">Patient</ion-select-option>
+                        <ion-select-option value="opti">Optimistic</ion-select-option>
+                        <ion-select-option value="cultu">Cultured</ion-select-option>
+                        <ion-select-option value="empa">Empathetic</ion-select-option>
+                        <ion-select-option value="real">Realistic</ion-select-option>
                     </ion-select>
                 </ion-item>
             </ion-list>
@@ -211,7 +206,7 @@
             <ion-card-title>Match Tolerance</ion-card-title>
         </ion-card-header>
         <ion-card-content>
-            <ion-range min="10" max="90" step="2">
+            <ion-range min="10" max="90" step="2" [(ngModel)]="tolerance">
                 <ion-icon size="small" slot="start" name="person-circle-outline" color="gray"></ion-icon>
                 <ion-icon slot="end" name="person-circle-outline" color="gray"></ion-icon>
             </ion-range>

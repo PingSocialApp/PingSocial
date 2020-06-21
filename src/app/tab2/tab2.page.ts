@@ -10,9 +10,9 @@ import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
 import * as firebase from 'firebase/app';
+import 'firebase/database';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
-
 
 
 @Component({
@@ -28,6 +28,7 @@ export class Tab2Page {
     currentLocationMarker: any;
     showFilter: boolean;
     allUserMarkers: any[] = [];
+    //allEventMarkers: any[] = [];
     currentEventTitle: string;
     currentEventDes: string;
     showEventDetails: any;
@@ -36,6 +37,7 @@ export class Tab2Page {
     queryDate: boolean;
     currentEventId: string;
     showUserDetails: boolean;
+
     otherUserName = '';
     otherUserLocation: any;
     otherUserStatus = '';
@@ -116,7 +118,7 @@ export class Tab2Page {
             });
             res.forEach(doc => {
                 // @ts-ignore
-                if(!(doc.payload.doc.data().linkPermissions >= 2048)){
+                if (!(doc.payload.doc.data().linkPermissions >= 2048)) {
                     return;
                 }
                 let otherId, otherRef, oName, oMark;
@@ -124,65 +126,65 @@ export class Tab2Page {
                 otherId = doc.payload.doc.data().userRec.id;
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
-                    this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
-                            // get other user name and profile pic
-                            oName = oUserDoc.data().name;
-                            const oUrl = oUserDoc.data().profilepic;
+                this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
+                    // get other user name and profile pic
+                    oName = oUserDoc.data().name;
+                    const oUrl = oUserDoc.data().profilepic;
 
-                            // create marker and style it
-                            const el = this.createMarker();
-                            el.style.width = '50px';
-                            el.style.height = '50px';
-                            if (oUrl.startsWith('h')) {
-                                el.style.backgroundImage = 'url(' + oUrl + ')';
-                            } else {
-                                this.storage.storage.refFromURL(oUrl).getDownloadURL().then(url => {
-                                    el.style.backgroundImage = 'url(' + url + ')';
-                                });
-                            }
-                        otherRef.on('value', snapshot => {
-                            if (snapshot.val()) {
-                                // get other users longitude, latitude, and lastOnline vals
-                                const longi = snapshot.val().longitude;
-                                const latid = snapshot.val().latitude;
-                                const lastOn = snapshot.val().lastOnline;
-
-                                // update status and render
-                                const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
-                                el.id = oUserDoc.id;
-                                oMark = new mapboxgl.Marker(el);
-                                this.allUserMarkers.push(oMark);
-                                el.addEventListener('click', async (e) => {
-                                    this.showUserDetails = true;
-                                    this.showEventDetails = false;
-                                    this.otherUserName = oName;
-                                    this.otherUserStatus = oStat;
-                                    const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
-                                        mapboxgl.accessToken;
-                                    fetch(tempReqStr).then(response => response.json())
-                                        .then(data => {
-                                            let locat = '';
-                                            data.features.forEach(feat => {
-                                                if (feat.place_type === 'place' || feat.place_type[0] === 'place') {
-                                                    // get city of location
-                                                    locat = feat.place_name;
-                                                    const firstInd = locat.indexOf(',');
-                                                    const lastInd = locat.lastIndexOf(',');
-                                                    if (firstInd !== lastInd) {
-                                                        locat = locat.substring(0, locat.lastIndexOf(','));
-                                                        this.otherUserLocation = locat;
-                                                    }
-                                                }
-                                            });
-                                        });
-                                    this.otherUserId = oUserDoc.id
-                                });
-                                this.renderUser({marker: oMark}, longi, latid);
-                            }
+                    // create marker and style it
+                    const el = this.createMarker();
+                    el.style.width = '50px';
+                    el.style.height = '50px';
+                    if (oUrl.startsWith('h')) {
+                        el.style.backgroundImage = 'url(' + oUrl + ')';
+                    } else {
+                        this.storage.storage.refFromURL(oUrl).getDownloadURL().then(url => {
+                            el.style.backgroundImage = 'url(' + url + ')';
                         });
+                    }
+                    otherRef.on('value', snapshot => {
+                        if (snapshot.val()) {
+                            // get other users longitude, latitude, and lastOnline vals
+                            const longi = snapshot.val().longitude;
+                            const latid = snapshot.val().latitude;
+                            const lastOn = snapshot.val().lastOnline;
+
+                            // update status and render
+                            const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
+                            el.id = oUserDoc.id;
+                            oMark = new mapboxgl.Marker(el);
+                            this.allUserMarkers.push(oMark);
+                            el.addEventListener('click', async (e) => {
+                                this.showUserDetails = true;
+                                this.showEventDetails = false;
+                                this.otherUserName = oName;
+                                this.otherUserStatus = oStat;
+                                const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
+                                    mapboxgl.accessToken;
+                                fetch(tempReqStr).then(response => response.json())
+                                    .then(data => {
+                                        let locat = '';
+                                        data.features.forEach(feat => {
+                                            if (feat.place_type === 'place' || feat.place_type[0] === 'place') {
+                                                // get city of location
+                                                locat = feat.place_name;
+                                                const firstInd = locat.indexOf(',');
+                                                const lastInd = locat.lastIndexOf(',');
+                                                if (firstInd !== lastInd) {
+                                                    locat = locat.substring(0, locat.lastIndexOf(','));
+                                                    this.otherUserLocation = locat;
+                                                }
+                                            }
+                                        });
+                                    });
+                                this.otherUserId = oUserDoc.id
+                            });
+                            this.renderUser({marker: oMark}, longi, latid);
+                        }
                     });
                 });
             });
+        });
     }
 
     convertTime(t) {
@@ -217,7 +219,7 @@ export class Tab2Page {
         };
 
         // checks connection and sets values accordingly
-        this.rtdb.database.ref('.info/connected').on('value',  (snapshot) => {
+        this.rtdb.database.ref('.info/connected').on('value', (snapshot) => {
             if (snapshot.val()) {
                 lRef.onDisconnect().update(offline).then(() => {
                     lRef.update(online);
@@ -243,6 +245,9 @@ export class Tab2Page {
 
     renderEvent(doc) {
         const eventInfo = doc.data();
+        // this.allEventMarkers.forEach(tempMarker => {
+        //     tempMarker.remove();
+        // });
         // @ts-ignore
         const el = this.createMarker();
         el.setAttribute('data-name', eventInfo.name);
@@ -252,7 +257,6 @@ export class Tab2Page {
 
         const endTime = new Date(eventInfo.endTime);
         const currentTime = new Date();
-
         if (currentTime > endTime) {
             return;
         }
@@ -266,25 +270,26 @@ export class Tab2Page {
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
         } else if (eventInfo.type === 'hangout') {
-            el.style.backgroundImage = 'url(\'../assets/undraw_hangout_h9ud.svg\')';
+            el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
         } else {
             el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
         }
         const startTime = new Date(eventInfo.startTime);
         let minutes = '';
-        if(startTime.getMinutes() < 10){
+        if (startTime.getMinutes() < 10) {
             minutes = '0' + startTime.getMinutes();
-        }else{
+        } else {
             minutes = '' + startTime.getMinutes();
         }
         el.addEventListener('click', (e) => {
-           this.showEventDetails = true;
-           this.showUserDetails = false;
-           this.currentEventTitle = eventInfo.name;
-           this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
-           this.currentEventId = el.id;
+            this.showEventDetails = true;
+            this.showUserDetails = false;
+            this.currentEventTitle = eventInfo.name;
+            this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+            this.currentEventId = el.id;
         });
         const marker = new mapboxgl.Marker(el);
+        //this.allEventMarkers.push(marker);
         try {
             marker.setLngLat([eventInfo.location[0], eventInfo.location[1]]).addTo(this.map);
         } catch (e) {
@@ -346,7 +351,7 @@ export class Tab2Page {
             zoom: 18,
             center: [coords.longitude, coords.latitude]
         });
-        this.map.on('dragstart', ()=>{
+        this.map.on('dragstart', () => {
             this.showEventDetails = false;
             this.showUserDetails = false;
         });
@@ -354,11 +359,11 @@ export class Tab2Page {
 
     async presentEventCreatorModal(data: string) {
         const modal = await this.modalController.create({
-                component: EventcreatorPage,
-                componentProps: {
-                    eventID: data
-                }
-            });
+            component: EventcreatorPage,
+            componentProps: {
+                eventID: data
+            }
+        });
         return await modal.present();
     }
 

@@ -12,6 +12,7 @@ import {AngularFireAuth} from '@angular/fire/auth';
 export class ReplypopoverComponent implements OnInit {
     responseMessage: string;
     currentUserId: string;
+
     constructor(private auth: AngularFireAuth,
                 private navParams: NavParams, private popoverController: PopoverController, private toastController: ToastController) {
         this.currentUserId = this.auth.auth.currentUser.uid;
@@ -23,7 +24,7 @@ export class ReplypopoverComponent implements OnInit {
 
     sendReplyData() {
         const db = this.navParams.get('fs');
-        if(this.responseMessage === ''){
+        if (this.responseMessage === '') {
             this.presentToast('Whoops! You have an empty message');
             return;
         }

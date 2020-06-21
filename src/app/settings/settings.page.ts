@@ -3,7 +3,6 @@ import {ModalController, ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {Router} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import * as firebase from 'firebase/app';
 import {AngularFireStorage} from '@angular/fire/storage';
 
 @Component({
@@ -15,13 +14,16 @@ import {AngularFireStorage} from '@angular/fire/storage';
 
 
 export class SettingsPage implements OnInit {
-    @ViewChild('fileinput', { static: false }) fileinput: ElementRef;
+    @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
 
     currentUserRef: AngularFirestoreDocument;
     currentUser: any;
     currentUserId: string;
     fileName: string;
     latestPhoto: string | ArrayBuffer;
+    myInterests: Array<string>;
+    myValues: Array<string>;
+    tolerance: number;
 
     constructor(private modalCtrl: ModalController, private auth: AngularFireAuth, private r: Router, private firestore: AngularFirestore
         , private toastController: ToastController, private storage: AngularFireStorage) {
@@ -31,27 +33,31 @@ export class SettingsPage implements OnInit {
         this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
     }
 
-    ngOnInit(){
+    ngOnInit() {
         this.currentUserRef.get()
             .subscribe(res => {
                 this.currentUser = res.data();
                 if (this.currentUser.profilepic.startsWith('h')) {
-                    document.getElementById('imagePreview').style.backgroundImage = 'url('+this.currentUser.profilepic+')';
+                    document.getElementById('imagePreview').style.backgroundImage = 'url(' + this.currentUser.profilepic + ')';
                 } else {
                     this.storage.storage.refFromURL(this.currentUser.profilepic).getDownloadURL().then(url => {
-                        document.getElementById('imagePreview').style.backgroundImage = 'url('+url+')';
+                        document.getElementById('imagePreview').style.backgroundImage = 'url(' + url + ')';
                     });
                 }
             });
+        this.firestore.collection('preferences').doc(this.currentUserId).get().subscribe(res => {
+            this.myValues = res.data().valueTraits;
+            this.myInterests = res.data().preferences;
+            this.tolerance = res.data().matchTolerance;
+        });
     }
 
     updateSettings() {
-        //TODO Check 5 Interests
         if ((document.getElementById('username') as HTMLInputElement).value === '' ||
-            (document.getElementById('bio') as HTMLInputElement).value === '') {
+            (document.getElementById('bio') as HTMLInputElement).value === '' || this.myInterests.length !== 5 || this.myValues.length !== 5) {
             this.presentToast('Whoops! Looks like some of your settings might be empty');
         } else {
-            if(this.fileName != null){
+            if (this.fileName != null) {
                 const ref = this.storage.ref(this.currentUserId + this.fileName);
                 if (typeof this.latestPhoto === 'string') {
                     ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
@@ -69,22 +75,27 @@ export class SettingsPage implements OnInit {
                     });
                 }
             }
-                this.currentUserRef.update({
-                    name: (document.getElementById('username') as HTMLInputElement).value,
-                    bio: (document.getElementById('bio') as HTMLInputElement).value,
-                    facebookID: (document.getElementById('fb') as HTMLInputElement).value,
-                    instagramID: (document.getElementById('ig') as HTMLInputElement).value,
-                    twitterID: (document.getElementById('tw') as HTMLInputElement).value,
-                    personalEmailID: (document.getElementById('peem') as HTMLInputElement).value,
-                    linkedinID: (document.getElementById('li') as HTMLInputElement).value,
-                    professionalEmailID: (document.getElementById('prem') as HTMLInputElement).value,
-                    snapchatID: (document.getElementById('sc') as HTMLInputElement).value,
-                    tiktokID: (document.getElementById('tt') as HTMLInputElement).value,
-                    venmoID: (document.getElementById('ve') as HTMLInputElement).value,
-                    websiteID: (document.getElementById('ws') as HTMLInputElement).value,
-                }).then(() => {
-                    this.presentToast('Settings Updated!');
-                });
+            this.currentUserRef.update({
+                name: (document.getElementById('username') as HTMLInputElement).value,
+                bio: (document.getElementById('bio') as HTMLInputElement).value,
+                facebookID: (document.getElementById('fb') as HTMLInputElement).value,
+                instagramID: (document.getElementById('ig') as HTMLInputElement).value,
+                twitterID: (document.getElementById('tw') as HTMLInputElement).value,
+                personalEmailID: (document.getElementById('peem') as HTMLInputElement).value,
+                linkedinID: (document.getElementById('li') as HTMLInputElement).value,
+                professionalEmailID: (document.getElementById('prem') as HTMLInputElement).value,
+                snapchatID: (document.getElementById('sc') as HTMLInputElement).value,
+                tiktokID: (document.getElementById('tt') as HTMLInputElement).value,
+                venmoID: (document.getElementById('ve') as HTMLInputElement).value,
+                websiteID: (document.getElementById('ws') as HTMLInputElement).value,
+            }).then(() => {
+                this.presentToast('Settings Updated!');
+            });
+            this.firestore.collection('preferences').doc(this.currentUserId).update({
+                preferences: this.myInterests,
+                valueTraits: this.myValues,
+                matchTolerance: this.tolerance
+            });
         }
 
     }
@@ -119,11 +130,11 @@ export class SettingsPage implements OnInit {
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            document.getElementById('imagePreview').style.backgroundImage=  'url('+e.target.result+')';
+            document.getElementById('imagePreview').style.backgroundImage = 'url(' + e.target.result + ')';
         }
         this.fileName = file.name;
         reader.readAsDataURL(file);
-        reader.addEventListener('loadend',  () => {
+        reader.addEventListener('loadend', () => {
             this.latestPhoto = reader.result;
         });
     }

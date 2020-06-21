@@ -37,15 +37,15 @@ const routes: Routes = [
         canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
         loadChildren: () => import('./requests/requests.module').then(m => m.RequestsPageModule)
     },
-  {
-    path: 'eventcreator',
-      canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
-      loadChildren: () => import('./tab2/eventcreator/eventcreator.module').then( m => m.EventcreatorPageModule)
-  },
-  {
-    path: 'qrcode',
-    loadChildren: () => import('./tab2/qrcode/qrcode.module').then( m => m.QrcodePageModule)
-  }
+    {
+        path: 'eventcreator',
+        canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
+        loadChildren: () => import('./tab2/eventcreator/eventcreator.module').then(m => m.EventcreatorPageModule)
+    },
+    {
+        path: 'qrcode',
+        loadChildren: () => import('./tab2/qrcode/qrcode.module').then(m => m.QrcodePageModule)
+    }
 ];
 
 @NgModule({

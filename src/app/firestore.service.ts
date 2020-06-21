@@ -15,7 +15,7 @@ export class FirestoreService {
         this.currentUserRef = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
         this.currentUserId = this.auth.auth.currentUser.uid;
         this.currentUserRef.snapshotChanges().subscribe(data => {
-           this.userData.next(data);
+            this.userData.next(data);
         });
     }
 }
