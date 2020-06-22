@@ -13,6 +13,7 @@ import {AngularFireModule} from '@angular/fire';
 import {environment} from '../environments/environment';
 import {AngularFireMessagingModule} from '@angular/fire/messaging';
 import {AngularFirestore} from '@angular/fire/firestore';
+import { FCM } from '@ionic-native/fcm/ngx';
 
 @NgModule({
     declarations: [AppComponent],
@@ -24,6 +25,7 @@ import {AngularFirestore} from '@angular/fire/firestore';
         StatusBar,
         SplashScreen,
         AngularFirestore,
+        FCM,
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy}
     ],
     bootstrap: [AppComponent],
