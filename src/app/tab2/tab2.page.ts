@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {IonSearchbar, ModalController} from '@ionic/angular';
 import {EventcreatorPage} from './eventcreator/eventcreator.page';
 import {AngularFireAuth} from '@angular/fire/auth';
@@ -13,6 +13,7 @@ import * as firebase from 'firebase/app';
 import 'firebase/database';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
+import { FCM } from '@ionic-native/fcm/ngx';
 
 
 @Component({
@@ -22,7 +23,7 @@ import {AngularFireDatabase} from '@angular/fire/database';
     providers: [AngularFireDatabase, FirestoreService, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
 })
 
-export class Tab2Page {
+export class Tab2Page implements OnInit{
     unreadPings: number;
     map: mapboxgl.Map;
     currentLocationMarker: any;
@@ -44,7 +45,7 @@ export class Tab2Page {
     otherUserId: string;
 
     constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
-                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
+                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController, private fcm: FCM) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         const watch = this.geo.watchPosition({
             enableHighAccuracy: true,
@@ -98,6 +99,15 @@ export class Tab2Page {
         this.showFilter = false;
         this.showEventDetails = false;
         this.showUserDetails = false;
+    }
+
+    ngOnInit(): void {
+        this.fcm.getToken().then(token => {
+            console.log(token);
+            this.firestore.collection('notifTokens').doc(this.fs.currentUserId).update({
+                notifToken: token
+            });
+        });
     }
 
     // puts marker on the map with user info
@@ -419,4 +429,6 @@ export class Tab2Page {
         });
         return await modal.present();
     }
+
+
 }
