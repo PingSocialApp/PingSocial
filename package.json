@@ -34,6 +34,8 @@
     "cordova-browser": "^6.0.0",
     "cordova-common": "^4.0.0",
     "cordova-ios": "5.1.1",
+    "cordova-plugin-androidx": "^2.0.0",
+    "cordova-plugin-androidx-adapter": "^1.1.1",
     "cordova-plugin-geolocation": "^4.0.2",
     "cordova-res": "^0.13.0",
     "core-js": "^3.6.4",
@@ -110,7 +112,9 @@
         "DEEPLINK_5_SCHEME": " ",
         "DEEPLINK_5_HOST": " "
       },
-      "cordova-plugin-geolocation": {}
+      "cordova-plugin-geolocation": {},
+      "cordova-plugin-androidx": {},
+      "cordova-plugin-androidx-adapter": {}
     },
     "platforms": [
       "browser",
