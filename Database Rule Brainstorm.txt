@@ -1,5 +1,0 @@
-Links:
-UserRec has editing and delete permissions
-Anyone has creation privileges
-Pings:
-Anyone has creation privileges

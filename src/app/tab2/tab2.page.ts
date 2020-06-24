@@ -9,8 +9,7 @@ import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
-import * as firebase from 'firebase/app';
-import 'firebase/database';
+import {database} from 'firebase/app';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import { FCM } from '@ionic-native/fcm/ngx';
@@ -29,7 +28,6 @@ export class Tab2Page implements OnInit{
     currentLocationMarker: any;
     showFilter: boolean;
     allUserMarkers: any[] = [];
-    //allEventMarkers: any[] = [];
     currentEventTitle: string;
     currentEventDes: string;
     showEventDetails: any;
@@ -220,12 +218,12 @@ export class Tab2Page implements OnInit{
         const offline = {
             id: uid,
             isOnline: false,
-            lastOnline: firebase.database.ServerValue.TIMESTAMP,
+            lastOnline: database.ServerValue.TIMESTAMP,
         };
         const online = {
             id: uid,
             isOnline: true,
-            lastOnline: firebase.database.ServerValue.TIMESTAMP,
+            lastOnline: database.ServerValue.TIMESTAMP,
         };
 
         // checks connection and sets values accordingly

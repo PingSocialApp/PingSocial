@@ -43,9 +43,7 @@
     "core-js": "^3.6.4",
     "depcheck": "^0.9.2",
     "firebase": "^7.15.0",
-    "firebaseui": "^4.5.0",
     "i": "^0.3.6",
-    "ionic-plugin-deeplinks": "^1.0.20",
     "jsqr": "^1.2.0",
     "mapbox-gl": "^1.11.0",
     "native-run": "^1.0.0",
@@ -98,27 +96,9 @@
       "phonegap-plugin-barcodescanner": {
         "ANDROID_SUPPORT_V4_VERSION": "27.+"
       },
-      "ionic-plugin-deeplinks": {
-        "URL_SCHEME": "pingsocial",
-        "DEEPLINK_SCHEME": "https",
-        "DEEPLINK_HOST": "pingsocial.com",
-        "ANDROID_PATH_PREFIX": "/",
-        "ANDROID_2_PATH_PREFIX": "/",
-        "ANDROID_3_PATH_PREFIX": "/",
-        "ANDROID_4_PATH_PREFIX": "/",
-        "ANDROID_5_PATH_PREFIX": "/",
-        "DEEPLINK_2_SCHEME": " ",
-        "DEEPLINK_2_HOST": " ",
-        "DEEPLINK_3_SCHEME": " ",
-        "DEEPLINK_3_HOST": " ",
-        "DEEPLINK_4_SCHEME": " ",
-        "DEEPLINK_4_HOST": " ",
-        "DEEPLINK_5_SCHEME": " ",
-        "DEEPLINK_5_HOST": " "
-      },
       "cordova-plugin-geolocation": {},
       "cordova-plugin-androidx": {},
-      "cordova-plugin-androidx-adapter": {}
+      "cordova-plugin-androidx-adapter": {},
       "cordova-plugin-fcm-with-dependecy-updated": {}
     },
     "platforms": [
