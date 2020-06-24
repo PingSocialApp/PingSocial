@@ -9,7 +9,7 @@ import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
-import 'firebase/database';
+import {database} from 'firebase/app';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import { FCM } from '@ionic-native/fcm/ngx';
@@ -29,7 +29,6 @@ export class Tab2Page implements OnInit{
     currentLocationMarker: any;
     showFilter: boolean;
     allUserMarkers: any[] = [];
-    //allEventMarkers: any[] = [];
     currentEventTitle: string;
     currentEventDes: string;
     showEventDetails: any;

@@ -4,7 +4,7 @@ import {environment} from '../../../environments/environment';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireStorage} from '@angular/fire/storage';
-import * as firebase from 'firebase';
+import {firestore} from 'firebase/app';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
 
 @Component({
@@ -181,7 +181,7 @@ export class EventcreatorPage implements OnInit {
                     }
                 } else {
                     this.firestore.collection('events').doc(this.eventID).update({
-                        members: firebase.firestore.FieldValue.delete()
+                        members: firestore.FieldValue.delete()
                     });
                 }
                 this.firestore.collection('events').doc(this.eventID).update({
@@ -194,7 +194,7 @@ export class EventcreatorPage implements OnInit {
                     type: this.eventType,
                     isPrivate: this.isPublic,
                 }).then(() => {
-                    this.presentToast('Event Created!');
+                    this.presentToast('Event Updated!');
                     this.closeModal();
                 });
             } else {
