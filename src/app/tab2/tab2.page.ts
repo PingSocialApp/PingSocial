@@ -9,11 +9,11 @@ import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
-import * as firebase from 'firebase/app';
 import 'firebase/database';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import { FCM } from '@ionic-native/fcm/ngx';
+import { isGeneratedFile } from '@angular/compiler/src/aot/util';
 
 
 @Component({
@@ -46,49 +46,8 @@ export class Tab2Page implements OnInit{
 
     constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController, private fcm: FCM) {
+        
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        const watch = this.geo.watchPosition({
-            enableHighAccuracy: true,
-        });
-
-        // references
-        const uid = fs.currentUserId;
-        const locationRef = this.rtdb.database.ref('/location/' + uid);
-        this.updateStatus(uid, locationRef);
-
-        // check if current user is online or not
-        let status = '';
-        locationRef.on('value', snapshot => {
-            if (snapshot.val().isOnline) {
-                status = 'Just Now';
-            }
-        });
-
-        // update current user location
-        watch.subscribe((data) => {
-            const lng = data.coords.longitude;
-            const lat = data.coords.latitude;
-
-            // update location
-            locationRef.update({
-                longitude: lng,
-                latitude: lat,
-            });
-
-            // use api to get location
-            this.renderUser({marker: this.currentLocationMarker}, lng, lat);
-
-            // just to fly to current user on map
-            this.map.flyTo({
-                center: [lng, lat],
-                essential: true
-            });
-            // data can be a set of coordinates, or an error (if an error occurred).
-            // data.coords.latitude
-            // data.coords.longitude
-        });
-
-        this.renderLinks();
 
         this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)
             .orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
@@ -110,14 +69,37 @@ export class Tab2Page implements OnInit{
         });
     }
 
-    // puts marker on the map with user info
-    renderUser(marker, lng, lat) {
-        try {
-            marker.marker.setLngLat([lng, lat])
-                .addTo(this.map);
-        } catch (e) {
-            console.log(e.message);
-        }
+    renderCurrent() {
+        const watch = this.geo.watchPosition({
+            enableHighAccuracy: true,
+        });
+
+        // references
+        const uid = this.fs.currentUserId;
+        const locationRef = this.rtdb.database.ref('/location/' + uid);
+        this.updateStatus(uid, locationRef);
+
+        // update current user location
+        watch.subscribe((data) => {
+            const lng = -97.739600;//data.coords.longitude;
+            const lat = 30.283872;//data.coords.latitude;
+
+            if(uid === 'zoXwdES6bzgjzFetfJmiE8jDJl63') {
+                this.updateLocation(locationRef, lng, lat);
+            }
+
+            // use api to get location
+            this.renderUser({marker: this.currentLocationMarker}, lng, lat);
+
+            // just to fly to current user on map
+            this.map.flyTo({
+                center: [lng, lat],
+                essential: true
+            });
+            // data can be a set of coordinates, or an error (if an error occurred).
+            // data.coords.latitude
+            // data.coords.longitude
+        });
     }
 
     renderLinks() {
@@ -157,6 +139,7 @@ export class Tab2Page implements OnInit{
                             // get other users longitude, latitude, and lastOnline vals
                             const longi = snapshot.val().longitude;
                             const latid = snapshot.val().latitude;
+                            const locat = snapshot.val().place;
                             const lastOn = snapshot.val().lastOnline;
 
                             // update status and render
@@ -169,24 +152,7 @@ export class Tab2Page implements OnInit{
                                 this.showEventDetails = false;
                                 this.otherUserName = oName;
                                 this.otherUserStatus = oStat;
-                                const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
-                                    mapboxgl.accessToken;
-                                fetch(tempReqStr).then(response => response.json())
-                                    .then(data => {
-                                        let locat = '';
-                                        data.features.forEach(feat => {
-                                            if (feat.place_type === 'place' || feat.place_type[0] === 'place') {
-                                                // get city of location
-                                                locat = feat.place_name;
-                                                const firstInd = locat.indexOf(',');
-                                                const lastInd = locat.lastIndexOf(',');
-                                                if (firstInd !== lastInd) {
-                                                    locat = locat.substring(0, locat.lastIndexOf(','));
-                                                    this.otherUserLocation = locat;
-                                                }
-                                            }
-                                        });
-                                    });
+                                this.otherUserLocation = locat;
                                 this.otherUserId = oUserDoc.id
                             });
                             this.renderUser({marker: oMark}, longi, latid);
@@ -197,17 +163,27 @@ export class Tab2Page implements OnInit{
         });
     }
 
+    // puts marker on the map with user info
+    renderUser(marker, lng, lat) {
+        try {
+            marker.marker.setLngLat([lng, lat])
+                .addTo(this.map);
+        } catch (e) {
+            console.log(e.message);
+        }
+    }
+
     convertTime(t) {
-        if (t >= 86_400_000) {
+        if (t >= 86_400_000) { 
             // days
             return Math.floor(t / 86_400_000) + 'd ago';
-        } else if (t >= 3_600_000) {
+        } else if (t >= 3_600_000) { 
             // hours
             return Math.floor(t / 3_600_000) + 'h ago';
-        } else if (t >= 60_000) {
+        } else if (t >= 60_000) { 
             // mins
             return Math.floor(t / 60_000) + 'm ago';
-        } else if (t >= 1000) {
+        } else if (t >= 1000) { 
             // secs
             return Math.floor(t / 1000) + 's ago';
         } else {
@@ -215,17 +191,47 @@ export class Tab2Page implements OnInit{
         }
     }
 
+    updateLocation(lRef, long, lat) {
+        let locat = 'Loading...';
+        const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + long + ',' + lat + '.json?access_token=' +
+            mapboxgl.accessToken;
+
+        // get info from api
+        fetch(reqStr).then(response => response.json())
+            .then(data => {
+                let i = 0;
+                let found = false;
+                while(i < data.features.length && !found) {
+                    const feat = data.features[i];
+                    if(feat.place_type[0] === 'poi') {
+                        // get just the name of the place, no address
+                        locat = feat.text;
+                        found = true;
+                    } else if(feat.place_type[0] === 'address') {
+                        locat = feat.place_name;
+                        found = true;
+                    }
+                    i++;
+                }
+            }).then(() => {
+                // update in database
+                lRef.update({
+                    longitude: long, 
+                    latitude: lat,
+                    place: locat
+                });
+            });
+    }
+
     updateStatus(uid, lRef) {
-        // variables used to set values in database
         const offline = {
-            id: uid,
             isOnline: false,
-            lastOnline: firebase.database.ServerValue.TIMESTAMP,
+            lastOnline: Date.now(),
         };
         const online = {
             id: uid,
             isOnline: true,
-            lastOnline: firebase.database.ServerValue.TIMESTAMP,
+            lastOnline: Date.now(),
         };
 
         // checks connection and sets values accordingly
@@ -347,6 +353,8 @@ export class Tab2Page implements OnInit{
             // resp.coords.latitude
             // resp.coords.longitude
         }).then(() => {
+            this.renderCurrent();
+            this.renderLinks();
             this.presentCurrentLocation();
             this.presentEvents();
         }).catch((error) => {
