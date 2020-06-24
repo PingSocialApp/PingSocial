@@ -80,12 +80,10 @@ export class Tab2Page implements OnInit{
 
         // update current user location
         watch.subscribe((data) => {
-            const lng = -97.739600;//data.coords.longitude;
-            const lat = 30.283872;//data.coords.latitude;
+            const lng = data.coords.longitude;
+            const lat = data.coords.latitude;
 
-            if(uid === 'zoXwdES6bzgjzFetfJmiE8jDJl63') {
-                this.updateLocation(locationRef, lng, lat);
-            }
+            this.updateLocation(locationRef, lng, lat);
 
             // use api to get location
             this.renderUser({marker: this.currentLocationMarker}, lng, lat);
