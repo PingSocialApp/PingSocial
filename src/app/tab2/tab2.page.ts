@@ -9,11 +9,9 @@ import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
-import {database} from 'firebase/app';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import { FCM } from '@ionic-native/fcm/ngx';
-import { isGeneratedFile } from '@angular/compiler/src/aot/util';
 
 
 @Component({
@@ -45,7 +43,7 @@ export class Tab2Page implements OnInit{
 
     constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController, private fcm: FCM) {
-        
+
         mapboxgl.accessToken = environment.mapbox.accessToken;
 
         this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)
@@ -117,8 +115,8 @@ export class Tab2Page implements OnInit{
                 // TODO Unsubscribe from all get
                 this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
                     // get other user name and profile pic
-                    oName = oUserDoc.data().name;
-                    const oUrl = oUserDoc.data().profilepic;
+                    oName = oUserDoc.get('name');
+                    const oUrl = oUserDoc.get('profilepic');
 
                     // create marker and style it
                     const el = this.createMarker();
@@ -171,16 +169,16 @@ export class Tab2Page implements OnInit{
     }
 
     convertTime(t) {
-        if (t >= 86_400_000) { 
+        if (t >= 86_400_000) {
             // days
             return Math.floor(t / 86_400_000) + 'd ago';
-        } else if (t >= 3_600_000) { 
+        } else if (t >= 3_600_000) {
             // hours
             return Math.floor(t / 3_600_000) + 'h ago';
-        } else if (t >= 60_000) { 
+        } else if (t >= 60_000) {
             // mins
             return Math.floor(t / 60_000) + 'm ago';
-        } else if (t >= 1000) { 
+        } else if (t >= 1000) {
             // secs
             return Math.floor(t / 1000) + 's ago';
         } else {
@@ -213,7 +211,7 @@ export class Tab2Page implements OnInit{
             }).then(() => {
                 // update in database
                 lRef.update({
-                    longitude: long, 
+                    longitude: long,
                     latitude: lat,
                     place: locat
                 });
@@ -226,7 +224,6 @@ export class Tab2Page implements OnInit{
             lastOnline: Date.now(),
         };
         const online = {
-            id: uid,
             isOnline: true,
             lastOnline: Date.now(),
         };
@@ -302,7 +299,6 @@ export class Tab2Page implements OnInit{
             this.currentEventId = el.id;
         });
         const marker = new mapboxgl.Marker(el);
-        //this.allEventMarkers.push(marker);
         try {
             marker.setLngLat([eventInfo.location[0], eventInfo.location[1]]).addTo(this.map);
         } catch (e) {

@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
 import {CircledashPageRoutingModule} from './circledash-routing.module';
-import {AngularFirestoreModule} from '@angular/fire/firestore';
 import {CircledashPage} from './circledash.page';
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
 
@@ -13,7 +12,6 @@ import {ReplypopoverComponent} from './replypopover/replypopover.component';
         FormsModule,
         IonicModule,
         CircledashPageRoutingModule,
-        AngularFirestoreModule
     ],
     declarations: [CircledashPage, ReplypopoverComponent],
     entryComponents: [ReplypopoverComponent],
