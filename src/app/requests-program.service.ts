@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AngularFirestoreDocument, AngularFirestore} from '@angular/fire/firestore';
 import {ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
-import {firestore} from 'firebase';
+import {firestore} from 'firebase/app';
 
 @Injectable({
     providedIn: 'root'

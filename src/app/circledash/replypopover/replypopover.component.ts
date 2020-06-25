@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {NavParams, PopoverController, ToastController} from '@ionic/angular';
-import {firestore} from 'firebase';
+import {firestore} from 'firebase/app';
 import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
