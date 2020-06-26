@@ -105,12 +105,12 @@ export class Tab2Page implements OnInit{
             });
             res.forEach(doc => {
                 // @ts-ignore
-                if (!(doc.payload.doc.data().linkPermissions >= 2048)) {
+                if (!(doc.payload.doc.get('linkPermissions') >= 2048)) {
                     return;
                 }
                 let otherId, otherRef, oName, oMark;
                 // @ts-ignore
-                otherId = doc.payload.doc.data().userRec.id;
+                otherId = doc.payload.doc.get('userRec').id;
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
                 this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
@@ -318,18 +318,18 @@ export class Tab2Page implements OnInit{
         el.style.height = '50px';
         this.fs.userData.subscribe(ref => {
             if (ref !== null) {
-                const data = ref.payload.data();
-                if (data.profilepic.startsWith('h')) {
-                    el.style.backgroundImage = 'url(' + data.profilepic + ')';
+                const data = ref.payload;
+                if (data.get('profilepic').startsWith('h')) {
+                    el.style.backgroundImage = 'url(' + data.get('profilepic') + ')';
                 } else {
-                    this.storage.storage.refFromURL(data.profilepic).getDownloadURL().then(url => {
+                    this.storage.storage.refFromURL(data.get('profilepic')).getDownloadURL().then(url => {
                         el.style.backgroundImage = 'url(' + url + ')';
                     });
                 }
                 el.addEventListener('click', (e) => {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
-                    this.otherUserName = data.name;
+                    this.otherUserName = data.get('name');
                     this.otherUserStatus = 'Online';
                     this.otherUserId = 'currentLocation';
                     this.otherUserLocation = 'Here';

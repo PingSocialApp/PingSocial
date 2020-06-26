@@ -46,9 +46,9 @@ export class SettingsPage implements OnInit {
                 }
             });
         this.firestore.collection('preferences').doc(this.currentUserId).get().subscribe(res => {
-            this.myValues = res.data().valueTraits;
-            this.myInterests = res.data().preferences;
-            this.tolerance = res.data().matchTolerance;
+            this.myValues = res.get('valueTraits');
+            this.myInterests = res.get('preferences');
+            this.tolerance = res.get('matchTolerance');
         });
     }
 

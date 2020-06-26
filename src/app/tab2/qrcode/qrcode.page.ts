@@ -103,7 +103,7 @@ export class QrcodePage implements OnInit {
         this.db.collection('users').doc(dataArray[0]).get().subscribe(async (data) => {
             const alert = await this.alertController.create({
                 header: 'Confirm Request!',
-                message: 'Do you want to link with ' + data.data().name,
+                message: 'Do you want to link with ' + data.get('name'),
                 buttons: [
                     {
                         text: 'Cancel',

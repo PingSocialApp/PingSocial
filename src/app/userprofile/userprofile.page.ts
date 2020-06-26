@@ -63,10 +63,10 @@ export class UserprofilePage implements OnInit {
                 this.userName = userData.name;
                 this.userBio = userData.bio;
 
-                if (res.payload.data().profilepic.startsWith('h')) {
-                    this.img = res.payload.data().profilepic;
+                if (userData.profilepic.startsWith('h')) {
+                    this.img = userData.profilepic;
                 } else {
-                    this.storage.storage.refFromURL(res.payload.data().profilepic).getDownloadURL().then(url => {
+                    this.storage.storage.refFromURL(userData.profilepic).getDownloadURL().then(url => {
                         this.img = url;
                     });
                 }
