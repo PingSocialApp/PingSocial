@@ -4,6 +4,7 @@ import {AlertController, ModalController, PopoverController, ToastController} fr
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {FirestoreService} from '../firestore.service';
+import {NewPingPage} from './new-ping/new-ping.page';
 
 export interface Ping {
     id: any;
@@ -126,4 +127,10 @@ export class CircledashPage implements OnInit {
         await toast.present();
     }
 
+   async presentNewPingModal() {
+        const modal = await this.modalController.create({
+            component: NewPingPage
+        });
+        return await modal.present();
+    }
 }

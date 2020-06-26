@@ -7,7 +7,11 @@ const routes: Routes = [
     {
         path: '',
         component: CircledashPage
-    }
+    },
+  {
+    path: 'new-ping',
+    loadChildren: () => import('./new-ping/new-ping.module').then( m => m.NewPingPageModule)
+  }
 ];
 
 @NgModule({

@@ -5,6 +5,7 @@ import {IonicModule} from '@ionic/angular';
 import {CircledashPageRoutingModule} from './circledash-routing.module';
 import {CircledashPage} from './circledash.page';
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
+import {NewPingPage} from './new-ping/new-ping.page';
 
 @NgModule({
     imports: [
@@ -13,7 +14,7 @@ import {ReplypopoverComponent} from './replypopover/replypopover.component';
         IonicModule,
         CircledashPageRoutingModule,
     ],
-    declarations: [CircledashPage, ReplypopoverComponent],
+    declarations: [CircledashPage, ReplypopoverComponent, NewPingPage],
     entryComponents: [ReplypopoverComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
