@@ -4,6 +4,8 @@ import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {SettingsPage} from '../settings/settings.page';
 import {ModalController} from '@ionic/angular';
+import {RequestsPage} from '../requests/requests.page';
+
 
 export interface Link {
     id: string;
@@ -16,7 +18,7 @@ export interface Link {
     selector: 'app-tab3',
     templateUrl: 'tab3.page.html',
     styleUrls: ['tab3.page.scss'],
-    providers: [AngularFireStorage, AngularFireAuth]
+    providers: [AngularFireStorage, AngularFireAuth, AngularFireStorage]
 })
 
 export class Tab3Page {
@@ -107,6 +109,13 @@ export class Tab3Page {
         this.getLinks().then(() => {
             event.target.complete();
         });
+    }
+
+    async presentRequestsPage() {
+        const modal = await this.modalController.create({
+            component: RequestsPage
+        });
+        return await modal.present();
     }
 
     async presentSettingsModal() {

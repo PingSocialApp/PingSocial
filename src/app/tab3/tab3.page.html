@@ -9,13 +9,12 @@
             <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
         </ion-title>
         <ion-buttons slot="primary">
-            <ion-button [routerLink]="['/requests']">
+            <ion-button (click)="presentRequestsPage()">
                 <ion-badge *ngIf="requestAmount != 0">{{requestAmount}}</ion-badge>
                 <ion-icon name="person-add"></ion-icon>
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
-
 </ion-header>
 
 <ion-content [fullscreen]="true">
