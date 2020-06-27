@@ -5,12 +5,13 @@ import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
+import {SocialSharing} from '@ionic-native/social-sharing/ngx'
 
 @Component({
     selector: 'app-qrcode',
     templateUrl: './qrcode.page.html',
     styleUrls: ['./qrcode.page.scss'],
-    providers: [RequestsProgramService, AngularFireAuth, BarcodeScanner]
+    providers: [RequestsProgramService, AngularFireAuth, BarcodeScanner, SocialSharing]
 })
 export class QrcodePage implements OnInit {
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
@@ -36,7 +37,7 @@ export class QrcodePage implements OnInit {
     displayScan: boolean;
     location = true;
 
-    constructor(private modalController: ModalController, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner, private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController, public rs: RequestsProgramService) {
+    constructor(private socialSharing: SocialSharing, private modalController: ModalController, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner, private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController, public rs: RequestsProgramService) {
         this.userId = this.auth.auth.currentUser.uid;
         this.updateVals();
     }
@@ -158,5 +159,13 @@ export class QrcodePage implements OnInit {
         this.modalController.dismiss({
             dismissed: true
         });
+    }
+
+    shareQR() {
+        const options = {
+            message: 'Check out my Ping Code!',
+            files: ['https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + this.qrData]
+        }
+        this.socialSharing.shareWithOptions(options);
     }
 }

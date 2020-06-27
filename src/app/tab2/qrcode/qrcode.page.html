@@ -40,7 +40,7 @@
         <ion-img class="qrcode" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{qrData}}">
         </ion-img>
         <ion-item style="--background: transparent;">
-            <ion-button href="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{qrData}}&download=1"
+            <ion-button (click)="shareQR()"
                         class="downloadButton">Download
             </ion-button>
         </ion-item>
