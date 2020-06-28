@@ -1,27 +1,28 @@
 import {Component, OnInit} from '@angular/core';
-import {IonSearchbar, ModalController} from '@ionic/angular';
+import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
 import {EventcreatorPage} from './eventcreator/eventcreator.page';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
-import { FCM } from '@ionic-native/fcm/ngx';
+import {FCM} from '@ionic-native/fcm/ngx';
 
 
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
     styleUrls: ['tab2.page.scss'],
-    providers: [AngularFireDatabase, FirestoreService, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
+    providers: [AngularFireDatabase, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
 })
 
-export class Tab2Page implements OnInit{
+export class Tab2Page implements OnInit {
+    currentUserId: string;
+    currentUserRef: any;
     unreadPings: number;
     map: mapboxgl.Map;
     currentLocationMarker: any;
@@ -35,19 +36,20 @@ export class Tab2Page implements OnInit{
     queryDate: boolean;
     currentEventId: string;
     showUserDetails: boolean;
-
     otherUserName = '';
     otherUserLocation: any;
     otherUserStatus = '';
     otherUserId: string;
 
-    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
+    constructor(private platform: Platform, private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private auth: AngularFireAuth,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController, private fcm: FCM) {
 
         mapboxgl.accessToken = environment.mapbox.accessToken;
+        this.currentUserId = this.auth.auth.currentUser.uid;
+        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
 
-        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)
-            .orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
+        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+        ).snapshotChanges().subscribe(res => {
             if (res !== null) {
                 this.unreadPings = res.length;
             }
@@ -58,12 +60,13 @@ export class Tab2Page implements OnInit{
     }
 
     ngOnInit(): void {
-        this.fcm.getToken().then(token => {
-            console.log(token);
-            this.firestore.collection('notifTokens').doc(this.fs.currentUserId).update({
-                notifToken: token
+        if (this.platform.is('cordova')) {
+            this.fcm.getToken().then(token => {
+                this.firestore.collection('notifTokens').doc(this.currentUserId).update({
+                    notifToken: token
+                });
             });
-        });
+        }
     }
 
     renderCurrent() {
@@ -72,9 +75,8 @@ export class Tab2Page implements OnInit{
         });
 
         // references
-        const uid = this.fs.currentUserId;
-        const locationRef = this.rtdb.database.ref('/location/' + uid);
-        this.updateStatus(uid, locationRef);
+        const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
+        this.updateStatus(locationRef);
 
         // update current user location
         watch.subscribe((data) => {
@@ -84,22 +86,20 @@ export class Tab2Page implements OnInit{
             this.updateLocation(locationRef, lng, lat);
 
             // use api to get location
-            this.renderUser({marker: this.currentLocationMarker}, lng, lat);
+            this.renderUser(this.currentLocationMarker, lng, lat);
 
             // just to fly to current user on map
-            this.map.flyTo({
-                center: [lng, lat],
-                essential: true
-            });
-            // data can be a set of coordinates, or an error (if an error occurred).
-            // data.coords.latitude
-            // data.coords.longitude
+            // this.map.flyTo({
+            //     center: [lng, lat],
+            //     essential: true
+            // });
         });
     }
 
     renderLinks() {
         this.firestore.collection('links',
-            ref => ref.where('userSent', '==', this.fs.currentUserRef.ref).where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
+            ref => ref.where('userSent', '==', this.currentUserRef.ref)
+                .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
@@ -150,7 +150,7 @@ export class Tab2Page implements OnInit{
                                 this.otherUserLocation = locat;
                                 this.otherUserId = oUserDoc.id
                             });
-                            this.renderUser({marker: oMark}, longi, latid);
+                            this.renderUser(oMark, longi, latid);
                         }
                     });
                 });
@@ -161,7 +161,7 @@ export class Tab2Page implements OnInit{
     // puts marker on the map with user info
     renderUser(marker, lng, lat) {
         try {
-            marker.marker.setLngLat([lng, lat])
+            marker.setLngLat([lng, lat])
                 .addTo(this.map);
         } catch (e) {
             console.log(e.message);
@@ -196,29 +196,29 @@ export class Tab2Page implements OnInit{
             .then(data => {
                 let i = 0;
                 let found = false;
-                while(i < data.features.length && !found) {
+                while (i < data.features.length && !found) {
                     const feat = data.features[i];
-                    if(feat.place_type[0] === 'poi') {
+                    if (feat.place_type[0] === 'poi') {
                         // get just the name of the place, no address
                         locat = feat.text;
                         found = true;
-                    } else if(feat.place_type[0] === 'address') {
+                    } else if (feat.place_type[0] === 'address') {
                         locat = feat.place_name;
                         found = true;
                     }
                     i++;
                 }
             }).then(() => {
-                // update in database
-                lRef.update({
-                    longitude: long,
-                    latitude: lat,
-                    place: locat
-                });
+            // update in database
+            lRef.update({
+                longitude: long,
+                latitude: lat,
+                place: locat
             });
+        });
     }
 
-    updateStatus(uid, lRef) {
+    updateStatus(lRef) {
         const offline = {
             isOnline: false,
             lastOnline: Date.now(),
@@ -241,8 +241,8 @@ export class Tab2Page implements OnInit{
 
     presentEvents() {
         const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false));
-        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.fs.currentUserRef.ref));
-        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.fs.currentUserRef.ref));
+        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref));
+        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref));
 
         const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
@@ -316,7 +316,7 @@ export class Tab2Page implements OnInit{
         const el = this.createMarker();
         el.style.width = '50px';
         el.style.height = '50px';
-        this.fs.userData.subscribe(ref => {
+        this.currentUserRef.snapshotChanges().subscribe(ref => {
             if (ref !== null) {
                 const data = ref.payload;
                 if (data.get('profilepic').startsWith('h')) {

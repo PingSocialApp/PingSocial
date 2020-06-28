@@ -3,7 +3,7 @@ import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestor
 import {AlertController, ModalController, PopoverController, ToastController} from '@ionic/angular';
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {FirestoreService} from '../firestore.service';
+import {AngularFireAuth} from '@angular/fire/auth';
 import {NewPingPage} from './new-ping/new-ping.page';
 
 export interface Ping {
@@ -19,7 +19,7 @@ export interface Ping {
     selector: 'app-circledash',
     templateUrl: './circledash.page.html',
     styleUrls: ['./circledash.page.scss'],
-    providers: [AngularFireStorage]
+    providers: [AngularFireStorage, AngularFireAuth]
 })
 
 
@@ -29,10 +29,12 @@ export class CircledashPage implements OnInit {
 
 
     // tslint:disable-next-line:max-line-length
-    constructor(private alertController: AlertController, private fs: FirestoreService, private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController,
-                private toastController: ToastController, private storage: AngularFireStorage) {
+    constructor(private alertController: AlertController, private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController,
+                private toastController: ToastController, private storage: AngularFireStorage, private auth: AngularFireAuth) {
         this.pingArray = [];
-        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref).orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
+        this.firestore.collection('pings', ref => ref.where('userRec', '==',
+            this.firestore.doc('/users/' + this.auth.auth.currentUser.uid).ref).orderBy('timeStamp', 'desc'))
+            .snapshotChanges().subscribe(res => {
             if (res !== null) {
                 this.renderPings(res);
                 this.pingArray = [];
@@ -47,8 +49,8 @@ export class CircledashPage implements OnInit {
     async renderPings(pings: any) {
         await Promise.all(pings.map(ping => {
             const pingId = ping.payload.doc.id;
-            let pingdata = ping.payload.doc.data();
-            pingdata.userSent.get().then(userdata => {
+            let pingdata = ping.payload.doc;
+            pingdata.get('userSent').get().then(userdata => {
                 let ud = userdata.data();
                 let imgUrl = '';
                 if (ud.profilepic.startsWith('h')) {
@@ -127,7 +129,7 @@ export class CircledashPage implements OnInit {
         await toast.present();
     }
 
-   async presentNewPingModal() {
+    async presentNewPingModal() {
         const modal = await this.modalController.create({
             component: NewPingPage
         });
