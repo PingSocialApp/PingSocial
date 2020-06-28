@@ -111,43 +111,36 @@ export class UserprofilePage implements OnInit {
     }
 
     renderUserPermissions(userData: any, userPermissions: any) {
-        let permissions = userPermissions.linkPermissions;
-        permissions = permissions.toString(2).split('');
-        while(permissions.length < 12) {
-            permissions.unshift(0);
-        }
-        console.log(permissions);
+        const permissions = this.getPermission(userPermissions.linkPermissions);
 
-        this.userPhone = this.getPermission(permissions[11]) ? userData.numberID.replace('(', '').replace(')', '')
+        this.userPhone = permissions[1] ? userData.numberID.replace('(', '').replace(')', '')
             .replace('-', '').replace(' ', '') : '';
-        this.userPersonalEmail = this.getPermission(permissions[2]) ? userData.personalEmailID : '';
-        this.userInstagram = this.getPermission(permissions[3]) ? userData.instagramID : '';
-        this.userSnapchat = this.getPermission(permissions[4]) ? userData.snapchatID : '';
-        this.userFacebook = this.getPermission(permissions[5]) ? userData.facebookID : '';
-        this.userTiktok = this.getPermission(permissions[6]) ? userData.tiktokID : '';
-        this.userTwitter = this.getPermission(permissions[7]) ? userData.twitterID : '';
-        this.userVenmo = this.getPermission(permissions[8]) ? userData.venmoID : '';
-        this.userLinkedin = this.getPermission(permissions[9]) ? userData.linkedinID : '';
-        this.userProfessionalEmail = this.getPermission(permissions[10]) ? userData.professionalEmailID : '';
+        this.userPersonalEmail = permissions[2] ? userData.personalEmailID : '';
+        this.userInstagram = permissions[3] ? userData.instagramID : '';
+        this.userSnapchat = permissions[4] ? userData.snapchatID : '';
+        this.userFacebook = permissions[5] ? userData.facebookID : '';
+        this.userTiktok = permissions[6] ? userData.tiktokID : '';
+        this.userTwitter = permissions[7] ? userData.twitterID : '';
+        this.userVenmo = permissions[8] ? userData.venmoID : '';
+        this.userLinkedin = permissions[9] ? userData.linkedinID : '';
+        this.userProfessionalEmail = permissions[10] ? userData.professionalEmailID : '';
         let website;
         if (!((userData.websiteID.includes('http://')) || (userData.websiteID.includes('https://')) || userData.websiteID.length <= 0)) {
             website = 'http://' + userData.websiteID;
         } else {
             website = userData.websiteID;
         }
-        this.userWebsite = this.getPermission(permissions[1]) ? website : '';
+        this.userWebsite = permissions[11] ? website : '';
         this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
             if (snapshot.val()) {
                 // get other users longitude, latitude, and lastOnline vals
-                const longi = snapshot.val().longitude;
-                const latid = snapshot.val().latitude;
                 const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
 
                 const currTime = Date.now();
                 const lastOn = snapshot.val().lastOnline;
                 const oStat = this.convertTime(currTime - lastOn);
 
-                this.userLocation = this.getPermission(permissions[0]) ? locat + ' ' + oStat : '';
+                this.userLocation = permissions[0] ? locat + ' ' + oStat : '';
             }
         });
     }
@@ -171,27 +164,31 @@ export class UserprofilePage implements OnInit {
     }
 
     renderMyPermissions(myData: any) {
-        let permissions = myData.linkPermissions;
-        permissions = permissions.toString(2).split('');
-        while(permissions.length < 12) {
-            permissions.unshift(0);
-        }
-        this.location = this.getPermission(permissions[0]);
-        this.phone = this.getPermission(permissions[1]);
-        this.email = this.getPermission(permissions[2]);
-        this.instagram = this.getPermission(permissions[3]);
-        this.snapchat = this.getPermission(permissions[4]);
-        this.facebook = this.getPermission(permissions[5]);
-        this.tiktok = this.getPermission(permissions[6]);
-        this.twitter = this.getPermission(permissions[7]);
-        this.venmo = this.getPermission(permissions[8]);
-        this.linkedin = this.getPermission(permissions[9]);
-        this.professionalemail = this.getPermission(permissions[10]);
-        this.website = this.getPermission(permissions[11]);
+        const permissions = this.getPermission(myData.linkPermissions);
+        this.location = permissions[0];
+        this.phone = permissions[1];
+        this.email = permissions[2];
+        this.instagram = permissions[3];
+        this.snapchat = permissions[4];
+        this.facebook = permissions[5];
+        this.tiktok = permissions[6];
+        this.twitter = permissions[7];
+        this.venmo = permissions[8];
+        this.linkedin = permissions[9];
+        this.professionalemail = permissions[10];
+        this.website = permissions[11];
     }
 
     getPermission(value: any) {
-        return (value % 2 === 1);
+        const permissions = value.toString(2).split('');
+        while(permissions.length < 12) {
+            permissions.unshift('0');
+        }
+        const boolValues = [];
+        for(let i = 0; i < 12; i++){
+            boolValues[i] = permissions[i] === '1';
+        }
+        return boolValues;
     }
 
     closeModal() {
