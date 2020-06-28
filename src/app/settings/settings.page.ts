@@ -54,7 +54,8 @@ export class SettingsPage implements OnInit {
 
     updateSettings() {
         if ((document.getElementById('username') as HTMLInputElement).value === '' ||
-            (document.getElementById('bio') as HTMLInputElement).value === '' || this.myInterests.length !== 5 || this.myValues.length !== 5) {
+            (document.getElementById('bio') as HTMLInputElement).value === '' || 
+            this.myInterests === undefined || this.myValues === undefined) {
             this.presentToast('Whoops! Looks like some of your settings might be empty');
         } else {
             if (this.fileName != null) {

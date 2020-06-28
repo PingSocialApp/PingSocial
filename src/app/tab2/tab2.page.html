@@ -78,7 +78,7 @@
     <ion-card style="z-index: 3" *ngIf="showUserDetails">
         <ion-card-content>
             <ion-card-title>{{otherUserName}}</ion-card-title>
-            <ion-card-subtitle>{{otherUserStatus + ' at ' + otherUserLocation}}</ion-card-subtitle>
+            <ion-card-subtitle>{{otherUserStatus + ' in ' + otherUserLocation}}</ion-card-subtitle>
             <ion-button expand="block" *ngIf='otherUserId !== "currentLocation"'
                         [routerLink]="['/userprofile/', otherUserId]">
                 <ion-icon name="expand-outline"></ion-icon>

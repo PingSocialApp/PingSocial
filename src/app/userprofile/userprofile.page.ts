@@ -16,6 +16,7 @@ import * as mapboxgl from 'mapbox-gl';
     providers: [RequestsProgramService, AngularFireStorage, AngularFireAuth, AngularFireDatabase]
 })
 export class UserprofilePage implements OnInit {
+    currCode: number;
     userRef: AngularFirestoreDocument;
     linkDoc: DocumentReference;
     userId: string;
@@ -71,8 +72,8 @@ export class UserprofilePage implements OnInit {
                     });
                 }
 
-                this.firestore.collection('links', ref => ref.where('userRec', '==', this.userRef.ref)
-                    .where('userSent', '==', this.firestore.collection('users').doc(
+                this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
+                    .where('userRec', '==', this.firestore.collection('users').doc(
                         this.auth.auth.currentUser.uid).ref).where('pendingRequest', '==', false)
                 ).snapshotChanges().subscribe(linkeData => {
                     if (linkeData.length !== 0) {
@@ -83,8 +84,8 @@ export class UserprofilePage implements OnInit {
                     }
                 });
             });
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
-            .where('userRec', '==', this.firestore.collection('users').doc(
+        this.firestore.collection('links', ref => ref.where('userRec', '==', this.userRef.ref)
+            .where('userSent', '==', this.firestore.collection('users').doc(
                 this.auth.auth.currentUser.uid).ref)
             .where('pendingRequest', '==', false)).get().subscribe(res => {
             if (!res.empty) {
@@ -95,7 +96,6 @@ export class UserprofilePage implements OnInit {
                 this.myInfo = false;
             }
         });
-
     }
 
     ngOnInit() {
@@ -113,18 +113,22 @@ export class UserprofilePage implements OnInit {
     renderUserPermissions(userData: any, userPermissions: any) {
         let permissions = userPermissions.linkPermissions;
         permissions = permissions.toString(2).split('');
+        while(permissions.length < 12) {
+            permissions.unshift(0);
+        }
+        console.log(permissions);
 
         this.userPhone = this.getPermission(permissions[11]) ? userData.numberID.replace('(', '').replace(')', '')
             .replace('-', '').replace(' ', '') : '';
-        this.userPersonalEmail = this.getPermission(permissions[10]) ? userData.personalEmailID : '';
-        this.userInstagram = this.getPermission(permissions[9]) ? userData.instagramID : '';
-        this.userSnapchat = this.getPermission(permissions[8]) ? userData.snapchatID : '';
-        this.userFacebook = this.getPermission(permissions[7]) ? userData.facebookID : '';
+        this.userPersonalEmail = this.getPermission(permissions[2]) ? userData.personalEmailID : '';
+        this.userInstagram = this.getPermission(permissions[3]) ? userData.instagramID : '';
+        this.userSnapchat = this.getPermission(permissions[4]) ? userData.snapchatID : '';
+        this.userFacebook = this.getPermission(permissions[5]) ? userData.facebookID : '';
         this.userTiktok = this.getPermission(permissions[6]) ? userData.tiktokID : '';
-        this.userTwitter = this.getPermission(permissions[5]) ? userData.twitterID : '';
-        this.userVenmo = this.getPermission(permissions[4]) ? userData.venmoID : '';
-        this.userLinkedin = this.getPermission(permissions[3]) ? userData.linkedinID : '';
-        this.userProfessionalEmail = this.getPermission(permissions[2]) ? userData.professionalEmailID : '';
+        this.userTwitter = this.getPermission(permissions[7]) ? userData.twitterID : '';
+        this.userVenmo = this.getPermission(permissions[8]) ? userData.venmoID : '';
+        this.userLinkedin = this.getPermission(permissions[9]) ? userData.linkedinID : '';
+        this.userProfessionalEmail = this.getPermission(permissions[10]) ? userData.professionalEmailID : '';
         let website;
         if (!((userData.websiteID.includes('http://')) || (userData.websiteID.includes('https://')) || userData.websiteID.length <= 0)) {
             website = 'http://' + userData.websiteID;
@@ -137,30 +141,13 @@ export class UserprofilePage implements OnInit {
                 // get other users longitude, latitude, and lastOnline vals
                 const longi = snapshot.val().longitude;
                 const latid = snapshot.val().latitude;
-                const lastOn = snapshot.val().lastOnline;
+                const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
 
-                // only way ik so far to get current time
                 const currTime = Date.now();
-                // update status and render
+                const lastOn = snapshot.val().lastOnline;
                 const oStat = this.convertTime(currTime - lastOn);
-                const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' + mapboxgl.accessToken;
-                fetch(tempReqStr).then(response => response.json()).catch((e) => {
-                }).then(data => {
-                    let locat = '';
-                    data.features.forEach(feat => {
-                        // console.log(feat.place_type);
-                        if (feat.place_type === 'place' || feat.place_type[0] === 'place') {
-                            // get city of location
-                            locat = feat.place_name;
-                            const firstInd = locat.indexOf(',');
-                            const lastInd = locat.lastIndexOf(',');
-                            if (firstInd !== lastInd) {
-                                locat = locat.substring(0, locat.lastIndexOf(','));
-                            }
-                            this.userLocation = this.getPermission(permissions[0]) ? locat + ' ' + oStat : '';
-                        }
-                    });
-                });
+
+                this.userLocation = this.getPermission(permissions[0]) ? locat + ' ' + oStat : '';
             }
         });
     }
@@ -186,18 +173,21 @@ export class UserprofilePage implements OnInit {
     renderMyPermissions(myData: any) {
         let permissions = myData.linkPermissions;
         permissions = permissions.toString(2).split('');
-        this.phone = this.getPermission(permissions[0]);
-        this.email = this.getPermission(permissions[1]);
-        this.instagram = this.getPermission(permissions[2]);
-        this.snapchat = this.getPermission(permissions[3]);
-        this.facebook = this.getPermission(permissions[4]);
-        this.tiktok = this.getPermission(permissions[5]);
-        this.twitter = this.getPermission(permissions[6]);
-        this.venmo = this.getPermission(permissions[7]);
-        this.linkedin = this.getPermission(permissions[8]);
-        this.professionalemail = this.getPermission(permissions[9]);
-        this.website = this.getPermission(permissions[10]);
-        this.location = this.getPermission(permissions[11]);
+        while(permissions.length < 12) {
+            permissions.unshift(0);
+        }
+        this.location = this.getPermission(permissions[0]);
+        this.phone = this.getPermission(permissions[1]);
+        this.email = this.getPermission(permissions[2]);
+        this.instagram = this.getPermission(permissions[3]);
+        this.snapchat = this.getPermission(permissions[4]);
+        this.facebook = this.getPermission(permissions[5]);
+        this.tiktok = this.getPermission(permissions[6]);
+        this.twitter = this.getPermission(permissions[7]);
+        this.venmo = this.getPermission(permissions[8]);
+        this.linkedin = this.getPermission(permissions[9]);
+        this.professionalemail = this.getPermission(permissions[10]);
+        this.website = this.getPermission(permissions[11]);
     }
 
     getPermission(value: any) {
@@ -246,7 +236,12 @@ export class UserprofilePage implements OnInit {
                 message: 'User Permissions have been updated!',
                 duration: 2000
             });
-            toast.present();
+            if(this.currCode !== code) {
+                if(this.currCode !== undefined) {
+                    toast.present();
+                }
+                this.currCode = code;
+            }
         });
     }
 

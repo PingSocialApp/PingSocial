@@ -12,7 +12,6 @@ import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {FCM} from '@ionic-native/fcm/ngx';
 
-
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
@@ -89,16 +88,16 @@ export class Tab2Page implements OnInit {
             this.renderUser(this.currentLocationMarker, lng, lat);
 
             // just to fly to current user on map
-            // this.map.flyTo({
-            //     center: [lng, lat],
-            //     essential: true
-            // });
+            this.map.flyTo({
+                center: [lng, lat],
+                essential: true
+            });
         });
     }
 
     renderLinks() {
         this.firestore.collection('links',
-            ref => ref.where('userSent', '==', this.currentUserRef.ref)
+            ref => ref.where('userRec', '==', this.currentUserRef.ref)
                 .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
@@ -110,7 +109,7 @@ export class Tab2Page implements OnInit {
                 }
                 let otherId, otherRef, oName, oMark;
                 // @ts-ignore
-                otherId = doc.payload.doc.get('userRec').id;
+                otherId = doc.payload.doc.get('userSent').id;
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
                 this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
@@ -135,10 +134,10 @@ export class Tab2Page implements OnInit {
                             const longi = snapshot.val().longitude;
                             const latid = snapshot.val().latitude;
                             const locat = snapshot.val().place;
-                            const lastOn = snapshot.val().lastOnline;
 
-                            // update status and render
+                            const lastOn = snapshot.val().lastOnline;
                             const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
+                            
                             el.id = oUserDoc.id;
                             oMark = new mapboxgl.Marker(el);
                             this.allUserMarkers.push(oMark);
