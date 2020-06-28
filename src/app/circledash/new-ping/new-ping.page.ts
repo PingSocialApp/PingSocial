@@ -38,7 +38,7 @@ export class NewPingPage implements OnInit {
     }
 
     sendPing() {
-        if(this.pingMessage === '' || this.pingMessage === undefined){
+        if (this.pingMessage === '' || this.pingMessage === undefined) {
             this.presentToast('Whoops! You have an empty message');
             return;
         }

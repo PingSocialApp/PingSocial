@@ -1,17 +1,18 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import {NgModule} from '@angular/core';
+import {Routes, RouterModule} from '@angular/router';
 
-import { NewPingPage } from './new-ping.page';
+import {NewPingPage} from './new-ping.page';
 
 const routes: Routes = [
-  {
-    path: '',
-    component: NewPingPage
-  }
+    {
+        path: '',
+        component: NewPingPage
+    }
 ];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
+    imports: [RouterModule.forChild(routes)],
+    exports: [RouterModule],
 })
-export class NewPingPageRoutingModule {}
+export class NewPingPageRoutingModule {
+}
