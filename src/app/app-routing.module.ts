@@ -45,7 +45,12 @@ const routes: Routes = [
     {
         path: 'qrcode',
         loadChildren: () => import('./tab2/qrcode/qrcode.module').then(m => m.QrcodePageModule)
-    }
+    },
+  {
+    path: 'eventmanager/:id',
+    canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
+    loadChildren: () => import('./eventmanager/eventmanager.module').then( m => m.EventmanagerPageModule)
+  }
 ];
 
 @NgModule({

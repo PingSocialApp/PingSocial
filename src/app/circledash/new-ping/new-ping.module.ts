@@ -1,10 +1,12 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+
 import {IonicModule} from '@ionic/angular';
-import {SettingsPageRoutingModule} from './settings-routing.module';
-import {AngularFireAuthModule} from '@angular/fire/auth';
-import {RouterModule} from '@angular/router';
+
+import {NewPingPageRoutingModule} from './new-ping-routing.module';
+
+import {NewPingPage} from './new-ping.page';
 import {AngularFireStorageModule} from '@angular/fire/storage';
 
 @NgModule({
@@ -12,12 +14,10 @@ import {AngularFireStorageModule} from '@angular/fire/storage';
         CommonModule,
         FormsModule,
         IonicModule,
-        RouterModule,
         AngularFireStorageModule,
-        AngularFireAuthModule,
-        SettingsPageRoutingModule
+        NewPingPageRoutingModule
     ],
-    // declarations: [SettingsPage]
+    // declarations: [NewPingPage]
 })
-export class SettingsPageModule {
+export class NewPingPageModule {
 }

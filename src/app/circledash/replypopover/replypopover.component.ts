@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {NavParams, PopoverController, ToastController} from '@ionic/angular';
-import {firestore} from 'firebase';
-import {AngularFireAuth} from '@angular/fire/auth';
+import {firestore} from 'firebase/app';
 
 @Component({
     selector: 'app-replypopover',
@@ -11,11 +10,8 @@ import {AngularFireAuth} from '@angular/fire/auth';
 })
 export class ReplypopoverComponent implements OnInit {
     responseMessage: string;
-    currentUserId: string;
 
-    constructor(private auth: AngularFireAuth,
-                private navParams: NavParams, private popoverController: PopoverController, private toastController: ToastController) {
-        this.currentUserId = this.auth.auth.currentUser.uid;
+    constructor(private navParams: NavParams, private popoverController: PopoverController, private toastController: ToastController) {
     }
 
     ngOnInit() {
@@ -31,9 +27,9 @@ export class ReplypopoverComponent implements OnInit {
         db.collection('pings').doc(this.navParams.get('pingId')).get().subscribe((ref) => {
             db.collection('pings').doc(this.navParams.get('pingId')).update({
                 responseMessage: this.responseMessage,
-                userRec: ref.data().userSent,
-                userSent: ref.data().userRec,
-                sentMessage: ref.data().responseMessage,
+                userRec: ref.get('userSent'),
+                userSent: ref.get('userRec'),
+                sentMessage: ref.get('responseMessage'),
                 timeStamp: firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 this.presentToast('Reply Sent!');

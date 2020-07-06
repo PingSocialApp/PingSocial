@@ -1,9 +1,11 @@
 import {Component} from '@angular/core';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
+import {AngularFirestore} from '@angular/fire/firestore';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {SettingsPage} from '../settings/settings.page';
 import {ModalController} from '@ionic/angular';
+import {RequestsPage} from '../requests/requests.page';
+
 
 export interface Link {
     id: string;
@@ -16,12 +18,11 @@ export interface Link {
     selector: 'app-tab3',
     templateUrl: 'tab3.page.html',
     styleUrls: ['tab3.page.scss'],
-    providers: [AngularFireStorage, AngularFireAuth]
+    providers: [AngularFireStorage, AngularFireAuth, AngularFireStorage]
 })
 
 export class Tab3Page {
-    currentUserRef: AngularFirestoreDocument;
-    currentUser: any;
+    currentUserRef: any;
     requestAmount: number;
     links: Array<Link>;
     private idArr: Array<string>;
@@ -29,19 +30,19 @@ export class Tab3Page {
     constructor(private modalController: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage,
                 private auth: AngularFireAuth) {
         this.currentUserRef = this.firestore.collection('users').doc(
-            this.auth.auth.currentUser.uid);
+            this.auth.auth.currentUser.uid).ref;
         this.links = [];
         this.getLinks();
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef)
             .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
             this.requestAmount = res.length;
         });
     }
 
     getLinks() {
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef)
             .where('pendingRequest', '==', false)).get().subscribe(userRecData => {
-            this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+            this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef)
                 .where('pendingRequest', '==', false)).get().subscribe(userSentData => {
                 this.links = [];
                 this.idArr = [];
@@ -50,8 +51,8 @@ export class Tab3Page {
             });
         });
         this.links.sort((a, b) => {
-            var textA = a.name.toUpperCase();
-            var textB = b.name.toUpperCase();
+            const textA = a.name.toUpperCase();
+            const textB = b.name.toUpperCase();
             return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
         });
         return Promise.resolve();
@@ -59,8 +60,7 @@ export class Tab3Page {
 
     async renderRLink(linkData: Array<any>) {
         linkData.forEach(link => {
-            const linkeD = link.data();
-            linkeD.userSent.get().then(USdata => {
+            link.get('userSent').get().then(USdata => {
                 if (!(this.idArr.includes(USdata.id))) {
                     this.links.push(this.renderLink(USdata));
                     this.idArr.push(USdata.id);
@@ -71,8 +71,7 @@ export class Tab3Page {
 
     async renderSLink(linkData: Array<any>) {
         linkData.map(link => {
-            const linkeD = link.data();
-            linkeD.userRec.get().then(USdata => {
+            link.get('userRec').get().then(USdata => {
                 if (!(this.idArr.includes(USdata.id))) {
                     this.links.push(this.renderLink(USdata));
                     this.idArr.push(USdata.id);
@@ -84,14 +83,14 @@ export class Tab3Page {
     renderLink(USdata) {
         const linkObject = {
             id: USdata.id,
-            name: USdata.data().name,
-            bio: USdata.data().bio,
+            name: USdata.get('name'),
+            bio: USdata.get('bio'),
             img: ''
         };
-        if (USdata.data().profilepic.startsWith('h')) {
-            linkObject.img = USdata.data().profilepic;
+        if (USdata.get('profilepic').startsWith('h')) {
+            linkObject.img = USdata.get('profilepic');
         } else {
-            this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
+            this.storage.storage.refFromURL(USdata.get('profilepic')).getDownloadURL().then(url => {
                 linkObject.img = url;
             });
         }
@@ -110,6 +109,13 @@ export class Tab3Page {
         this.getLinks().then(() => {
             event.target.complete();
         });
+    }
+
+    async presentRequestsPage() {
+        const modal = await this.modalController.create({
+            component: RequestsPage
+        });
+        return await modal.present();
     }
 
     async presentSettingsModal() {

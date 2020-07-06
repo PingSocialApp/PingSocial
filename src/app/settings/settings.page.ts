@@ -46,22 +46,22 @@ export class SettingsPage implements OnInit {
                 }
             });
         this.firestore.collection('preferences').doc(this.currentUserId).get().subscribe(res => {
-            this.myValues = res.data().valueTraits;
-            this.myInterests = res.data().preferences;
-            this.tolerance = res.data().matchTolerance;
+            this.myValues = res.get('valueTraits');
+            this.myInterests = res.get('preferences');
+            this.tolerance = res.get('matchTolerance');
         });
     }
 
     updateSettings() {
         if ((document.getElementById('username') as HTMLInputElement).value === '' ||
-            (document.getElementById('bio') as HTMLInputElement).value === '' || this.myInterests.length !== 5 || this.myValues.length !== 5) {
+            (document.getElementById('bio') as HTMLInputElement).value === '' || 
+            this.myInterests === undefined || this.myValues === undefined) {
             this.presentToast('Whoops! Looks like some of your settings might be empty');
         } else {
             if (this.fileName != null) {
                 const ref = this.storage.ref(this.currentUserId + this.fileName);
                 if (typeof this.latestPhoto === 'string') {
                     ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
-                        console.log(this.fileName);
                         this.firestore.collection('users').doc(
                             this.currentUserId
                         ).update({

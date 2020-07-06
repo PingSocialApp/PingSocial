@@ -1,5 +1,8 @@
 <ion-header>
     <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
         <ion-title>
             <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
         </ion-title>
@@ -40,7 +43,7 @@
         </ion-button>
         <ion-button expand="block" class="ttbutton" href="https://tiktok.com/{{userTiktok}}"
                     *ngIf="userTiktok.length !== 0">
-            <ion-icon class="displayIcon" name="musical-note"></ion-icon>
+            <ion-icon class="displayIcon" name="logo-tiktok"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="twitterbutton" href="https://twitter.com/{{userTwitter}}"
                     *ngIf="userTwitter.length !== 0">
@@ -48,7 +51,7 @@
         </ion-button>
         <ion-button expand="block" class="venmobutton" href="https://venmo.com/{{userVenmo}}"
                     *ngIf="userVenmo.length !== 0">
-            <ion-icon class="displayIcon" name="card"></ion-icon>
+            <ion-icon class="displayIcon" name="logo-venmo"></ion-icon>
         </ion-button>
         <!-- TODO -->
         <ion-button expand="block" class="linkedinbutton" href="{{userLinkedin}}" *ngIf="userLinkedin.length !== 0">
@@ -64,6 +67,7 @@
         <ion-button expand="block" class="locationButton" *ngIf="userLocation" (click)="showLocation()">
             <ion-icon name="location"></ion-icon>
         </ion-button>
+        <ion-button expand="block" [routerLink]="['/eventmanager/', userId]"><ion-icon name="calendar"></ion-icon></ion-button>
     </ion-list>
     <ion-list *ngIf="!displayTF && myInfo">
         <ion-item>
@@ -102,7 +106,7 @@
             <ion-toggle [(ngModel)]="facebook" (ionChange)="changePermissions()"></ion-toggle>
         </ion-item>
         <ion-item>
-            <ion-icon class="displayIcon tticon" name="musical-note"></ion-icon>
+            <ion-icon class="displayIcon tticon" name="logo-tiktok"></ion-icon>
             <ion-label>
                 TikTok
             </ion-label>
@@ -116,7 +120,7 @@
             <ion-toggle [(ngModel)]="twitter" (ionChange)="changePermissions()"></ion-toggle>
         </ion-item>
         <ion-item>
-            <ion-icon class="displayIcon vicon" name="card"></ion-icon>
+            <ion-icon class="displayIcon vicon" name="logo-venmo"></ion-icon>
             <ion-label>
                 Venmo
             </ion-label>

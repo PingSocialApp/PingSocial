@@ -4,7 +4,7 @@ import {environment} from '../../../environments/environment';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireStorage} from '@angular/fire/storage';
-import * as firebase from 'firebase';
+import {firestore} from 'firebase/app';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
 
 @Component({
@@ -53,7 +53,7 @@ export class EventcreatorPage implements OnInit {
                 this.eventName = data.name;
                 this.eventCreator = data.creator.id;
                 data.creator.get().then((userRef) => {
-                    this.eventCreatorName = userRef.data().name;
+                    this.eventCreatorName = userRef.get('name');
                 });
                 this.eventDes = data.description;
                 this.isPublic = data.isPrivate;
@@ -80,7 +80,7 @@ export class EventcreatorPage implements OnInit {
         } else {
             this.isCreator = true;
             this.currentUserRef.ref.get().then((userRef) => {
-                this.eventCreatorName = userRef.data().name;
+                this.eventCreatorName = userRef.get('name');
             });
             this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
                 this.links = [];
@@ -128,19 +128,19 @@ export class EventcreatorPage implements OnInit {
 
     async renderLink(linkData: Array<any>) {
         await Promise.all(linkData.map(link => {
-            const linkeD = link.data();
-            linkeD.userRec.get().then(USdata => {
+            link.get('userRec').get().then(USdata => {
                 const linkObject = {
                     id: USdata.id,
+                    name: USdata.get('name'),
+                    bio: USdata.get('bio'),
                     img: '',
-                    name: USdata.data().name,
-                    bio: USdata.data().bio,
                     checked: null
                 };
-                if (USdata.data().profilepic.startsWith('h')) {
-                    linkObject.img = USdata.data().profilepic;
+
+                if (USdata.get('profilepic').startsWith('h')) {
+                    linkObject.img = USdata.get('profilepic');
                 } else {
-                    this.storage.storage.refFromURL(USdata.data().profilepic).getDownloadURL().then(url => {
+                    this.storage.storage.refFromURL(USdata.get('profilepic')).getDownloadURL().then(url => {
                         linkObject.img = url;
                     });
                 }
@@ -157,7 +157,7 @@ export class EventcreatorPage implements OnInit {
     }
 
     manageEvent() {
-        let toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
+        const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
         if (this.eventName === '' || (document.getElementById('startTime') as HTMLInputElement).value === '' || (document.getElementById('endTime') as HTMLInputElement).value === '' || this.eventDes === '' || this.eventType === ''
             || typeof this.location === 'undefined') {
             this.presentToast('Whoops! You have an empty entry');
@@ -181,7 +181,7 @@ export class EventcreatorPage implements OnInit {
                     }
                 } else {
                     this.firestore.collection('events').doc(this.eventID).update({
-                        members: firebase.firestore.FieldValue.delete()
+                        members: firestore.FieldValue.delete()
                     });
                 }
                 this.firestore.collection('events').doc(this.eventID).update({
@@ -194,7 +194,7 @@ export class EventcreatorPage implements OnInit {
                     type: this.eventType,
                     isPrivate: this.isPublic,
                 }).then(() => {
-                    this.presentToast('Event Created!');
+                    this.presentToast('Event Updated!');
                     this.closeModal();
                 });
             } else {
@@ -238,9 +238,9 @@ export class EventcreatorPage implements OnInit {
         });
     }
 
-    async presentToast(message: string) {
+    async presentToast(m: string) {
         const toast = await this.toastController.create({
-            message: message,
+            message: m,
             duration: 2000
         });
         toast.present();

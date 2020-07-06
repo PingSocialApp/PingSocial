@@ -1,97 +1,55 @@
-import {Component, OnInit} from '@angular/core';
-import {IonSearchbar, ModalController} from '@ionic/angular';
+import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
 import {EventcreatorPage} from './eventcreator/eventcreator.page';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {FirestoreService} from '../firestore.service';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
-import * as firebase from 'firebase/app';
-import 'firebase/database';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
-import { FCM } from '@ionic-native/fcm/ngx';
-
+import {FCM} from '@ionic-native/fcm/ngx';
 
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
     styleUrls: ['tab2.page.scss'],
-    providers: [AngularFireDatabase, FirestoreService, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
+    providers: [AngularFireDatabase, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
 })
 
-export class Tab2Page implements OnInit{
+export class Tab2Page implements OnInit, AfterViewInit {
+    currentUserId: string;
+    currentUserRef: any;
     unreadPings: number;
     map: mapboxgl.Map;
     currentLocationMarker: any;
     showFilter: boolean;
     allUserMarkers: any[] = [];
-    //allEventMarkers: any[] = [];
     currentEventTitle: string;
     currentEventDes: string;
     showEventDetails: any;
     queryStatus = 'All';
     queryType = 'All';
     queryDate: boolean;
+    queryLink: boolean;
     currentEventId: string;
     showUserDetails: boolean;
-
     otherUserName = '';
     otherUserLocation: any;
     otherUserStatus = '';
     otherUserId: string;
 
-    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private fs: FirestoreService,
+    constructor(private platform: Platform, private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private auth: AngularFireAuth,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController, private fcm: FCM) {
+
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        const watch = this.geo.watchPosition({
-            enableHighAccuracy: true,
-        });
+        this.currentUserId = this.auth.auth.currentUser.uid;
+        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
 
-        // references
-        const uid = fs.currentUserId;
-        const locationRef = this.rtdb.database.ref('/location/' + uid);
-        this.updateStatus(uid, locationRef);
-
-        // check if current user is online or not
-        let status = '';
-        locationRef.on('value', snapshot => {
-            if (snapshot.val().isOnline) {
-                status = 'Just Now';
-            }
-        });
-
-        // update current user location
-        watch.subscribe((data) => {
-            const lng = data.coords.longitude;
-            const lat = data.coords.latitude;
-
-            // update location
-            locationRef.update({
-                longitude: lng,
-                latitude: lat,
-            });
-
-            // use api to get location
-            this.renderUser({marker: this.currentLocationMarker}, lng, lat);
-
-            // just to fly to current user on map
-            this.map.flyTo({
-                center: [lng, lat],
-                essential: true
-            });
-            // data can be a set of coordinates, or an error (if an error occurred).
-            // data.coords.latitude
-            // data.coords.longitude
-        });
-
-        this.renderLinks();
-
-        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.fs.currentUserRef.ref)
-            .orderBy('timeStamp', 'desc')).snapshotChanges().subscribe(res => {
+        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+        ).valueChanges().subscribe(res => {
             if (res !== null) {
                 this.unreadPings = res.length;
             }
@@ -102,44 +60,76 @@ export class Tab2Page implements OnInit{
     }
 
     ngOnInit(): void {
-        this.fcm.getToken().then(token => {
-            console.log(token);
-            this.firestore.collection('notifTokens').doc(this.fs.currentUserId).update({
-                notifToken: token
+        if (this.platform.is('cordova')) {
+            this.fcm.getToken().then(token => {
+                this.firestore.collection('notifTokens').doc(this.currentUserId).update({
+                    notifToken: token
+                });
+            });
+        }
+    }
+
+    private newISO(date: Date){
+        const tzo = -date.getTimezoneOffset(),
+            dif = tzo >= 0 ? '+' : '-',
+            pad = (num) => {
+                const norm = Math.floor(Math.abs(num));
+                return (norm < 10 ? '0' : '') + norm;
+            };
+        return date.getFullYear() +
+            '-' + pad(date.getMonth() + 1) +
+            '-' + pad(date.getDate()) +
+            'T' + pad(date.getHours()) +
+            ':' + pad(date.getMinutes()) +
+            ':' + pad(date.getSeconds()) +
+            dif + pad(tzo / 60) +
+            ':' + pad(tzo % 60);
+    }
+
+    renderCurrent() {
+        const watch = this.geo.watchPosition({
+            enableHighAccuracy: true,
+        });
+
+        // references
+        const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
+        this.updateStatus(locationRef);
+
+        // update current user location
+        watch.subscribe((data) => {
+            const lng = data.coords.longitude;
+            const lat = data.coords.latitude;
+
+            this.updateLocation(locationRef, lng, lat);
+
+            // use api to get location
+            this.renderUser(this.currentLocationMarker, lng, lat);
+
+            // just to fly to current user on map
+            this.map.flyTo({
+                center: [lng, lat],
+                essential: true
             });
         });
     }
 
-    // puts marker on the map with user info
-    renderUser(marker, lng, lat) {
-        try {
-            marker.marker.setLngLat([lng, lat])
-                .addTo(this.map);
-        } catch (e) {
-            console.log(e.message);
-        }
-    }
-
     renderLinks() {
         this.firestore.collection('links',
-            ref => ref.where('userSent', '==', this.fs.currentUserRef.ref).where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
+            ref => ref.where('userRec', '==', this.currentUserRef.ref)
+                .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
             res.forEach(doc => {
-                // @ts-ignore
-                if (!(doc.payload.doc.data().linkPermissions >= 2048)) {
-                    return;
-                }
                 let otherId, otherRef, oName, oMark;
                 // @ts-ignore
-                otherId = doc.payload.doc.data().userRec.id;
+                otherId = doc.payload.doc.get('userSent').id;
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
                 this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
                     // get other user name and profile pic
-                    oName = oUserDoc.data().name;
-                    const oUrl = oUserDoc.data().profilepic;
+                    oName = oUserDoc.get('name');
+                    const oUrl = oUserDoc.get('profilepic');
 
                     // create marker and style it
                     const el = this.createMarker();
@@ -157,10 +147,11 @@ export class Tab2Page implements OnInit{
                             // get other users longitude, latitude, and lastOnline vals
                             const longi = snapshot.val().longitude;
                             const latid = snapshot.val().latitude;
-                            const lastOn = snapshot.val().lastOnline;
+                            const locat = snapshot.val().place;
 
-                            // update status and render
+                            const lastOn = snapshot.val().lastOnline;
                             const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
+
                             el.id = oUserDoc.id;
                             oMark = new mapboxgl.Marker(el);
                             this.allUserMarkers.push(oMark);
@@ -169,32 +160,25 @@ export class Tab2Page implements OnInit{
                                 this.showEventDetails = false;
                                 this.otherUserName = oName;
                                 this.otherUserStatus = oStat;
-                                const tempReqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
-                                    mapboxgl.accessToken;
-                                fetch(tempReqStr).then(response => response.json())
-                                    .then(data => {
-                                        let locat = '';
-                                        data.features.forEach(feat => {
-                                            if (feat.place_type === 'place' || feat.place_type[0] === 'place') {
-                                                // get city of location
-                                                locat = feat.place_name;
-                                                const firstInd = locat.indexOf(',');
-                                                const lastInd = locat.lastIndexOf(',');
-                                                if (firstInd !== lastInd) {
-                                                    locat = locat.substring(0, locat.lastIndexOf(','));
-                                                    this.otherUserLocation = locat;
-                                                }
-                                            }
-                                        });
-                                    });
+                                this.otherUserLocation = locat;
                                 this.otherUserId = oUserDoc.id
                             });
-                            this.renderUser({marker: oMark}, longi, latid);
+                            this.renderUser(oMark, longi, latid);
                         }
                     });
                 });
             });
         });
+    }
+
+    // puts marker on the map with user info
+    renderUser(marker, lng, lat) {
+        try {
+            marker.setLngLat([lng, lat])
+                .addTo(this.map);
+        } catch (e) {
+            console.log(e.message);
+        }
     }
 
     convertTime(t) {
@@ -215,17 +199,46 @@ export class Tab2Page implements OnInit{
         }
     }
 
-    updateStatus(uid, lRef) {
-        // variables used to set values in database
+    updateLocation(lRef, long, lat) {
+        let locat = 'Loading...';
+        const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + long + ',' + lat + '.json?access_token=' +
+            mapboxgl.accessToken;
+
+        // get info from api
+        fetch(reqStr).then(response => response.json())
+            .then(data => {
+                let i = 0;
+                let found = false;
+                while (i < data.features.length && !found) {
+                    const feat = data.features[i];
+                    if (feat.place_type[0] === 'poi') {
+                        // get just the name of the place, no address
+                        locat = feat.text;
+                        found = true;
+                    } else if (feat.place_type[0] === 'address') {
+                        locat = feat.place_name;
+                        found = true;
+                    }
+                    i++;
+                }
+            }).then(() => {
+            // update in database
+            lRef.update({
+                longitude: long,
+                latitude: lat,
+                place: locat
+            });
+        });
+    }
+
+    updateStatus(lRef) {
         const offline = {
-            id: uid,
             isOnline: false,
-            lastOnline: firebase.database.ServerValue.TIMESTAMP,
+            lastOnline: Date.now(),
         };
         const online = {
-            id: uid,
             isOnline: true,
-            lastOnline: firebase.database.ServerValue.TIMESTAMP,
+            lastOnline: Date.now(),
         };
 
         // checks connection and sets values accordingly
@@ -240,9 +253,16 @@ export class Tab2Page implements OnInit{
     }
 
     presentEvents() {
-        const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false));
-        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.fs.currentUserRef.ref));
-        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.fs.currentUserRef.ref));
+        const oneWeek = new Date();
+        const nowString = this.newISO(oneWeek);
+        oneWeek.setDate(oneWeek.getDate() + 7);
+        const oneWeekString = this.newISO(oneWeek);
+        const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)
+            .where('startTime', '<=',oneWeekString).where('startTime', '>',nowString));
+        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
+            .where('startTime', '<=',oneWeekString).where('startTime', '>',nowString));
+        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
+            .where('startTime', '<=',oneWeekString).where('startTime', '>',nowString));
 
         const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
@@ -255,22 +275,19 @@ export class Tab2Page implements OnInit{
 
     renderEvent(doc) {
         const eventInfo = doc.data();
-        // this.allEventMarkers.forEach(tempMarker => {
-        //     tempMarker.remove();
-        // });
-        // @ts-ignore
         const el = this.createMarker();
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
         el.setAttribute('data-start', eventInfo.startTime);
-
-        const endTime = new Date(eventInfo.endTime);
-        const currentTime = new Date();
-        if (currentTime > endTime) {
-            return;
-        }
-
+        this.firestore.collection('links',ref => ref.where('userSent', '==', eventInfo.creator)
+            .where('userRec', '==', this.currentUserRef.ref)).get().subscribe(val => {
+            if(val.empty){
+                el.setAttribute('data-link', 'false');
+            }else{
+                el.setAttribute('data-link', 'true');
+            }
+        });
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
         if (!!document.querySelector('#' + el.id)) {
@@ -299,7 +316,6 @@ export class Tab2Page implements OnInit{
             this.currentEventId = el.id;
         });
         const marker = new mapboxgl.Marker(el);
-        //this.allEventMarkers.push(marker);
         try {
             marker.setLngLat([eventInfo.location[0], eventInfo.location[1]]).addTo(this.map);
         } catch (e) {
@@ -317,20 +333,20 @@ export class Tab2Page implements OnInit{
         const el = this.createMarker();
         el.style.width = '50px';
         el.style.height = '50px';
-        this.fs.userData.subscribe(ref => {
+        this.currentUserRef.snapshotChanges().subscribe(ref => {
             if (ref !== null) {
-                const data = ref.payload.data();
-                if (data.profilepic.startsWith('h')) {
-                    el.style.backgroundImage = 'url(' + data.profilepic + ')';
+                const data = ref.payload;
+                if (data.get('profilepic').startsWith('h')) {
+                    el.style.backgroundImage = 'url(' + data.get('profilepic') + ')';
                 } else {
-                    this.storage.storage.refFromURL(data.profilepic).getDownloadURL().then(url => {
+                    this.storage.storage.refFromURL(data.get('profilepic')).getDownloadURL().then(url => {
                         el.style.backgroundImage = 'url(' + url + ')';
                     });
                 }
                 el.addEventListener('click', (e) => {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
-                    this.otherUserName = data.name;
+                    this.otherUserName = data.get('name');
                     this.otherUserStatus = 'Online';
                     this.otherUserId = 'currentLocation';
                     this.otherUserLocation = 'Here';
@@ -347,6 +363,8 @@ export class Tab2Page implements OnInit{
             // resp.coords.latitude
             // resp.coords.longitude
         }).then(() => {
+            this.renderCurrent();
+            this.renderLinks();
             this.presentCurrentLocation();
             this.presentEvents();
         }).catch((error) => {
@@ -402,6 +420,11 @@ export class Tab2Page implements OnInit{
             if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
                 elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
                 (elements[i] as HTMLElement).style.display = 'none';
+                continue;
+            }
+
+            if(this.queryLink){
+                (elements[i] as HTMLElement).style.display = elements[i].getAttribute('data-link') === 'false' ? 'none' : null;
                 continue;
             }
 
