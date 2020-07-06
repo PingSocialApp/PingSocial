@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {AfterViewInit, Component, OnInit} from '@angular/core';
 import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
 import {EventcreatorPage} from './eventcreator/eventcreator.page';
 import {AngularFireAuth} from '@angular/fire/auth';
@@ -19,7 +19,7 @@ import {FCM} from '@ionic-native/fcm/ngx';
     providers: [AngularFireDatabase, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore]
 })
 
-export class Tab2Page implements OnInit {
+export class Tab2Page implements OnInit, AfterViewInit {
     currentUserId: string;
     currentUserRef: any;
     unreadPings: number;

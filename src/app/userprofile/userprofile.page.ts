@@ -235,7 +235,7 @@ export class UserprofilePage implements OnInit {
             });
             if(this.currCode !== code) {
                 if(this.currCode !== undefined) {
-                    toast.present();
+                    await toast.present();
                 }
                 this.currCode = code;
             }

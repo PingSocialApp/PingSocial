@@ -97,6 +97,9 @@
             <ion-fab-button (click)="presentEventCreatorModal('')">
                 <ion-icon name="add-circle"></ion-icon>
             </ion-fab-button>
+            <ion-fab-button [routerLink]="['/eventmanager/', currentUserId]">
+                <ion-icon name="calendar-outline"></ion-icon>
+            </ion-fab-button>
         </ion-fab-list>
     </ion-fab>
 </ion-content>
