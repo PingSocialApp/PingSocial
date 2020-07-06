@@ -68,6 +68,23 @@ export class Tab2Page implements OnInit, AfterViewInit {
         }
     }
 
+    private newISO(date: Date){
+        const tzo = -date.getTimezoneOffset(),
+            dif = tzo >= 0 ? '+' : '-',
+            pad = (num) => {
+                const norm = Math.floor(Math.abs(num));
+                return (norm < 10 ? '0' : '') + norm;
+            };
+        return date.getFullYear() +
+            '-' + pad(date.getMonth() + 1) +
+            '-' + pad(date.getDate()) +
+            'T' + pad(date.getHours()) +
+            ':' + pad(date.getMinutes()) +
+            ':' + pad(date.getSeconds()) +
+            dif + pad(tzo / 60) +
+            ':' + pad(tzo % 60);
+    }
+
     renderCurrent() {
         const watch = this.geo.watchPosition({
             enableHighAccuracy: true,
@@ -236,9 +253,9 @@ export class Tab2Page implements OnInit, AfterViewInit {
 
     presentEvents() {
         const oneWeek = new Date();
-        const nowString = oneWeek.toISOString();
+        const nowString = this.newISO(oneWeek);
         oneWeek.setDate(oneWeek.getDate() + 7);
-        const oneWeekString = oneWeek.toISOString();
+        const oneWeekString = this.newISO(oneWeek);
         const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)
             .where('startTime', '<=',oneWeekString).where('startTime', '>',nowString));
         const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)

@@ -91,7 +91,6 @@ export class CircledashPage implements OnInit {
 
     handleInput(event) {
         const query = event.target.value.toLowerCase();
-        // console.log(query);
         for (let i = 0; i < document.getElementsByTagName('ion-item').length; i++) {
             const shouldShow = document.getElementsByTagName('h2')[i].textContent.toLowerCase().indexOf(query) > -1 ||
                 document.getElementsByTagName('h3')[i].textContent.toLowerCase().indexOf(query) > -1;

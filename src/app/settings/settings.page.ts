@@ -62,7 +62,6 @@ export class SettingsPage implements OnInit {
                 const ref = this.storage.ref(this.currentUserId + this.fileName);
                 if (typeof this.latestPhoto === 'string') {
                     ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
-                        console.log(this.fileName);
                         this.firestore.collection('users').doc(
                             this.currentUserId
                         ).update({
