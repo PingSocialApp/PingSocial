@@ -25,6 +25,10 @@
                     <ion-searchbar id="searchbar" (ionInput)="filterMarkers()"></ion-searchbar>
                 </ion-item>
                 <ion-item>
+                    <ion-label>Link Created</ion-label>
+                    <ion-toggle [(ngModel)]="queryLink" (ionChange)="filterMarkers()"></ion-toggle>
+                </ion-item>
+                <ion-item>
                     <ion-label>Public or Private?</ion-label>
                     <ion-select value="All" [(ngModel)]="queryStatus" (ionChange)="filterMarkers()">
                         <ion-select-option value="All">

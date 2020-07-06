@@ -33,6 +33,7 @@ export class Tab2Page implements OnInit, AfterViewInit {
     queryStatus = 'All';
     queryType = 'All';
     queryDate: boolean;
+    queryLink: boolean;
     currentEventId: string;
     showUserDetails: boolean;
     otherUserName = '';
@@ -150,7 +151,7 @@ export class Tab2Page implements OnInit, AfterViewInit {
 
                             const lastOn = snapshot.val().lastOnline;
                             const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
-                            
+
                             el.id = oUserDoc.id;
                             oMark = new mapboxgl.Marker(el);
                             this.allUserMarkers.push(oMark);
@@ -279,7 +280,14 @@ export class Tab2Page implements OnInit, AfterViewInit {
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
         el.setAttribute('data-start', eventInfo.startTime);
-
+        this.firestore.collection('links',ref => ref.where('userSent', '==', eventInfo.creator)
+            .where('userRec', '==', this.currentUserRef.ref)).get().subscribe(val => {
+            if(val.empty){
+                el.setAttribute('data-link', 'false');
+            }else{
+                el.setAttribute('data-link', 'true');
+            }
+        });
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
         if (!!document.querySelector('#' + el.id)) {
@@ -412,6 +420,11 @@ export class Tab2Page implements OnInit, AfterViewInit {
             if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
                 elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
                 (elements[i] as HTMLElement).style.display = 'none';
+                continue;
+            }
+
+            if(this.queryLink){
+                (elements[i] as HTMLElement).style.display = elements[i].getAttribute('data-link') === 'false' ? 'none' : null;
                 continue;
             }
 
