@@ -48,7 +48,7 @@ export class Tab2Page implements OnInit {
         this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
 
         this.firestore.collection('pings', ref => ref.where('userRec', '==', this.currentUserRef.ref)
-        ).snapshotChanges().subscribe(res => {
+        ).valueChanges().subscribe(res => {
             if (res !== null) {
                 this.unreadPings = res.length;
             }
@@ -98,15 +98,11 @@ export class Tab2Page implements OnInit {
     renderLinks() {
         this.firestore.collection('links',
             ref => ref.where('userRec', '==', this.currentUserRef.ref)
-                .where('pendingRequest', '==', false)).snapshotChanges().subscribe(res => {
+                .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
             res.forEach(doc => {
-                // @ts-ignore
-                if (!(doc.payload.doc.get('linkPermissions') >= 2048)) {
-                    return;
-                }
                 let otherId, otherRef, oName, oMark;
                 // @ts-ignore
                 otherId = doc.payload.doc.get('userSent').id;
@@ -239,9 +235,16 @@ export class Tab2Page implements OnInit {
     }
 
     presentEvents() {
-        const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false));
-        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref));
-        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref));
+        const oneWeek = new Date();
+        const nowString = oneWeek.toISOString();
+        oneWeek.setDate(oneWeek.getDate() + 7);
+        const oneWeekString = oneWeek.toISOString();
+        const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)
+            .where('startTime', '<=',oneWeekString).where('startTime', '>',nowString));
+        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
+            .where('startTime', '<=',oneWeekString).where('startTime', '>',nowString));
+        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
+            .where('startTime', '<=',oneWeekString).where('startTime', '>',nowString));
 
         const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
@@ -254,21 +257,11 @@ export class Tab2Page implements OnInit {
 
     renderEvent(doc) {
         const eventInfo = doc.data();
-        // this.allEventMarkers.forEach(tempMarker => {
-        //     tempMarker.remove();
-        // });
-        // @ts-ignore
         const el = this.createMarker();
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
         el.setAttribute('data-start', eventInfo.startTime);
-
-        const endTime = new Date(eventInfo.endTime);
-        const currentTime = new Date();
-        if (currentTime > endTime) {
-            return;
-        }
 
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
