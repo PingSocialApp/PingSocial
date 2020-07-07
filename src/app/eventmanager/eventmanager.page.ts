@@ -14,14 +14,16 @@ export class EventmanagerPage implements OnInit {
     myEvents: Array<object>;
     isMe: boolean;
 
-    constructor(private acr: ActivatedRoute, private modalController: ModalController, private firestore: AngularFirestore, private auth: AngularFireAuth) {
+    constructor(private acr: ActivatedRoute, private modalController: ModalController, private firestore: AngularFirestore,
+                private auth: AngularFireAuth) {
         this.isMe = this.acr.snapshot.params.id === this.auth.auth.currentUser.uid;
     }
 
     ngOnInit() {
         this.firestore.collection('events', ref => ref.where('creator', '==',
-            this.firestore.collection('users').doc(this.acr.snapshot.params.id).ref).orderBy('startTime', 'asc')).snapshotChanges().subscribe(val => {
-            this.renderMyEvents(val);
+            this.firestore.collection('users').doc(this.acr.snapshot.params.id).ref).orderBy('startTime', 'asc'))
+            .snapshotChanges().subscribe(val => {
+                this.renderMyEvents(val);
         });
     }
 
@@ -36,9 +38,9 @@ export class EventmanagerPage implements OnInit {
                         flag = true;
                     }
                 }
-            }
-            if (!flag) {
-                return;
+                if (!flag) {
+                    return;
+                }
             }
             const obj = {
                 id: data.id,

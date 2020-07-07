@@ -12,6 +12,7 @@
             <ion-label position="floating">Password</ion-label>
             <ion-input [(ngModel)]="password" type="password"></ion-input>
         </ion-item>
+        <p><a (click)="forgotPassAlert()">Forgot Password?</a></p>
         <ion-button (click)="login()">Login</ion-button>
         <p>New to Ping? <a (click)="loginScreen = false">Sign up!</a></p>
     </ion-list>

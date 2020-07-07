@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {AngularFireAuth} from '@angular/fire/auth';
-import {ToastController} from '@ionic/angular';
+import {AlertController, ToastController} from '@ionic/angular';
 
 // tslint:disable-next-line:import-spacing
 
@@ -19,7 +19,7 @@ export class LoginPage implements OnInit {
     rePass: string;
 
     // tslint:disable-next-line:no-shadowed-variable
-    constructor(public router: Router, private auth: AngularFireAuth, private toastController: ToastController) {
+    constructor(private alertController: AlertController, public router: Router, private auth: AngularFireAuth, private toastController: ToastController) {
         this.loginScreen = true;
     }
 
@@ -61,5 +61,40 @@ export class LoginPage implements OnInit {
                 await toast.present();
             });
         }
+    }
+
+    async forgotPassAlert() {
+        const alert = await this.alertController.create({
+            header: 'Aw man',
+            message: 'We\'ll send you an email to reset it',
+            buttons: [
+                {
+                    text: 'Cancel',
+                    role: 'cancel',
+                    cssClass: 'secondary',
+                    handler: () => {
+                        console.log('Confirm Cancel');
+                    }
+                }, {
+                    text: 'Ok',
+                    handler: (alertData) => {
+                        this.auth.auth.sendPasswordResetEmail(alertData.email).then(value => {
+
+                        }).catch(e => {
+                            console.log(e);
+                        });
+                    }
+                }
+            ],
+            inputs: [
+                {
+                    name: 'email',
+                    type: 'email',
+                    placeholder: this.email
+                }
+            ]
+        });
+
+        await alert.present();
     }
 }
