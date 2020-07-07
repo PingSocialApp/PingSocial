@@ -36,7 +36,6 @@ export class EventmanagerPage implements OnInit {
                 for (const mem of data.get('members')) {
                     if (mem.id === this.auth.auth.currentUser.uid) {
                         flag = true;
-                        console.log('hi');
                     }
                 }
                 if (!flag) {
