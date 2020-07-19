@@ -47,6 +47,7 @@
     "i": "^0.3.6",
     "ionicons": "^5.1.2",
     "jsqr": "^1.2.0",
+    "leaflet": "^1.6.0",
     "mapbox-gl": "^1.11.0",
     "native-run": "^1.0.0",
     "phonegap-plugin-barcodescanner": "^8.1.0",
