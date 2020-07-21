@@ -35,6 +35,7 @@
     "cordova-android": "8.1.0",
     "cordova-browser": "^6.0.0",
     "cordova-common": "^4.0.0",
+    "cordova-ios": "5.1.1",
     "cordova-plugin-androidx": "^2.0.0",
     "cordova-plugin-androidx-adapter": "^1.1.1",
     "cordova-plugin-fcm-with-dependecy-updated": "^6.4.3",
@@ -110,7 +111,8 @@
     },
     "platforms": [
       "browser",
-      "android"
+      "android",
+      "ios"
     ]
   }
 }
