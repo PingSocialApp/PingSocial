@@ -74,18 +74,18 @@ ion-col {
 }
 
 .pingHeader ion-col {
-  background: #8FDEE6;
+  background: var(--ion-color-primary);
 }
 
 .submit-button {
-  --background: #8FDEE6;
+  --background: var(--ion-color-primary);
   --background-hover: #7ec3ca;
   display: block;
   margin: 5%
 }
 
 ion-button ion-icon {
-  color: #8FDEE6;
+  color: var(--ion-color-primary);
 }
 
 ion-label {

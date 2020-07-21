@@ -1,5 +1,5 @@
 ion-fab-button {
-  --background: #8FDEE6;
+  --background: var(--ion-color-primary);
 }
 
 .left-swipe-1, .right-swipe {
@@ -12,7 +12,7 @@ ion-fab-button {
 
 .noPingDisplay {
   font-family: "Lobster Two";
-  color: #8FDEE6;
+  color: var(--ion-color-primary);
   margin: 2% auto;
   text-align: center;
   font-size: 2em;

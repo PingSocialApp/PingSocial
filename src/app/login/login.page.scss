@@ -1,5 +1,5 @@
 ion-content {
-  --background: #8FDEE6;
+  --background: var(--ion-color-primary);
 }
 
 ion-img {
@@ -13,7 +13,7 @@ ion-img {
   text-align: center;
   color: gray;
   font-size: 9px;
-  background: #8FDEE6;
+  background: var(--ion-color-primary);
 }
 
 ion-list {
