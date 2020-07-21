@@ -22,7 +22,7 @@
         </ion-segment-button>
     </ion-segment>
     <ion-list *ngIf="displayTF && theirInfo" class="TFDisplay">
-        <ion-button color="success" expand="block" href="tel:{{userPhone}}" *ngIf="userPhone.length !== 0">
+        <ion-button color="success" expand="block" (click)="presentActionSheet()" *ngIf="userPhone.length !== 0">
             <ion-icon name="call"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="mailbutton" href="mailto:{{userPersonalEmail}}"

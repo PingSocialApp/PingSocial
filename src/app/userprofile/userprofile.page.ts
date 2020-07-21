@@ -3,7 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument, DocumentReference} from '@angular/fire/firestore';
 import {RequestsProgramService} from '../requests-program.service';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
+import {ActionSheetController, AlertController, ModalController, ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {environment} from '../../environments/environment';
@@ -51,7 +51,7 @@ export class UserprofilePage implements OnInit {
     location: boolean;
     userLocation = '';
 
-    constructor(private modalController: ModalController, private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
+    constructor(private actionSheet: ActionSheetController, private modalController: ModalController, private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
                 private storage: AngularFireStorage, private toastController: ToastController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.displayTF = true;
@@ -181,11 +181,11 @@ export class UserprofilePage implements OnInit {
 
     getPermission(value: any) {
         const permissions = value.toString(2).split('');
-        while(permissions.length < 12) {
+        while (permissions.length < 12) {
             permissions.unshift('0');
         }
         const boolValues = [];
-        for(let i = 0; i < 12; i++){
+        for (let i = 0; i < 12; i++) {
             boolValues[i] = permissions[i] === '1';
         }
         return boolValues;
@@ -233,8 +233,8 @@ export class UserprofilePage implements OnInit {
                 message: 'User Permissions have been updated!',
                 duration: 2000
             });
-            if(this.currCode !== code) {
-                if(this.currCode !== undefined) {
+            if (this.currCode !== code) {
+                if (this.currCode !== undefined) {
                     await toast.present();
                 }
                 this.currCode = code;
@@ -242,6 +242,29 @@ export class UserprofilePage implements OnInit {
         });
     }
 
+    async presentActionSheet() {
+        const actionSheet = await this.actionSheet.create({
+            header: this.userPhone,
+            buttons: [{
+                text: 'Call',
+                icon: 'call',
+                handler: () => {
+                    window.open('tel:' + this.userPhone);
+                }
+            }, {
+                text: 'Text/SMS',
+                icon: 'chatbubble',
+                handler: () => {
+                    window.open('sms:' + this.userPhone);
+                }
+            }, {
+                text: 'Cancel',
+                icon: 'close',
+                role: 'cancel'
+            }]
+        });
+        await actionSheet.present();
+    }
 
     async showLocation() {
         const alert = await this.alertController.create({
