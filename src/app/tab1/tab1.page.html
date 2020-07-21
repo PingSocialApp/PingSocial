@@ -7,5 +7,22 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-    <div>HI</div>
+    <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" pullFactor="0.5" pullMin="100" pullMax="300">
+        <ion-refresher-content pullingIcon="chevron-down-circle-outline"
+                               pullingText="Pull to refresh"
+                               refreshingSpinner="crescent"
+                               refreshingText="Fetching New Suggestions"></ion-refresher-content>
+    </ion-refresher>
+    <ion-card *ngFor="let sug of suggestions">
+        <ion-card-header>
+            <ion-avatar><img src="{{sug.img}}"></ion-avatar>
+            <ion-card-title>{{sug.name}}</ion-card-title>
+            <ion-card-subtitle>{{sug.bio}}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+                <ion-button (click)="rs.sendRequest(sug.id,0)">
+                    Add Link
+                </ion-button>
+        </ion-card-content>
+    </ion-card>
 </ion-content>
