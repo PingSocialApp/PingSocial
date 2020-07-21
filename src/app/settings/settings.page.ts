@@ -48,7 +48,6 @@ export class SettingsPage implements OnInit {
         this.firestore.collection('preferences').doc(this.currentUserId).get().subscribe(res => {
             this.myValues = res.get('valueTraits');
             this.myInterests = res.get('preferences');
-            this.tolerance = res.get('matchTolerance');
         });
     }
 
@@ -94,7 +93,6 @@ export class SettingsPage implements OnInit {
             this.firestore.collection('preferences').doc(this.currentUserId).update({
                 preferences: this.myInterests,
                 valueTraits: this.myValues,
-                matchTolerance: this.tolerance
             });
         }
 

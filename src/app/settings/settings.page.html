@@ -201,17 +201,6 @@
             </ion-list>
         </ion-card-content>
     </ion-card>
-    <ion-card>
-        <ion-card-header>
-            <ion-card-title>Match Tolerance</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-            <ion-range min="10" max="90" step="2" [(ngModel)]="tolerance">
-                <ion-icon size="small" slot="start" name="person-circle-outline" color="gray"></ion-icon>
-                <ion-icon slot="end" name="person-circle-outline" color="gray"></ion-icon>
-            </ion-range>
-        </ion-card-content>
-    </ion-card>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button class="submit-button" (click)="updateSettings()">
             <ion-icon name="checkmark"></ion-icon>
