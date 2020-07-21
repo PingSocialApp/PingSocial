@@ -9,6 +9,7 @@ import {AngularFireDatabase} from '@angular/fire/database';
 import {merge} from 'rxjs';
 import {IonSearchbar, ModalController} from '@ionic/angular';
 import {EventcreatorPage} from '../tab2/eventcreator/eventcreator.page';
+import {Tab2Page} from '../tab2/tab2.page';
 
 @Component({
     selector: 'app-physicalmap',
@@ -37,7 +38,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     queryLink: boolean;
     showFilter: boolean;
 
-    constructor(private modalController: ModalController, private rtdb: AngularFireDatabase,
+    constructor(public tab2: Tab2Page, private modalController: ModalController, private rtdb: AngularFireDatabase,
                 private geo: Geolocation, private firestore: AngularFirestore, private auth: AngularFireAuth,
                 private storage: AngularFireStorage) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
@@ -369,16 +370,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             this.showEventDetails = false;
             this.showUserDetails = false;
         });
-    }
-
-    async presentEventCreatorModal(data: string) {
-        const modal = await this.modalController.create({
-            component: EventcreatorPage,
-            componentProps: {
-                eventID: data
-            }
-        });
-        return await modal.present();
     }
 
     presentFilter() {

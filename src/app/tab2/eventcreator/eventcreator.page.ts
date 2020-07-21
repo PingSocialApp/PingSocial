@@ -89,10 +89,6 @@ export class EventcreatorPage implements OnInit {
         }
     }
 
-    // ngOnInit() {
-    //
-    // }
-
     // tslint:disable-next-line:use-lifecycle-interface
     ngAfterViewInit() {
         this.buildMap();

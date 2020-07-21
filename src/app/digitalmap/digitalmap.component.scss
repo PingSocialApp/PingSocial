@@ -13,9 +13,17 @@
 }
 
 :host ::ng-deep .custom-marker {
-  background-image: url('https://picsum.photos/50');
   width: 50px;
   height: 50px;
+}
+
+.filterButton{
+  width: 40px; height: 40px; --background: white; --color: #8fdee6
+}
+
+.overlaycontainer {
+  position: absolute; z-index: 500; width: 100%
+  //box-shadow: 0px 15px 10px -15px #111;
 }
 
 :host ::ng-deep .custom-event-marker {

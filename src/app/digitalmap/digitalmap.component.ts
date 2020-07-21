@@ -2,11 +2,15 @@ import {AfterViewInit, Component, OnInit} from '@angular/core';
 import leaflet from 'leaflet';
 import {IonSearchbar, ModalController} from '@ionic/angular';
 import {EventcreatorPage} from '../tab2/eventcreator/eventcreator.page';
+import {AngularFirestore} from '@angular/fire/firestore';
+import {AngularFireAuth} from '@angular/fire/auth';
+import {AngularFireStorage} from '@angular/fire/storage';
 
 @Component({
     selector: 'app-digitalmap',
     templateUrl: './digitalmap.component.html',
     styleUrls: ['./digitalmap.component.scss'],
+    providers: [AngularFireStorage,AngularFireAuth,AngularFirestore]
 })
 export class DigitalmapComponent implements OnInit, AfterViewInit {
     mtd: number
@@ -16,10 +20,16 @@ export class DigitalmapComponent implements OnInit, AfterViewInit {
     queryDate: boolean;
     queryLink: boolean;
     showFilter: boolean;
+    private currentUserId: string;
+    private currentUserRef: any;
 
-    constructor(private modalController: ModalController) {
+    constructor(private modalController: ModalController,private firestore: AngularFirestore, private auth: AngularFireAuth,
+                private storage: AngularFireStorage) {
         this.mtd = 1 / 111139;
         this.showFilter = false;
+
+        this.currentUserId = this.auth.auth.currentUser.uid;
+        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
     }
 
     ngOnInit() {
@@ -45,9 +55,9 @@ export class DigitalmapComponent implements OnInit, AfterViewInit {
             )
         });
 
-        this.digitalmap.on('movestart', () => {
-            // Remove Overlay
-        });
+        // this.digitalmap.on('movestart', () => {
+        //     // Remove Overlay
+        // });
 
         // Patch Solution
         setTimeout(() => {
@@ -74,13 +84,26 @@ export class DigitalmapComponent implements OnInit, AfterViewInit {
                 (markers[k] as HTMLElement).style.height = num;
             }
         });
-        leaflet.marker([0, 0], {
-            icon: leaflet.divIcon({
-                className: '',
-                iconAnchor: [28, 28],
-                html: '<div class=\'custom-marker marker\'></div>'
-            })
-        }).bindPopup('Me').addTo(this.digitalmap);
+
+        this.currentUserRef.snapshotChanges().subscribe(ref => {
+            const div = document.createElement('div');
+            div.className = 'custom-marker marker';
+            const data = ref.payload;
+            if (data.get('profilepic').startsWith('h')) {
+                div.style.backgroundImage = 'url(' + data.get('profilepic') + ')';
+            } else {
+                this.storage.storage.refFromURL(data.get('profilepic')).getDownloadURL().then(url => {
+                    div.style.backgroundImage = 'url(' + url + ')';
+                });
+            }
+            leaflet.marker([0, 0], {
+                icon: leaflet.divIcon({
+                    className: '',
+                    iconAnchor: [28, 28],
+                    html: div
+                })
+            }).addTo(this.digitalmap);
+        });
 
         for (let i = 1; i <= 5; i++) {
             const seed = Math.floor(Math.random() * 10);
@@ -108,6 +131,31 @@ export class DigitalmapComponent implements OnInit, AfterViewInit {
                 );
             }
             leaflet.layerGroup(layer).addTo(this.digitalmap);
+        }
+    }
+
+    filterMarkers() {
+
+    }
+
+    async presentEventCreatorModal(s: string) {
+        const modal = await this.modalController.create({
+            component: EventcreatorPage,
+            componentProps: {
+                eventID: s
+            }
+        });
+        return await modal.present();
+    }
+
+    presentFilter() {
+        this.showFilter = !this.showFilter;
+        if (!this.showFilter) {
+            // const elements = document.getElementsByClassName('mapboxgl-marker');
+            // // tslint:disable-next-line:prefer-for-of
+            // for (let i = 0; i < elements.length; i++) {
+            //     (elements[i] as HTMLElement).style.display = 'block';
+            // }
         }
     }
 }

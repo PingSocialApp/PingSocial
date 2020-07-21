@@ -4,6 +4,7 @@ import {AngularFireAuth} from '@angular/fire/auth';
 import {QrcodePage} from './qrcode/qrcode.page';
 import {FCM} from '@ionic-native/fcm/ngx';
 import {AngularFirestore} from '@angular/fire/firestore';
+import {EventcreatorPage} from './eventcreator/eventcreator.page';
 
 @Component({
     selector: 'app-tab2',
@@ -78,4 +79,13 @@ export class Tab2Page implements OnInit, AfterViewInit {
         });
     }
 
+    async presentEventCreatorModal(data: string) {
+        const modal = await this.modalController.create({
+            component: EventcreatorPage,
+            componentProps: {
+                eventID: data
+            }
+        });
+        return await modal.present();
+    }
 }
