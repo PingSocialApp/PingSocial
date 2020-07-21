@@ -13,6 +13,10 @@
 
 <ion-content>
     <div id="choosermap"></div>
+    <div class="eventMenu">
+        <ion-button><ion-icon name="compass-outline"></ion-icon></ion-button>
+        <ion-button (click)="downloadEvent()"><ion-icon name="cloud-download-outline"></ion-icon></ion-button>
+    </div>
     <div class="eventCreateContainer">
         <div id='geocoder-container'></div>
         <ion-card>
