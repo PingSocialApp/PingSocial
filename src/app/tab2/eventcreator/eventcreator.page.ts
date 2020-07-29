@@ -6,12 +6,13 @@ import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {firestore} from 'firebase/app';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
+import {Calendar} from '@ionic-native/calendar/ngx';
 
 @Component({
     selector: 'app-eventcreator',
     templateUrl: './eventcreator.page.html',
     styleUrls: ['./eventcreator.page.scss'],
-    providers: [AngularFirestore, AngularFireAuth, AngularFireStorage]
+    providers: [AngularFirestore, AngularFireAuth, AngularFireStorage, Calendar]
 })
 export class EventcreatorPage implements OnInit {
     map: mapboxgl.Map;
@@ -32,7 +33,7 @@ export class EventcreatorPage implements OnInit {
     eventCreator: any;
     eventCreatorName: string;
 
-    constructor(private alertController: AlertController, private modalController: ModalController, private toastController: ToastController,
+    constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController, private toastController: ToastController,
                 private firestore: AngularFirestore, private auth: AngularFireAuth, private storage: AngularFireStorage) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.currentUserRef = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
@@ -118,7 +119,7 @@ export class EventcreatorPage implements OnInit {
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
-            mapboxgl: mapboxgl
+            mapboxgl
         });
         document.getElementById('geocoder-container').appendChild(this.geocoder.onAdd(this.map));
         this.geocoder.on('result', (res) => {
@@ -167,7 +168,7 @@ export class EventcreatorPage implements OnInit {
             if (this.editMode) {
                 if (this.isPublic) {
                     const userArray = [];
-                    for (let element of toggle) {
+                    for (const element of toggle) {
                         if (element.checked) {
                             userArray.push(this.firestore.collection('users').doc(element.id).ref);
                         }
@@ -210,7 +211,7 @@ export class EventcreatorPage implements OnInit {
                 }).then(newEvent => {
                     if (this.isPublic) {
                         const userArray = [];
-                        for (let element of toggle) {
+                        for (const element of toggle) {
                             if (element.checked) {
                                 userArray.push(this.firestore.collection('users').doc(element.id).ref);
                             }
@@ -243,7 +244,7 @@ export class EventcreatorPage implements OnInit {
             message: m,
             duration: 2000
         });
-        toast.present();
+        await toast.present();
     }
 
     handleInput(event) {
@@ -274,5 +275,20 @@ export class EventcreatorPage implements OnInit {
         });
 
         await alert.present();
+    }
+
+    downloadEvent() {
+        const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + this.location[0] + ',' + this.location[1] + '.json?access_token=' +
+            mapboxgl.accessToken;
+
+        // get info from api
+        fetch(reqStr).then(response => response.json())
+            .then(data => {
+                this.cal.createEventInteractively(this.eventName, data.features[0].place_name, this.eventDes,
+                    new Date((document.getElementById('startTime') as HTMLInputElement).value),
+                    new Date((document.getElementById('endTime') as HTMLInputElement).value)).then(r => {
+                        this.presentToast('Event Created!');
+                });
+            });
     }
 }
