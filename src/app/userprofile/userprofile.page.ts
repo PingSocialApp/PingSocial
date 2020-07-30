@@ -51,16 +51,18 @@ export class UserprofilePage implements OnInit {
     location: boolean;
     userLocation = '';
 
-    constructor(private actionSheet: ActionSheetController, private modalController: ModalController, private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
+    constructor(private actionSheet: ActionSheetController, private modalController: ModalController,
+                private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute,
+                private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
                 private storage: AngularFireStorage, private toastController: ToastController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.displayTF = true;
-        this.userRef = this.firestore.collection('users').doc(this.acr.snapshot.params.id);
+        this.userId = this.acr.snapshot.params.id;
+        this.userRef = this.firestore.collection('users').doc(this.userId);
         this.userRef.snapshotChanges()
             .subscribe(res => {
                 // @ts-ignore
                 const userData = res.payload.data();
-                this.userId = res.payload.id;
                 this.userName = userData.name;
                 this.userBio = userData.bio;
 
@@ -71,19 +73,20 @@ export class UserprofilePage implements OnInit {
                         this.img = url;
                     });
                 }
-
-                this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
-                    .where('userRec', '==', this.firestore.collection('users').doc(
-                        this.auth.auth.currentUser.uid).ref).where('pendingRequest', '==', false)
-                ).snapshotChanges().subscribe(linkeData => {
-                    if (linkeData.length !== 0) {
-                        this.renderUserPermissions(userData, linkeData[0].payload.doc.data());
-                        this.theirInfo = true;
-                    } else {
-                        this.theirInfo = false;
-                    }
-                });
             });
+        this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
+            .where('userRec', '==', this.firestore.collection('users').doc(
+                this.auth.auth.currentUser.uid).ref).where('pendingRequest', '==', false)
+        ).snapshotChanges().subscribe(linkeData => {
+            if (linkeData.length !== 0) {
+                this.firestore.collection('socials').doc(this.userId).valueChanges().subscribe(res => {
+                    this.renderUserPermissions(res, linkeData[0].payload.doc.get('linkPermissions'));
+                    this.theirInfo = true;
+                });
+            } else {
+                this.theirInfo = false;
+            }
+        });
         this.firestore.collection('links', ref => ref.where('userRec', '==', this.userRef.ref)
             .where('userSent', '==', this.firestore.collection('users').doc(
                 this.auth.auth.currentUser.uid).ref)
@@ -98,8 +101,10 @@ export class UserprofilePage implements OnInit {
         });
     }
 
-    ngOnInit() {
-        this.closeModal();
+    async ngOnInit() {
+        const isModalOpened = await this.modalController.getTop();
+        // tslint:disable-next-line:no-unused-expression
+        isModalOpened ? this.closeModal() : null;
     }
 
     segmentChanged(ev: any) {
@@ -111,7 +116,7 @@ export class UserprofilePage implements OnInit {
     }
 
     renderUserPermissions(userData: any, userPermissions: any) {
-        const permissions = this.getPermission(userPermissions.linkPermissions);
+        const permissions = this.getPermission(userPermissions);
 
         this.userPhone = permissions[1] ? userData.numberID.replace('(', '').replace(')', '')
             .replace('-', '').replace(' ', '') : '';

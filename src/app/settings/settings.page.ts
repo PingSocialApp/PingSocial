@@ -17,13 +17,13 @@ export class SettingsPage implements OnInit {
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
 
     currentUserRef: AngularFirestoreDocument;
+    currentUserBasic: any;
     currentUser: any;
     currentUserId: string;
     fileName: string;
     latestPhoto: string | ArrayBuffer;
     myInterests: Array<string>;
     myValues: Array<string>;
-    tolerance: number;
 
     constructor(private modalCtrl: ModalController, private auth: AngularFireAuth, private r: Router, private firestore: AngularFirestore
         , private toastController: ToastController, private storage: AngularFireStorage) {
@@ -36,35 +36,40 @@ export class SettingsPage implements OnInit {
     ngOnInit() {
         this.currentUserRef.get()
             .subscribe(res => {
-                this.currentUser = res.data();
-                if (this.currentUser.profilepic.startsWith('h')) {
-                    document.getElementById('imagePreview').style.backgroundImage = 'url(' + this.currentUser.profilepic + ')';
+                this.currentUserBasic = res.data();
+                if (this.currentUserBasic.profilepic.startsWith('h')) {
+                    document.getElementById('imagePreview').style.backgroundImage = 'url(' + this.currentUserBasic.profilepic + ')';
                 } else {
-                    this.storage.storage.refFromURL(this.currentUser.profilepic).getDownloadURL().then(url => {
+                    this.storage.storage.refFromURL(this.currentUserBasic.profilepic).getDownloadURL().then(url => {
                         document.getElementById('imagePreview').style.backgroundImage = 'url(' + url + ')';
                     });
                 }
             });
+        this.firestore.collection('socials').doc(this.currentUserId).get().subscribe(res => {
+            this.currentUser = res.data();
+        });
         this.firestore.collection('preferences').doc(this.currentUserId).get().subscribe(res => {
             this.myValues = res.get('valueTraits');
             this.myInterests = res.get('preferences');
-            this.tolerance = res.get('matchTolerance');
         });
     }
 
     updateSettings() {
         if ((document.getElementById('username') as HTMLInputElement).value === '' ||
-            (document.getElementById('bio') as HTMLInputElement).value === '' || 
+            (document.getElementById('bio') as HTMLInputElement).value === '' ||
             this.myInterests === undefined || this.myValues === undefined) {
             this.presentToast('Whoops! Looks like some of your settings might be empty');
+        } else if(this.myInterests.length > 5|| this.myValues.length > 5){
+            this.presentToast('Whoops! Looks like you entered more than 5 interest/values');
         } else {
             if (this.fileName != null) {
+                // TODO delete old profile pic
                 const ref = this.storage.ref(this.currentUserId + this.fileName);
                 if (typeof this.latestPhoto === 'string') {
                     ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
-                        this.firestore.collection('users').doc(
-                            this.currentUserId
-                        ).update({
+                        this.currentUserRef.update({
+                            name: (document.getElementById('username') as HTMLInputElement).value,
+                            bio: (document.getElementById('bio') as HTMLInputElement).value,
                             profilepic: 'gs://circles-4d081.appspot.com/' + (
                                 this.currentUserId
                                 + this.fileName)
@@ -75,9 +80,7 @@ export class SettingsPage implements OnInit {
                     });
                 }
             }
-            this.currentUserRef.update({
-                name: (document.getElementById('username') as HTMLInputElement).value,
-                bio: (document.getElementById('bio') as HTMLInputElement).value,
+            this.firestore.collection('socials').doc(this.currentUserId).update({
                 facebookID: (document.getElementById('fb') as HTMLInputElement).value,
                 instagramID: (document.getElementById('ig') as HTMLInputElement).value,
                 twitterID: (document.getElementById('tw') as HTMLInputElement).value,
@@ -88,14 +91,13 @@ export class SettingsPage implements OnInit {
                 tiktokID: (document.getElementById('tt') as HTMLInputElement).value,
                 venmoID: (document.getElementById('ve') as HTMLInputElement).value,
                 websiteID: (document.getElementById('ws') as HTMLInputElement).value,
-            }).then(() => {
-                this.presentToast('Settings Updated!');
             });
             this.firestore.collection('preferences').doc(this.currentUserId).update({
                 preferences: this.myInterests,
                 valueTraits: this.myValues,
-                matchTolerance: this.tolerance
-            });
+            }).then(val => {
+                this.presentToast('Settings Updated!');
+            })
         }
 
     }

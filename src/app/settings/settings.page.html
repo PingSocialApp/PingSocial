@@ -36,11 +36,11 @@
             <ion-card-content>
                 <ion-item>
                     <ion-label position="stacked">Name</ion-label>
-                    <ion-input id="username" value='{{currentUser.name}}'></ion-input>
+                    <ion-input id="username" value='{{currentUserBasic.name}}'></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Bio</ion-label>
-                    <ion-input id="bio" value="{{currentUser.bio}}"></ion-input>
+                    <ion-input id="bio" value="{{currentUserBasic.bio}}"></ion-input>
                 </ion-item>
             </ion-card-content>
         </ion-card>
@@ -199,17 +199,6 @@
                     </ion-select>
                 </ion-item>
             </ion-list>
-        </ion-card-content>
-    </ion-card>
-    <ion-card>
-        <ion-card-header>
-            <ion-card-title>Match Tolerance</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-            <ion-range min="10" max="90" step="2" [(ngModel)]="tolerance">
-                <ion-icon size="small" slot="start" name="person-circle-outline" color="gray"></ion-icon>
-                <ion-icon slot="end" name="person-circle-outline" color="gray"></ion-icon>
-            </ion-range>
         </ion-card-content>
     </ion-card>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
