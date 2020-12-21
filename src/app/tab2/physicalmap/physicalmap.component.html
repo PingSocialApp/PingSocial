@@ -1,0 +1,79 @@
+<div class="overlaycontainer">
+    <ion-fab vertical="top" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="presentFilter()" class="filterButton">
+            <ion-icon name="funnel"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+    <ion-card *ngIf="showFilter" id="filterList">
+        <ion-card-content>
+            <ion-list>
+                <ion-item>
+                    <ion-searchbar id="searchbar" (ionInput)="filterMarkers()"></ion-searchbar>
+                </ion-item>
+                <ion-item>
+                    <ion-label>Link Created</ion-label>
+                    <ion-toggle [(ngModel)]="queryLink" (ionChange)="filterMarkers()"></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-label>Public or Private?</ion-label>
+                    <ion-select value="All" [(ngModel)]="queryStatus" (ionChange)="filterMarkers()">
+                        <ion-select-option value="All">
+                            All
+                        </ion-select-option>
+                        <ion-select-option value="Public">
+                            Public
+                        </ion-select-option>
+                        <ion-select-option value="Private">
+                            Private
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+                <ion-item>
+                    <ion-label>Type</ion-label>
+                    <ion-select value="All" [(ngModel)]="queryType" (ionChange)="filterMarkers()">
+                        <ion-select-option value="All">
+                            All
+                        </ion-select-option>
+                        <ion-select-option value="hangout">
+                            Hangout
+                        </ion-select-option>
+                        <ion-select-option value="party">
+                            Party
+                        </ion-select-option>
+                        <ion-select-option value="professional">
+                            Professional
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+                <ion-item>
+                    <ion-label>Today's Events</ion-label>
+                    <ion-toggle [(ngModel)]="queryDate" (ionChange)="filterMarkers()"></ion-toggle>
+                </ion-item>
+                <ion-button expand="full" (click)="presentFilter()">
+                    <ion-icon name="arrow-up-outline"></ion-icon>
+                </ion-button>
+            </ion-list>
+        </ion-card-content>
+    </ion-card>
+
+    <ion-card style="z-index: 3" *ngIf="showEventDetails">
+        <ion-card-content>
+            <ion-card-title>{{currentEventTitle}}</ion-card-title>
+            <ion-card-subtitle>{{currentEventDes}}</ion-card-subtitle>
+            <ion-button expand="block" (click)="presentEventCreatorModal(currentEventId)">
+                <ion-icon name="expand-outline"></ion-icon>
+            </ion-button>
+        </ion-card-content>
+    </ion-card>
+    <ion-card style="z-index: 3" *ngIf="showUserDetails">
+        <ion-card-content>
+            <ion-card-title>{{otherUserName}}</ion-card-title>
+            <ion-card-subtitle>{{otherUserStatus + ' in ' + otherUserLocation}}</ion-card-subtitle>
+            <ion-button expand="block" *ngIf='otherUserId !== "currentLocation"'
+                        [routerLink]="['/userprofile/', otherUserId]">
+                <ion-icon name="expand-outline"></ion-icon>
+            </ion-button>
+        </ion-card-content>
+    </ion-card>
+</div>
+<div id="map"></div>
