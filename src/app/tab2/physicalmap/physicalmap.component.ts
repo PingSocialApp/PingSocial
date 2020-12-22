@@ -126,13 +126,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
                     }
                     otherRef.on('value', snapshot => {
                         if (snapshot.val()) {
+                            const vals = snapshot.val();
                             // get other users longitude, latitude, and lastOnline vals
-                            const longi = snapshot.val().longitude;
-                            const latid = snapshot.val().latitude;
-                            const locat = snapshot.val().place;
+                            const longi = vals.longitude;
+                            const latid = vals.latitude;
+                            const locat = vals.place;
 
-                            const lastOn = snapshot.val().lastOnline;
-                            const oStat = snapshot.val().isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
+                            const lastOn = vals.lastOnline;
+                            const oStat = vals.isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
 
                             el.id = oUserDoc.id;
                             oMark = new mapboxgl.Marker(el);
@@ -238,14 +239,17 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         const nowString = this.newISO(oneWeek);
         oneWeek.setDate(oneWeek.getDate() + 7);
         const oneWeekString = this.newISO(oneWeek);
+
         const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)
-            .where('startTime', '<=', oneWeekString).where('startTime', '>', nowString));
+            .where('startTime', '<=', oneWeekString).where('endTime','>=',nowString));
         const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
-            .where('startTime', '<=', oneWeekString).where('startTime', '>', nowString));
+            .where('startTime', '<=', oneWeekString).where('endTime','>=',nowString));
         const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-            .where('startTime', '<=', oneWeekString).where('startTime', '>', nowString));
+            .where('startTime', '<=', oneWeekString).where('endTime','>=',nowString));
+
 
         const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
+
 
         events.subscribe(eventData => {
             eventData.map((event) => {
@@ -260,14 +264,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
-        el.setAttribute('data-start', eventInfo.startTime);
         this.firestore.collection('links', ref => ref.where('userSent', '==', eventInfo.creator)
             .where('userRec', '==', this.currentUserRef.ref)).get().subscribe(val => {
-            if (val.empty) {
-                el.setAttribute('data-link', 'false');
-            } else {
-                el.setAttribute('data-link', 'true');
-            }
+                el.setAttribute('data-link', val.empty ? 'false' : 'true');
         });
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
@@ -295,7 +294,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         });
         const marker = new mapboxgl.Marker(el);
         try {
-            marker.setLngLat([eventInfo.location[0], eventInfo.location[1]]).addTo(this.map);
+            marker.setLngLat([eventInfo.position.geopoint.longitude, eventInfo.position.geopoint.latitude]).addTo(this.map);
         } catch (e) {
             console.log(e.message);
         }
@@ -341,10 +340,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             // resp.coords.latitude
             // resp.coords.longitude
         }).then(() => {
-            this.renderCurrent();
-            this.renderLinks();
-            this.presentCurrentLocation();
-            this.presentEvents();
+            this.map.on('load', () => {
+                this.renderCurrent();
+                // this.renderLinks();
+                this.presentCurrentLocation();
+                this.presentEvents();
+            });
         }).catch((error) => {
             console.log('Error getting location', error);
         });
