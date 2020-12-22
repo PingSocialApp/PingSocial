@@ -13,8 +13,11 @@ import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
         IonicModule,
         QrcodePageRoutingModule
     ],
-    // declarations: [QrcodePage],
+    declarations: [QrcodePage],
     providers: [BarcodeScanner],
+    exports: [
+        QrcodePage
+    ]
 })
 export class QrcodePageModule {
 }

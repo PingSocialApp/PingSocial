@@ -7,7 +7,6 @@ import * as mapboxgl from 'mapbox-gl';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {QrcodePage} from './qrcode/qrcode.page';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {FCM} from '@ionic-native/fcm/ngx';
@@ -423,7 +422,7 @@ export class Tab2Page implements OnInit, AfterViewInit {
                 continue;
             }
 
-            if(this.queryLink){
+            if (this.queryLink) {
                 (elements[i] as HTMLElement).style.display = elements[i].getAttribute('data-link') === 'false' ? 'none' : null;
                 continue;
             }
@@ -445,13 +444,5 @@ export class Tab2Page implements OnInit, AfterViewInit {
             });
         }
     }
-
-    async presentQRModal() {
-        const modal = await this.modalController.create({
-            component: QrcodePage
-        });
-        return await modal.present();
-    }
-
 
 }

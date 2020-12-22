@@ -3,7 +3,7 @@ import {RequestsProgramService} from '../../requests-program.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
+import {AlertController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
 import {SocialSharing} from '@ionic-native/social-sharing/ngx'
 
@@ -19,7 +19,6 @@ export class QrcodePage implements OnInit {
 
     userId: string;
     canvasElement: any;
-    videoElement: any;
     canvasContext: any;
     scanResult = null;
     phone = true;
@@ -37,7 +36,9 @@ export class QrcodePage implements OnInit {
     displayScan: boolean;
     location = true;
 
-    constructor(private socialSharing: SocialSharing, private modalController: ModalController, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner, private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController, public rs: RequestsProgramService) {
+    constructor(private socialSharing: SocialSharing, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner,
+                private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController,
+                public rs: RequestsProgramService) {
         this.userId = this.auth.auth.currentUser.uid;
         this.updateVals();
     }
@@ -153,12 +154,6 @@ export class QrcodePage implements OnInit {
         // tslint:disable-next-line:no-bitwise max-line-length
         const code = locationVal | phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal;
         this.qrData = code + '/' + this.userId;
-    }
-
-    closeModal() {
-        this.modalController.dismiss({
-            dismissed: true
-        });
     }
 
     shareQR() {

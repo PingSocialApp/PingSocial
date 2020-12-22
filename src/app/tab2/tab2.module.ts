@@ -14,8 +14,10 @@ import {QrcodePage} from './qrcode/qrcode.page';
         FormsModule,
         RouterModule.forChild([{path: '', component: Tab2Page}]),
     ],
-    declarations: [Tab2Page, EventcreatorPage, QrcodePage],
-    entryComponents: [EventcreatorPage, QrcodePage],
+    declarations: [Tab2Page, EventcreatorPage],
+    entryComponents: [EventcreatorPage],
+    exports: [
+    ]
 })
 export class Tab2PageModule {
 }
