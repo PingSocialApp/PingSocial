@@ -63,7 +63,7 @@ export class EventcreatorPage implements OnInit {
                 this.eventDes = data.description;
                 this.isPublic = data.isPrivate;
                 this.eventType = data.type;
-                this.location = data.location;
+                this.location = [data.position.geopoint.longitude,data.position.geopoint.latitude];
                 this.map.flyTo({
                     center: this.location,
                     essential: true
@@ -78,6 +78,7 @@ export class EventcreatorPage implements OnInit {
             }, () => {
                 // tslint:disable-next-line:max-line-length
                 this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
+                    console.log(res.docs);
                     this.links = [];
                     this.renderLink(res.docs);
                 });
@@ -89,6 +90,7 @@ export class EventcreatorPage implements OnInit {
             });
             this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
                 this.links = [];
+                console.log(res.docs);
                 this.renderLink(res.docs);
             });
         }

@@ -237,15 +237,15 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     presentEvents() {
         const oneWeek = new Date();
         const nowString = this.newISO(oneWeek);
-        oneWeek.setDate(oneWeek.getDate() + 7);
-        const oneWeekString = this.newISO(oneWeek);
+        // oneWeek.setDate(oneWeek.getDate() + 7);
+        // const oneWeekString = this.newISO(oneWeek);
 
         const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)
-            .where('startTime', '<=', oneWeekString).where('endTime','>=',nowString));
+            .where('endTime','>=',nowString));
         const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
-            .where('startTime', '<=', oneWeekString).where('endTime','>=',nowString));
+            .where('endTime','>=',nowString));
         const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-            .where('startTime', '<=', oneWeekString).where('endTime','>=',nowString));
+            .where('endTime','>=',nowString));
 
 
         const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
