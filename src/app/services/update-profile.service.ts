@@ -47,6 +47,7 @@ export class UpdateProfileService {
             await this.updateProfilePic();
             await this.updateSocials();
 
+            // TODO Update Profile Type
             await this.currentUserRef.update({
                 name: (document.getElementById('username') as HTMLInputElement).value,
                 bio: (document.getElementById('bio') as HTMLInputElement).value

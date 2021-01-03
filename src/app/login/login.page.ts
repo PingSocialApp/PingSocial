@@ -31,7 +31,7 @@ export class LoginPage implements OnInit {
         if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
             this.auth.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
                 this.auth.auth.signInWithEmailAndPassword(this.newEmail, this.newPass).then((val) => {
-                    this.router.navigate(['/tabs']);
+                    this.router.navigate(['/registration']);
                 }).catch(async (error) => {
                     const toast = await this.toastController.create({
                         message: error.message,
