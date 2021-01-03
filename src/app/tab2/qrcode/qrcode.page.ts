@@ -1,5 +1,5 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {RequestsProgramService} from '../../requests-program.service';
+import {RequestsProgramService} from '../../services/requests-program.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {AngularFirestore} from '@angular/fire/firestore';
