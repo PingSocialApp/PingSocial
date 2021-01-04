@@ -8,7 +8,7 @@ import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
-import {EventcreatorPage} from '../eventcreator/eventcreator.page';
+import {MarkercreatorPage} from '../markercreator/markercreator.page';
 
 @Component({
     selector: 'app-physicalmap',
@@ -417,7 +417,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
 
     async presentEventCreatorModal(data: string) {
         const modal = await this.modalController.create({
-            component: EventcreatorPage,
+            component: MarkercreatorPage,
             componentProps: {
                 eventID: data
             }

@@ -4,9 +4,11 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Tab2Page} from './tab2.page';
-import {EventcreatorPage} from './eventcreator/eventcreator.page';
+import {MarkercreatorPage} from './markercreator/markercreator.page';
 import {QrcodePage} from './qrcode/qrcode.page';
 import {PhysicalmapComponent} from './physicalmap/physicalmap.component';
+import {GeoPingComponent} from './markercreator/geo-ping/geo-ping.component';
+import {EventcreatorComponent} from './markercreator/eventcreator/eventcreator.component';
 
 @NgModule({
     imports: [
@@ -15,8 +17,8 @@ import {PhysicalmapComponent} from './physicalmap/physicalmap.component';
         FormsModule,
         RouterModule.forChild([{path: '', component: Tab2Page}]),
     ],
-    declarations: [Tab2Page, EventcreatorPage, QrcodePage, PhysicalmapComponent],
-    entryComponents: [EventcreatorPage, QrcodePage],
+    declarations: [Tab2Page, MarkercreatorPage, QrcodePage, PhysicalmapComponent, GeoPingComponent, EventcreatorComponent],
+    entryComponents: [MarkercreatorPage, QrcodePage],
 })
 export class Tab2PageModule {
 }

@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {AngularFireAuth} from '@angular/fire/auth';
-import {EventcreatorPage} from '../tab2/eventcreator/eventcreator.page';
+import {MarkercreatorPage} from '../tab2/markercreator/markercreator.page';
 import {ModalController} from '@ionic/angular';
 import {ActivatedRoute} from '@angular/router';
 
@@ -54,7 +54,7 @@ export class EventmanagerPage implements OnInit {
 
     async presentEventCreatorModal(data: string) {
         const modal = await this.modalController.create({
-            component: EventcreatorPage,
+            component: MarkercreatorPage,
             componentProps: {
                 eventID: data
             }
@@ -72,7 +72,7 @@ export class EventmanagerPage implements OnInit {
 
     async addEvent() {
         const modal = await this.modalController.create({
-            component: EventcreatorPage,
+            component: MarkercreatorPage,
             componentProps: {
                 eventID: ''
             }

@@ -1,19 +1,19 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {IonicModule} from '@ionic/angular';
 
-import {EventcreatorPage} from './eventcreator.page';
+import {MarkercreatorPage} from './markercreator.page';
 
-describe('EventcreatorPage', () => {
-    let component: EventcreatorPage;
-    let fixture: ComponentFixture<EventcreatorPage>;
+describe('MarkercreatorPage', () => {
+    let component: MarkercreatorPage;
+    let fixture: ComponentFixture<MarkercreatorPage>;
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [EventcreatorPage],
+            declarations: [MarkercreatorPage],
             imports: [IonicModule.forRoot()]
         }).compileComponents();
 
-        fixture = TestBed.createComponent(EventcreatorPage);
+        fixture = TestBed.createComponent(MarkercreatorPage);
         component = fixture.componentInstance;
         fixture.detectChanges();
     }));
