@@ -1,3 +1,59 @@
-<p>
-  geo-ping works!
-</p>
+<ion-card>
+    <ion-card-content>
+        <ion-textarea debounce="20" rows="6" (ionChange)="textAmt = $event.detail.value.length" inputmode="text"
+                      maxlength="250" auto-grow="false" [(ngModel)]="message">
+        </ion-textarea>
+        <p>{{250 - textAmt}}</p>
+    </ion-card-content>
+</ion-card>
+<div style="text-align: center">
+    <ion-chip (click)="togglePublic()">
+            <ion-icon *ngIf="!isPublic" name="lock-closed"></ion-icon>
+            <ion-label *ngIf="!isPublic">Private</ion-label>
+            <ion-icon *ngIf="isPublic" name="lock-open"></ion-icon>
+            <ion-label *ngIf="isPublic">Public</ion-label>
+    </ion-chip>
+    <ion-chip (click)="showLocation()">
+        <ion-icon name="navigate"></ion-icon>
+        <ion-label>Location</ion-label>
+    </ion-chip>
+    <ion-chip>
+        <ion-icon name="time"></ion-icon>
+        <ion-select [interfaceOptions]="customAlertOptions" interface="alert" value="5 Min" (ionChange)="setValue($event)">
+            <ion-select-option value="5 Min">5 Min</ion-select-option>
+            <ion-select-option value="1 Hour">1 Hour</ion-select-option>
+            <ion-select-option value="1 Day">1 Day</ion-select-option>
+        </ion-select>
+    </ion-chip>
+</div>
+<div id="mapContainer">
+    <div id="pingmap"></div>
+    <div id='geocoder-container-geoping'></div>
+</div>
+<ion-item *ngIf="showPublic">
+    <ion-label>Public Ping?</ion-label>
+    <ion-toggle [(ngModel)]="isPublic"></ion-toggle>
+</ion-item>
+<ion-card *ngIf="!isPublic && showPublic">
+    <ion-card-content>
+        <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
+        <ion-list id="memberList">
+            <ion-item *ngFor="let link of links">
+                <ion-avatar slot="start">
+                    <img src="{{link.img}}">
+                </ion-avatar>
+                <ion-label>
+                    <h2>{{link.name}}</h2>
+                    <p>{{link.bio}}</p>
+                </ion-label>
+                <ion-checkbox [checked]="link.checked" id="{{link.id}}"></ion-checkbox>
+            </ion-item>
+        </ion-list>
+    </ion-card-content>
+</ion-card>
+
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="sendPing()">
+    <ion-fab-button>
+        <ion-icon name="checkmark-outline"></ion-icon>
+    </ion-fab-button>
+</ion-fab>

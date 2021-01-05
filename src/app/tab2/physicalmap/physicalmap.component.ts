@@ -9,6 +9,7 @@ import {AngularFirestore} from '@angular/fire/firestore';
 import {merge} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {MarkercreatorPage} from '../markercreator/markercreator.page';
+import {firestore} from 'firebase/app';
 
 @Component({
     selector: 'app-physicalmap',
@@ -16,7 +17,7 @@ import {MarkercreatorPage} from '../markercreator/markercreator.page';
     styleUrls: ['./physicalmap.component.scss'],
 })
 export class PhysicalmapComponent implements OnInit, AfterViewInit {
-
+    showPing: boolean;
     currentUserId: string;
     currentUserRef: any;
     map: mapboxgl.Map;
@@ -37,11 +38,17 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     otherUserStatus = '';
     otherUserId: string;
 
-    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private auth: AngularFireAuth,
+    // puts marker on the map with user info
+    pingMessage: string;
+    pingImg: any;
+    pingAuthor: string;
+    pingDate: string;
+
+    constructor(private rtdb: AngularFireDatabase, private afs: AngularFirestore, private auth: AngularFireAuth,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController,) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.currentUserId = this.auth.auth.currentUser.uid;
-        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
+        this.currentUserRef = this.afs.collection('users').doc(this.currentUserId);
         this.showFilter = false;
         this.showEventDetails = false;
         this.showUserDetails = false;
@@ -49,23 +56,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
 
     ngOnInit() {
 
-    }
-
-    private newISO(date: Date) {
-        const tzo = -date.getTimezoneOffset(),
-            dif = tzo >= 0 ? '+' : '-',
-            pad = (num) => {
-                const norm = Math.floor(Math.abs(num));
-                return (norm < 10 ? '0' : '') + norm;
-            };
-        return date.getFullYear() +
-            '-' + pad(date.getMonth() + 1) +
-            '-' + pad(date.getDate()) +
-            'T' + pad(date.getHours()) +
-            ':' + pad(date.getMinutes()) +
-            ':' + pad(date.getSeconds()) +
-            dif + pad(tzo / 60) +
-            ':' + pad(tzo % 60);
     }
 
     renderCurrent() {
@@ -96,7 +86,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     }
 
     renderLinks() {
-        this.firestore.collection('links',
+        this.afs.collection('links',
             ref => ref.where('userRec', '==', this.currentUserRef.ref)
                 .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
@@ -108,15 +98,15 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
                 otherId = doc.payload.doc.get('userSent').id;
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
-                this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
+                this.afs.doc('/users/' + otherId).get().subscribe(oUserDoc => {
                     // get other user name and profile pic
                     oName = oUserDoc.get('name');
                     const oUrl = oUserDoc.get('profilepic');
 
                     // create marker and style it
                     const el = this.createMarker();
-                    el.style.width = '50px';
-                    el.style.height = '50px';
+                    el.style.width = '30px';
+                    el.style.height = '30px';
                     if (oUrl.startsWith('h')) {
                         el.style.backgroundImage = 'url(' + oUrl + ')';
                     } else {
@@ -153,8 +143,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             });
         });
     }
-
-    // puts marker on the map with user info
     renderUser(marker, lng, lat) {
         try {
             marker.setLngLat([lng, lat])
@@ -235,16 +223,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     }
 
     presentEvents() {
-        const oneWeek = new Date();
-        const nowString = this.newISO(oneWeek);
-        // oneWeek.setDate(oneWeek.getDate() + 7);
-        // const oneWeekString = this.newISO(oneWeek);
+        const nowString = firestore.Timestamp.now();
 
-        const query1 = this.firestore.collection('events', ref => ref.where('isPrivate', '==', false)
+        const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
             .where('endTime','>=',nowString));
-        const query2 = this.firestore.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
+        const query2 = this.afs.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
             .where('endTime','>=',nowString));
-        const query3 = this.firestore.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
+        const query3 = this.afs.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
             .where('endTime','>=',nowString));
 
 
@@ -258,13 +243,75 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         });
     }
 
+    presentGeoPing(){
+        const nowString = firestore.Timestamp.now();
+
+        const query1 = this.afs.collection('geoping', ref => ref.where('isPrivate', '==', false)
+            .where('timeExpire','>=',nowString));
+        const query2 = this.afs.collection('geoping', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+            .where('timeExpire','>=',nowString));
+        const query3 = this.afs.collection('geoping', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
+            .where('timeExpire','>=',nowString));
+
+
+        const pings = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
+
+
+        pings.subscribe(eventData => {
+            eventData.map((event) => {
+                this.renderPings(event.payload.doc);
+            });
+        });
+    }
+
+
+    renderPings(doc){
+        const pingInfo = doc.data();
+        const el = this.createMarker();
+
+        el.id = doc.id;
+        if (!!document.querySelector('#' + el.id)) {
+            document.querySelector('#' + el.id).remove();
+        }
+
+        pingInfo.userSent.get().then(val => {
+            el.addEventListener('click', (e) => {
+                this.showEventDetails = false;
+                this.showUserDetails = false;
+                this.showPing = true;
+                this.pingMessage = pingInfo.message;
+                this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
+
+                if (val.get('profilepic').startsWith('h')) {
+                    this.pingImg = val.get('profilepic');
+                } else {
+                    this.storage.storage.refFromURL(val.get('profilepic')).getDownloadURL().then(url => {
+                        this.pingImg = url;
+                    });
+                }
+
+                this.pingAuthor = val.get('name');
+            });
+        });
+
+        el.style.backgroundImage = 'url(\'../assets/chatbubble.svg\')';
+        el.className += ' ping-marker';
+
+        const marker = new mapboxgl.Marker(el);
+        try {
+            marker.setLngLat([pingInfo.position.geopoint.longitude, pingInfo.position.geopoint.latitude]).addTo(this.map);
+        } catch (e) {
+            console.log(e.message);
+        }
+    }
+
     renderEvent(doc) {
         const eventInfo = doc.data();
         const el = this.createMarker();
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
-        this.firestore.collection('links', ref => ref.where('userSent', '==', eventInfo.creator)
+        this.afs.collection('links', ref => ref.where('userSent', '==', eventInfo.creator)
             .where('userRec', '==', this.currentUserRef.ref)).get().subscribe(val => {
                 el.setAttribute('data-link', val.empty ? 'false' : 'true');
         });
@@ -288,6 +335,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         el.addEventListener('click', (e) => {
             this.showEventDetails = true;
             this.showUserDetails = false;
+            this.showPing = false;
             this.currentEventTitle = eventInfo.name;
             this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
             this.currentEventId = el.id;
@@ -308,8 +356,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
 
     presentCurrentLocation() {
         const el = this.createMarker();
-        el.style.width = '50px';
-        el.style.height = '50px';
+        el.style.width = '30px';
+        el.style.height = '30px';
         this.currentUserRef.snapshotChanges().subscribe(ref => {
             if (ref !== null) {
                 const data = ref.payload;
@@ -323,6 +371,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
                 el.addEventListener('click', (e) => {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
+                    this.showPing = false;
                     this.otherUserName = data.get('name');
                     this.otherUserStatus = 'Online';
                     this.otherUserId = 'currentLocation';
@@ -345,6 +394,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
                 // this.renderLinks();
                 this.presentCurrentLocation();
                 this.presentEvents();
+                this.presentGeoPing();
             });
         }).catch((error) => {
             console.log('Error getting location', error);
@@ -361,6 +411,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         this.map.on('dragstart', () => {
             this.showEventDetails = false;
             this.showUserDetails = false;
+            this.showPing = false;
         });
     }
 
