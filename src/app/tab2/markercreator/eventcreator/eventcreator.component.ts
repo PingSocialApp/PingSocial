@@ -53,9 +53,9 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
         if (this.editMode) {
             this.afs.collection('events').doc(this.eventID).get().subscribe((ref) => {
                 const data = ref.data();
-                (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
+                (document.getElementById('startTime') as HTMLInputElement).value = data.startTime.toDate().toISOString();
                 // TODO Add one hour
-                (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
+                (document.getElementById('endTime') as HTMLInputElement).value = data.endTime.toDate().toISOString();
                 this.eventName = data.name;
                 this.eventCreator = data.creator.id;
                 data.creator.get().then((userRef) => {
@@ -77,7 +77,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
             }, () => {
 
             }, () => {
-                this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref))
+                this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+                    .where('pendingRequest', '==', false))
                     .get().subscribe(res => {
                     this.links = [];
                     this.renderLink(res.docs);
@@ -88,7 +89,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
             this.currentUserRef.ref.get().then((userRef) => {
                 this.eventCreatorName = userRef.get('name');
             });
-            this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
+            this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+                .where('pendingRequest', '==', false)).get().subscribe(res => {
                 this.links = [];
                 this.renderLink(res.docs);
             });
@@ -189,8 +191,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                 this.afs.collection('events').doc(this.eventID).update({
                     name: this.eventName,
                     creator: this.currentUserRef.ref,
-                    startTime: (document.getElementById('startTime') as HTMLInputElement).value,
-                    endTime: (document.getElementById('endTime') as HTMLInputElement).value,
+                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
+                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
                     description: this.eventDes,
                     position,
                     type: this.eventType,
@@ -205,8 +207,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                     name: this.eventName,
                     position,
                     creator: this.currentUserRef.ref,
-                    startTime: (document.getElementById('startTime') as HTMLInputElement).value,
-                    endTime: (document.getElementById('endTime') as HTMLInputElement).value,
+                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
+                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
                     description: this.eventDes,
                     type: this.eventType,
                     isPrivate: this.isPublic
@@ -223,11 +225,12 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                         } else {
                             newEvent.update({
                                 members: userArray
-                            });
+                            }).then(() => {
+                                this.presentToast('Event Created!');
+                                this.closeModal();
+                            })
                         }
                     }
-                    this.presentToast('Event Created!');
-                    this.closeModal();
                 });
             }
         }
