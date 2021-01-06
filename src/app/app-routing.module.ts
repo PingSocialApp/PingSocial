@@ -18,6 +18,11 @@ const routes: Routes = [
         loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule)
     },
     {
+        path: 'registration',
+        canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
+        loadChildren: () => import('./login/registration/registration.module').then( m => m.RegistrationPageModule)
+    },
+    {
         path: 'settings',
         canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
         loadChildren: () => import('./settings/settings.module').then(m => m.SettingsPageModule)

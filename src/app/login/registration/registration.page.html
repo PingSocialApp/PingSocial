@@ -1,0 +1,136 @@
+<ion-header>
+</ion-header>
+
+<ion-content>
+    <ion-progress-bar [value]="currentProgress"></ion-progress-bar>
+    <ion-slides [options]="slideOpts" #mySlider (ionSlideDidChange)="slideChanged()">
+        <ion-slide>
+            <ion-img class="logoimg" src="assets/dolphinpinglogo.png"></ion-img>
+            <h1 class="prompt">Ping</h1>
+        </ion-slide>
+        <ion-slide>
+            <h1 class="font-style">Let's Start Simple...</h1>
+            <div class="avatar-upload">
+                <div class="avatar-edit">
+                    <input type="button" (click)="captureImage()">
+                    <input type='file' id="imageUpload" accept="image/*;capture=camera" hidden
+                           (change)="handleFile($event.target.files)">
+                    <label for="imageUpload">
+                        <ion-icon style="font-size: 1.65em; color: gray" name="pencil"></ion-icon>
+                    </label>
+                </div>
+                <div class="avatar-preview">
+                    <div id="imagePreview">
+                    </div>
+                </div>
+            </div>
+            <ion-card>
+                <ion-card-content>
+                    <ion-item>
+                        <ion-label position="floating">Name</ion-label>
+                        <ion-input id="username" [(ngModel)]="name"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label position="floating">Bio</ion-label>
+                        <ion-input id="bio"></ion-input>
+                    </ion-item>
+                </ion-card-content>
+            </ion-card>
+        </ion-slide>
+        <ion-slide>
+            <h3 class="font-style">Nice to meet you {{name}}!</h3>
+            <h1 class="font-style">What type of profile fits you?</h1>
+            <ion-card>
+                <ion-card-content>
+                    <ion-img [src]="'assets/' + (orgType === 'Independant' ? 'undraw_stand_out_1oag.svg' : 'undraw_team_spirit_hrr4.svg')"></ion-img>
+                    <ion-segment (ionChange)="changeOrg($event)" value="Independant">
+                        <ion-segment-button value="Independant">
+                            <ion-label>Independant</ion-label>
+                        </ion-segment-button>
+                        <ion-segment-button value="Organization">
+                            <ion-label>Organization</ion-label>
+                        </ion-segment-button>
+                    </ion-segment>
+                    <ion-card-header>
+                        <ion-card-title>{{orgType}}</ion-card-title>
+                    </ion-card-header>
+                    <p *ngIf="orgType == 'Independant'">Enjoy the world at it's fullest through events and social sharing</p>
+                    <p *ngIf="orgType == 'Organization'">Do everything a Independant can and also show off your public rating to the world!</p>
+                </ion-card-content>
+            </ion-card>
+        </ion-slide>
+        <ion-slide>
+            <h1 class="font-style">Fill out some of your socials</h1>
+            <p class="font-style">Optional</p>
+            <ion-segment (ionChange)="changeInfo($event)" value="per">
+                <ion-segment-button value="per">
+                    <ion-label>Personal</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="pro">
+                    <ion-label>Professional</ion-label>
+                </ion-segment-button>
+            </ion-segment>
+            <ion-card>
+                <ion-card-content>
+                    <ion-list *ngIf="info == 'per'">
+                        <ion-item>
+                            <ion-label position="stacked">Facebook</ion-label>
+                            <ion-input id="fb"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Instagram</ion-label>
+                            <ion-input id="ig"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Twitter</ion-label>
+                            <ion-input id="tw"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Personal Email</ion-label>
+                            <ion-input id="peem" [value]="this.auth.auth.currentUser.email"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Snapchat</ion-label>
+                            <ion-input id="sc"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">TikTok</ion-label>
+                            <ion-input id="tt"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Venmo</ion-label>
+                            <ion-input id="ve"></ion-input>
+                        </ion-item>
+                    </ion-list>
+                    <ion-list *ngIf="info == 'pro'">
+                        <ion-item>
+                            <ion-label position="stacked">Professional Email</ion-label>
+                            <ion-input id="prem"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">LinkedIn</ion-label>
+                            <ion-input id="li"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Website</ion-label>
+                            <ion-input id="ws"></ion-input>
+                        </ion-item>
+                    </ion-list>
+                </ion-card-content>
+            </ion-card>
+        </ion-slide>
+    </ion-slides>
+    <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+        <ion-fab-button (click)="swipeBack()" *ngIf="currentProgress != 0.25">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="swipeNext()" *ngIf="currentProgress != 1">
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button (click)="createProfile()" *ngIf="currentProgress == 1">
+            <ion-icon name="checkmark-circle"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</ion-content>

@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument, DocumentReference} from '@angular/fire/firestore';
-import {RequestsProgramService} from '../requests-program.service';
+import {RequestsProgramService} from '../services/requests-program.service';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {ActionSheetController, AlertController, ModalController, ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
