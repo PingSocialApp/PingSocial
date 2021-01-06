@@ -28,9 +28,9 @@ export class NewPingPage implements OnInit {
                 private toastController: ToastController, private storage: AngularFireStorage) {
         this.currentUserRef = this.fs.collection('users').doc(this.auth.auth.currentUser.uid);
         this.links = [];
-        this.fs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).snapshotChanges().subscribe(res => {
+        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get().subscribe(res => {
             this.links = [];
-            this.renderLink(res);
+            this.renderLink(res.docs);
         });
     }
 
@@ -61,7 +61,7 @@ export class NewPingPage implements OnInit {
 
     async renderLink(linkData: Array<any>) {
         await Promise.all(linkData.map(link => {
-            link.payload.doc.get('userRec').get().then(USdata => {
+            link.get('otherUser').get().then(USdata => {
                 const linkObject: Link = {
                     id: USdata.id,
                     img: '',

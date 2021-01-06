@@ -11,9 +11,9 @@ export class RequestsProgramService {
     currentUserRef: AngularFirestoreDocument;
     currentUserId: string;
 
-    constructor(private firestore: AngularFirestore, private toastController: ToastController, private auth: AngularFireAuth) {
+    constructor(private afs: AngularFirestore, private toastController: ToastController, private auth: AngularFireAuth) {
         this.currentUserId = this.auth.auth.currentUser.uid;
-        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
+        this.currentUserRef = this.afs.collection('users').doc(this.currentUserId);
     }
 
     sendRequest(userId: string, optionsData: number) {
@@ -21,41 +21,47 @@ export class RequestsProgramService {
             this.presentToast('Whoops, this is your code!');
             return;
         }
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-            .where('userRec', '==', this.firestore.collection('users').doc(userId).ref).where('pendingRequest', '==', true))
-            .get().subscribe(data => {
+
+        const otherUserRef = this.afs.collection('users').doc(userId);
+
+        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', true)
+            .where('otherUser', '==', otherUserRef.ref)).get().subscribe(data => {
             if (!data.empty) {
-                this.presentToast('Your Request is Pending');
-            } else {
-                this.firestore.collection('links').add({
-                    pendingRequest: true,
-                    userSent: this.currentUserRef.ref,
-                    userRec: this.firestore.collection('users').doc(userId).ref,
-                    linkPermissions: 0
-                }).then((data) => {
-                    this.presentToast('Sent Request!');
+                console.log(data.docs);
+                data.docs[0].ref.update({
+                    pendingRequest: false
                 });
-            }
-        });
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
-            .where('userSent', '==', this.firestore.collection('users').doc(userId).ref).where('pendingRequest', '==', true))
-            .get().subscribe(newData => {
-            if (!newData.empty) {
-                this.presentToast('Your Request is Pending');
             } else {
-                this.firestore.collection('links').add({
+                this.currentUserRef.collection('links').add({
                     pendingRequest: false,
-                    userRec: this.currentUserRef.ref,
-                    userSent: this.firestore.collection('users').doc(userId).ref,
-                    linkPermissions: optionsData
-                }).then((data) => {
+                    otherUser: otherUserRef.ref,
+                    linkPermissions: 0
+                }).then((d) => {
                     this.presentToast('Sent Request!');
                 });
             }
         });
-        this.firestore.collection('pings').add({
+
+        otherUserRef.collection('links', ref => ref.where('pendingRequest', '==', true)
+            .where('otherUser', '==', this.currentUserRef.ref)).get().subscribe(data => {
+            if (!data.empty) {
+                data.docs[0].ref.update({
+                    pendingRequest: false
+                });
+            } else {
+                otherUserRef.collection('links').add({
+                    pendingRequest: true,
+                    otherUser: this.currentUserRef.ref,
+                    linkPermissions: 0
+                }).then((d) => {
+                    this.presentToast('Sent Request!');
+                });
+            }
+        });
+
+        this.afs.collection('pings').add({
             userSent: this.currentUserRef.ref,
-            userRec: this.firestore.collection('users').doc(userId).ref,
+            userRec: otherUserRef.ref,
             sentMessage: '',
             responseMessage: 'New Link Created!',
             timeStamp: firestore.FieldValue.serverTimestamp()

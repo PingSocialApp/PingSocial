@@ -52,6 +52,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         this.showFilter = false;
         this.showEventDetails = false;
         this.showUserDetails = false;
+        this.showPing = false;
     }
 
     ngOnInit() {
@@ -86,8 +87,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     }
 
     renderLinks() {
-        this.afs.collection('links',
-            ref => ref.where('userRec', '==', this.currentUserRef.ref)
+        this.firestore.collectionGroup('links',
+            ref => ref.where('otherUser', '==', this.currentUserRef.ref)
                 .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
@@ -95,7 +96,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             res.forEach(doc => {
                 let otherId, otherRef, oName, oMark;
                 // @ts-ignore
-                otherId = doc.payload.doc.get('userSent').id;
+                otherId = doc.payload.doc.ref.parent.parent.id;
+                // console.log(otherId);
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
                 this.afs.doc('/users/' + otherId).get().subscribe(oUserDoc => {
@@ -311,8 +313,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
-        this.afs.collection('links', ref => ref.where('userSent', '==', eventInfo.creator)
-            .where('userRec', '==', this.currentUserRef.ref)).get().subscribe(val => {
+        this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
+            .where('pendingRequest', '==', false)).get().subscribe(val => {
                 el.setAttribute('data-link', val.empty ? 'false' : 'true');
         });
         el.setAttribute('data-time', eventInfo.startTime);
@@ -390,8 +392,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             // resp.coords.longitude
         }).then(() => {
             this.map.on('load', () => {
+                this.showLoad = false;
                 this.renderCurrent();
-                // this.renderLinks();
+                this.renderLinks();
                 this.presentCurrentLocation();
                 this.presentEvents();
                 this.presentGeoPing();

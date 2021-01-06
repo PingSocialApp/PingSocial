@@ -30,24 +30,24 @@ export class Tab3Page {
     constructor(private modalController: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage,
                 private auth: AngularFireAuth) {
         this.currentUserRef = this.firestore.collection('users').doc(
-            this.auth.auth.currentUser.uid).ref;
+            this.auth.auth.currentUser.uid);
         this.links = [];
         this.getLinks();
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef)
+        this.currentUserRef.collection('links', ref => ref
             .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
             this.requestAmount = res.length;
         });
     }
 
     getLinks() {
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.currentUserRef)
-            .where('pendingRequest', '==', false)).get().subscribe(userRecData => {
-            this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef)
-                .where('pendingRequest', '==', false)).get().subscribe(userSentData => {
+        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get().subscribe(myLinks => {
+            this.firestore.collectionGroup('links', ref => ref.where('otherUser', '==', this.currentUserRef.ref)
+                .where('pendingRequest', '==', false))
+                .get().subscribe(otherLinks => {
                 this.links = [];
                 this.idArr = [];
-                this.renderRLink(userRecData.docs);
-                this.renderSLink(userSentData.docs);
+                this.renderRLink(myLinks.docs);
+                this.renderSLink(otherLinks.docs);
             });
         });
         this.links.sort((a, b) => {
@@ -55,12 +55,13 @@ export class Tab3Page {
             const textB = b.name.toUpperCase();
             return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
         });
+
         return Promise.resolve();
     }
 
     async renderRLink(linkData: Array<any>) {
         linkData.forEach(link => {
-            link.get('userSent').get().then(USdata => {
+            link.get('otherUser').get().then(USdata => {
                 if (!(this.idArr.includes(USdata.id))) {
                     this.links.push(this.renderLink(USdata));
                     this.idArr.push(USdata.id);
@@ -71,7 +72,7 @@ export class Tab3Page {
 
     async renderSLink(linkData: Array<any>) {
         linkData.map(link => {
-            link.get('userRec').get().then(USdata => {
+            link.parent.parent.get().then(USdata => {
                 if (!(this.idArr.includes(USdata.id))) {
                     this.links.push(this.renderLink(USdata));
                     this.idArr.push(USdata.id);

@@ -49,9 +49,9 @@ export class CircledashPage implements OnInit {
     async renderPings(pings: any) {
         await Promise.all(pings.map(ping => {
             const pingId = ping.payload.doc.id;
-            let pingdata = ping.payload.doc;
+            const pingdata = ping.payload.doc;
             pingdata.get('userSent').get().then(userdata => {
-                let ud = userdata.data();
+                const ud = userdata.data();
                 let imgUrl = '';
                 if (ud.profilepic.startsWith('h')) {
                     imgUrl = ud.profilepic;
@@ -81,7 +81,7 @@ export class CircledashPage implements OnInit {
         }
         const alert = await this.alertController.create({
             cssClass: 'my-custom-class',
-            header: header,
+            header,
             subHeader: message,
             buttons: ['OK']
         });

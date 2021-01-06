@@ -14,8 +14,8 @@ export class TabsPage {
 
     constructor(private auth: AngularFireAuth, private db: AngularFirestore) {
         this.currentUserRef = this.db.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.db.collection('links', ref => ref.where('userRec', '==', this.currentUserRef.ref)
-            .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
+        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', true))
+            .valueChanges().subscribe(res => {
             this.requestAmount = res.length;
         });
     }

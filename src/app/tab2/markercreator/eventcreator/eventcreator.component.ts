@@ -77,9 +77,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
             }, () => {
 
             }, () => {
-                this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-                    .where('pendingRequest', '==', false))
-                    .get().subscribe(res => {
+                // tslint:disable-next-line:max-line-length
+                this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get().subscribe(res => {
                     this.links = [];
                     this.renderLink(res.docs);
                 });
@@ -89,8 +88,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
             this.currentUserRef.ref.get().then((userRef) => {
                 this.eventCreatorName = userRef.get('name');
             });
-            this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-                .where('pendingRequest', '==', false)).get().subscribe(res => {
+            this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get().subscribe(res => {
                 this.links = [];
                 this.renderLink(res.docs);
             });
@@ -131,7 +129,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
 
     async renderLink(linkData: Array<any>) {
         await Promise.all(linkData.map(link => {
-            link.get('userRec').get().then(USdata => {
+            link.get('otherUser').get().then(USdata => {
                 const linkObject = {
                     id: USdata.id,
                     name: USdata.get('name'),
@@ -187,7 +185,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                         members: firestore.FieldValue.delete()
                     });
                 }
-                const position = this.geo.point(this.location[1], this.location[0]);
+                const position = this.geo.point(this.location[1],this.location[0]);
                 this.afs.collection('events').doc(this.eventID).update({
                     name: this.eventName,
                     creator: this.currentUserRef.ref,
@@ -202,7 +200,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                     this.closeModal();
                 });
             } else {
-                const position = this.geo.point(this.location[1], this.location[0]);
+                const position = this.geo.point(this.location[1],this.location[0]);
                 this.afs.collection('events').add({
                     name: this.eventName,
                     position,
