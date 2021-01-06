@@ -14,14 +14,15 @@ import {ModalController} from '@ionic/angular';
 export class RequestsPage implements OnInit {
     links: Array<Link>;
 
-    constructor(private modalCtrl: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage, private auth: AngularFireAuth) {
+    constructor(private modalCtrl: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage,
+                private auth: AngularFireAuth) {
         this.links = [];
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.firestore.collection('users').doc(
-            this.auth.auth.currentUser.uid).ref)
-            .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
+        this.firestore.collection('users').doc(
+            this.auth.auth.currentUser.uid).collection('links', ref =>
+            ref.where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
             this.links = [];
             this.renderLink(res);
-        });
+        })
     }
 
     ngOnInit() {
@@ -49,13 +50,16 @@ export class RequestsPage implements OnInit {
     }
 
     acceptUser(linkId: string) {
-        this.firestore.collection('links').doc(linkId).update({
+
+        this.firestore.collection('users').doc(
+            this.auth.auth.currentUser.uid).collection('links').doc(linkId).update({
             pendingRequest: false
         });
     }
 
     deleteUser(linkId: string) {
-        this.firestore.collection('links').doc(linkId).delete();
+        this.firestore.collection('users').doc(
+            this.auth.auth.currentUser.uid).collection('links').doc(linkId).delete();
     }
 
     closeModal() {

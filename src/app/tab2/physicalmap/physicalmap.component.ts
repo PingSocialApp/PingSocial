@@ -17,6 +17,17 @@ import {EventcreatorPage} from '../eventcreator/eventcreator.page';
 })
 export class PhysicalmapComponent implements OnInit, AfterViewInit {
 
+    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private auth: AngularFireAuth,
+                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController,) {
+        mapboxgl.accessToken = environment.mapbox.accessToken;
+        this.currentUserId = this.auth.auth.currentUser.uid;
+        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
+        this.showFilter = false;
+        this.showEventDetails = false;
+        this.showUserDetails = false;
+        this.showLoad = true;
+    }
+
     currentUserId: string;
     currentUserRef: any;
     map: mapboxgl.Map;
@@ -37,15 +48,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     otherUserStatus = '';
     otherUserId: string;
 
-    constructor(private rtdb: AngularFireDatabase, private firestore: AngularFirestore, private auth: AngularFireAuth,
-                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController,) {
-        mapboxgl.accessToken = environment.mapbox.accessToken;
-        this.currentUserId = this.auth.auth.currentUser.uid;
-        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
-        this.showFilter = false;
-        this.showEventDetails = false;
-        this.showUserDetails = false;
-    }
+    // puts marker on the map with user info
+    showLoad: boolean;
 
     ngOnInit() {
 
@@ -96,8 +100,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     }
 
     renderLinks() {
-        this.firestore.collection('links',
-            ref => ref.where('userRec', '==', this.currentUserRef.ref)
+        this.firestore.collectionGroup('links',
+            ref => ref.where('otherUser', '==', this.currentUserRef.ref)
                 .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
@@ -105,7 +109,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             res.forEach(doc => {
                 let otherId, otherRef, oName, oMark;
                 // @ts-ignore
-                otherId = doc.payload.doc.get('userSent').id;
+                otherId = doc.payload.doc.ref.parent.parent.id;
+                // console.log(otherId);
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
                 // TODO Unsubscribe from all get
                 this.firestore.doc('/users/' + otherId).get().subscribe(oUserDoc => {
@@ -153,8 +158,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             });
         });
     }
-
-    // puts marker on the map with user info
     renderUser(marker, lng, lat) {
         try {
             marker.setLngLat([lng, lat])
@@ -264,8 +267,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
-        this.firestore.collection('links', ref => ref.where('userSent', '==', eventInfo.creator)
-            .where('userRec', '==', this.currentUserRef.ref)).get().subscribe(val => {
+        this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
+            .where('pendingRequest', '==', false)).get().subscribe(val => {
                 el.setAttribute('data-link', val.empty ? 'false' : 'true');
         });
         el.setAttribute('data-time', eventInfo.startTime);
@@ -341,10 +344,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             // resp.coords.longitude
         }).then(() => {
             this.map.on('load', () => {
+                this.showLoad = false;
                 this.renderCurrent();
-                // this.renderLinks();
+                this.renderLinks();
                 this.presentCurrentLocation();
-                this.presentEvents();
+                // this.presentEvents();
             });
         }).catch((error) => {
             console.log('Error getting location', error);
