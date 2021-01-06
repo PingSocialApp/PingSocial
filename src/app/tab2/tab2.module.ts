@@ -6,6 +6,7 @@ import {FormsModule} from '@angular/forms';
 import {Tab2Page} from './tab2.page';
 import {EventcreatorPage} from './eventcreator/eventcreator.page';
 import {QrcodePage} from './qrcode/qrcode.page';
+import {PhysicalmapComponent} from './physicalmap/physicalmap.component';
 
 @NgModule({
     imports: [
@@ -14,10 +15,8 @@ import {QrcodePage} from './qrcode/qrcode.page';
         FormsModule,
         RouterModule.forChild([{path: '', component: Tab2Page}]),
     ],
-    declarations: [Tab2Page, EventcreatorPage],
-    entryComponents: [EventcreatorPage],
-    exports: [
-    ]
+    declarations: [Tab2Page, EventcreatorPage, QrcodePage, PhysicalmapComponent],
+    entryComponents: [EventcreatorPage, QrcodePage],
 })
 export class Tab2PageModule {
 }
