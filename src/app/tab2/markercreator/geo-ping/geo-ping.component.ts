@@ -47,8 +47,8 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
-        this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-            .where('pendingRequest', '==', false)).get().subscribe(res => {
+        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false))
+            .get().subscribe(res => {
             this.links = [];
             this.renderLink(res.docs);
         });
@@ -96,7 +96,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
 
     private renderLink(docs: Array<firebase.firestore.QueryDocumentSnapshot<firebase.firestore.DocumentData>>) {
         docs.map(link => {
-            link.get('userRec').get().then(USdata => {
+            link.get('otherUser').get().then(USdata => {
                 const linkObject = {
                     id: USdata.id,
                     name: USdata.get('name'),

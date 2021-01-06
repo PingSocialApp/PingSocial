@@ -50,6 +50,7 @@ export class UserprofilePage implements OnInit {
     website: boolean;
     location: boolean;
     userLocation = '';
+    private currentUserRef: AngularFirestoreDocument<unknown>;
 
     constructor(private actionSheet: ActionSheetController, private modalController: ModalController,
                 private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute,
@@ -59,10 +60,12 @@ export class UserprofilePage implements OnInit {
         this.displayTF = true;
         this.userId = this.acr.snapshot.params.id;
         this.userRef = this.firestore.collection('users').doc(this.userId);
-        this.userRef.snapshotChanges()
+        this.currentUserRef = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
+        this.userLocation = 'Loading';
+        this.userRef.get()
             .subscribe(res => {
                 // @ts-ignore
-                const userData = res.payload.data();
+                const userData = res.data();
                 this.userName = userData.name;
                 this.userBio = userData.bio;
 
@@ -74,22 +77,19 @@ export class UserprofilePage implements OnInit {
                     });
                 }
             });
-        this.firestore.collection('links', ref => ref.where('userSent', '==', this.userRef.ref)
-            .where('userRec', '==', this.firestore.collection('users').doc(
-                this.auth.auth.currentUser.uid).ref).where('pendingRequest', '==', false)
-        ).snapshotChanges().subscribe(linkeData => {
-            if (linkeData.length !== 0) {
-                this.firestore.collection('socials').doc(this.userId).valueChanges().subscribe(res => {
-                    this.renderUserPermissions(res, linkeData[0].payload.doc.get('linkPermissions'));
-                    this.theirInfo = true;
-                });
-            } else {
-                this.theirInfo = false;
-            }
-        });
-        this.firestore.collection('links', ref => ref.where('userRec', '==', this.userRef.ref)
-            .where('userSent', '==', this.firestore.collection('users').doc(
-                this.auth.auth.currentUser.uid).ref)
+    }
+
+    async ngOnInit() {
+        const isModalOpened = await this.modalController.getTop();
+        // tslint:disable-next-line:no-unused-expression
+        isModalOpened ? this.closeModal() : null;
+        this.getMyData();
+        this.getOtherData();
+    }
+
+    getMyData(){
+        this.currentUserRef.collection('links', ref => ref
+            .where('otherUser', '==', this.userRef.ref)
             .where('pendingRequest', '==', false)).get().subscribe(res => {
             if (!res.empty) {
                 this.linkDoc = res.docs[0].ref;
@@ -101,10 +101,19 @@ export class UserprofilePage implements OnInit {
         });
     }
 
-    async ngOnInit() {
-        const isModalOpened = await this.modalController.getTop();
-        // tslint:disable-next-line:no-unused-expression
-        isModalOpened ? this.closeModal() : null;
+    getOtherData(){
+        this.userRef.collection('links', ref => ref
+            .where('otherUser', '==', this.currentUserRef.ref).where('pendingRequest', '==', false)
+        ).snapshotChanges().subscribe(linkeData => {
+            if (linkeData.length !== 0) {
+                this.firestore.collection('socials').doc(this.userId).valueChanges().subscribe(res => {
+                    this.renderUserPermissions(res, linkeData[0].payload.doc.get('linkPermissions'));
+                    this.theirInfo = true;
+                });
+            } else {
+                this.theirInfo = false;
+            }
+        });
     }
 
     segmentChanged(ev: any) {

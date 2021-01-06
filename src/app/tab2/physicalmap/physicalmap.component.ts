@@ -87,7 +87,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     }
 
     renderLinks() {
-        this.firestore.collectionGroup('links',
+        this.afs.collectionGroup('links',
             ref => ref.where('otherUser', '==', this.currentUserRef.ref)
                 .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
@@ -392,7 +392,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
             // resp.coords.longitude
         }).then(() => {
             this.map.on('load', () => {
-                this.showLoad = false;
                 this.renderCurrent();
                 this.renderLinks();
                 this.presentCurrentLocation();
