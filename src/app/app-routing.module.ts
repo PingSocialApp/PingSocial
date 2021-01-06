@@ -38,12 +38,13 @@ const routes: Routes = [
         loadChildren: () => import('./requests/requests.module').then(m => m.RequestsPageModule)
     },
     {
-        path: 'eventcreator',
+        path: 'markercreator',
         canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
-        loadChildren: () => import('./tab2/eventcreator/eventcreator.module').then(m => m.EventcreatorPageModule)
+        loadChildren: () => import('./tab2/markercreator/markercreator.module').then(m => m.MarkercreatorPageModule)
     },
     {
         path: 'qrcode',
+        canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
         loadChildren: () => import('./tab2/qrcode/qrcode.module').then(m => m.QrcodePageModule)
     },
   {

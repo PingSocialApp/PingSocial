@@ -1,0 +1,25 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="closeModal()">
+                <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-segment (ionChange)="segmentChanged($event)" [value]="segmentShown" *ngIf="!editMode">
+        <ion-segment-button value="geo-ping">
+            <ion-label>Geo-Ping</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="event">
+            <ion-label>Event</ion-label>
+        </ion-segment-button>
+    </ion-segment>
+    <app-geo-ping *ngIf="segmentShown == 'geo-ping' && !editMode"></app-geo-ping>
+    <app-eventcreator *ngIf="segmentShown != 'geo-ping'" [eventID]="eventID"></app-eventcreator>
+</ion-content>

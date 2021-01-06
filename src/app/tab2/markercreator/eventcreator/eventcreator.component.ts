@@ -1,23 +1,23 @@
-import {Component, Input, OnInit} from '@angular/core';
-import * as mapboxgl from 'mapbox-gl';
-import * as geofirex from 'geofirex';
-import {environment} from '../../../environments/environment';
+import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
+import {Calendar} from '@ionic-native/calendar/ngx';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {firestore} from 'firebase/app';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
-import {Calendar} from '@ionic-native/calendar/ngx';
-import * as firebase from 'firebase';
 import {GeoFireClient} from 'geofirex';
+import {environment} from '../../../../environments/environment';
+import * as geofirex from 'geofirex';
+import * as firebase from 'firebase';
+import * as mapboxgl from 'mapbox-gl';
+import {firestore} from 'firebase';
 
 @Component({
     selector: 'app-eventcreator',
-    templateUrl: './eventcreator.page.html',
-    styleUrls: ['./eventcreator.page.scss'],
-    providers: [AngularFirestore, AngularFireAuth, AngularFireStorage, Calendar]
+    templateUrl: './eventcreator.component.html',
+    styleUrls: ['./eventcreator.component.scss'],
+    providers:[]
 })
-export class EventcreatorPage implements OnInit {
+export class EventcreatorComponent implements OnInit, AfterViewInit {
     map: mapboxgl.Map;
     currentUserRef: AngularFirestoreDocument;
     currentUser: any;
@@ -37,24 +37,25 @@ export class EventcreatorPage implements OnInit {
     geo: GeoFireClient;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController, private toastController: ToastController,
-                private firestore: AngularFirestore, private auth: AngularFireAuth, private storage: AngularFireStorage) {
+                private afs: AngularFirestore, private auth: AngularFireAuth, private storage: AngularFireStorage) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        this.currentUserRef = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
+        this.currentUserRef = this.afs.collection('users').doc(this.auth.auth.currentUser.uid);
         this.links = [];
         this.isPublic = false;
         this.geo = geofirex.init(firebase);
     }
 
-    // tslint:disable-next-line:use-lifecycle-interface
+
     ngOnInit() {
         this.editMode = this.eventID !== '';
         (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
         (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
         if (this.editMode) {
-            this.firestore.collection('events').doc(this.eventID).get().subscribe((ref) => {
+            this.afs.collection('events').doc(this.eventID).get().subscribe((ref) => {
                 const data = ref.data();
-                (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
-                (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
+                (document.getElementById('startTime') as HTMLInputElement).value = data.startTime.toDate().toISOString();
+                // TODO Add one hour
+                (document.getElementById('endTime') as HTMLInputElement).value = data.endTime.toDate().toISOString();
                 this.eventName = data.name;
                 this.eventCreator = data.creator.id;
                 data.creator.get().then((userRef) => {
@@ -63,7 +64,7 @@ export class EventcreatorPage implements OnInit {
                 this.eventDes = data.description;
                 this.isPublic = data.isPrivate;
                 this.eventType = data.type;
-                this.location = [data.position.geopoint.longitude,data.position.geopoint.latitude];
+                this.location = [data.position.geopoint.longitude, data.position.geopoint.latitude];
                 this.map.flyTo({
                     center: this.location,
                     essential: true
@@ -76,9 +77,9 @@ export class EventcreatorPage implements OnInit {
             }, () => {
 
             }, () => {
-                // tslint:disable-next-line:max-line-length
-                this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
-                    console.log(res.docs);
+                this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+                    .where('pendingRequest', '==', false))
+                    .get().subscribe(res => {
                     this.links = [];
                     this.renderLink(res.docs);
                 });
@@ -88,19 +89,14 @@ export class EventcreatorPage implements OnInit {
             this.currentUserRef.ref.get().then((userRef) => {
                 this.eventCreatorName = userRef.get('name');
             });
-            this.firestore.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)).get().subscribe(res => {
+            this.afs.collection('links', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+                .where('pendingRequest', '==', false)).get().subscribe(res => {
                 this.links = [];
-                console.log(res.docs);
                 this.renderLink(res.docs);
             });
         }
     }
 
-    // ngOnInit() {
-    //
-    // }
-
-    // tslint:disable-next-line:use-lifecycle-interface
     ngAfterViewInit() {
         this.buildMap();
         (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
@@ -176,27 +172,27 @@ export class EventcreatorPage implements OnInit {
                     const userArray = [];
                     for (const element of toggle) {
                         if (element.checked) {
-                            userArray.push(this.firestore.collection('users').doc(element.id).ref);
+                            userArray.push(this.afs.collection('users').doc(element.id).ref);
                         }
                     }
                     if (userArray.length > 15) {
                         this.presentToast('Whoops! You have more than 15 people');
                     } else {
-                        this.firestore.collection('events').doc(this.eventID).update({
+                        this.afs.collection('events').doc(this.eventID).update({
                             members: userArray
                         });
                     }
                 } else {
-                    this.firestore.collection('events').doc(this.eventID).update({
+                    this.afs.collection('events').doc(this.eventID).update({
                         members: firestore.FieldValue.delete()
                     });
                 }
-                const position = this.geo.point(this.location[1],this.location[0]);
-                this.firestore.collection('events').doc(this.eventID).update({
+                const position = this.geo.point(this.location[1], this.location[0]);
+                this.afs.collection('events').doc(this.eventID).update({
                     name: this.eventName,
                     creator: this.currentUserRef.ref,
-                    startTime: (document.getElementById('startTime') as HTMLInputElement).value,
-                    endTime: (document.getElementById('endTime') as HTMLInputElement).value,
+                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
+                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
                     description: this.eventDes,
                     position,
                     type: this.eventType,
@@ -206,13 +202,13 @@ export class EventcreatorPage implements OnInit {
                     this.closeModal();
                 });
             } else {
-                const position = this.geo.point(this.location[1],this.location[0]);
-                this.firestore.collection('events').add({
+                const position = this.geo.point(this.location[1], this.location[0]);
+                this.afs.collection('events').add({
                     name: this.eventName,
                     position,
                     creator: this.currentUserRef.ref,
-                    startTime: (document.getElementById('startTime') as HTMLInputElement).value,
-                    endTime: (document.getElementById('endTime') as HTMLInputElement).value,
+                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
+                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
                     description: this.eventDes,
                     type: this.eventType,
                     isPrivate: this.isPublic
@@ -221,7 +217,7 @@ export class EventcreatorPage implements OnInit {
                         const userArray = [];
                         for (const element of toggle) {
                             if (element.checked) {
-                                userArray.push(this.firestore.collection('users').doc(element.id).ref);
+                                userArray.push(this.afs.collection('users').doc(element.id).ref);
                             }
                         }
                         if (userArray.length > 15) {
@@ -229,22 +225,15 @@ export class EventcreatorPage implements OnInit {
                         } else {
                             newEvent.update({
                                 members: userArray
-                            });
+                            }).then(() => {
+                                this.presentToast('Event Created!');
+                                this.closeModal();
+                            })
                         }
                     }
-                    this.presentToast('Event Created!');
-                    this.closeModal();
                 });
             }
         }
-    }
-
-    closeModal() {
-        // using the injected ModalController this page
-        // can "dismiss" itself and optionally pass back data
-        this.modalController.dismiss({
-            dismissed: true
-        });
     }
 
     async presentToast(m: string) {
@@ -275,7 +264,7 @@ export class EventcreatorPage implements OnInit {
                 }, {
                     text: 'Delete',
                     handler: () => {
-                        this.firestore.collection('events').doc(this.eventID).delete();
+                        this.afs.collection('events').doc(this.eventID).delete();
                         this.modalController.dismiss();
                     }
                 }
@@ -295,8 +284,17 @@ export class EventcreatorPage implements OnInit {
                 this.cal.createEventInteractively(this.eventName, data.features[0].place_name, this.eventDes,
                     new Date((document.getElementById('startTime') as HTMLInputElement).value),
                     new Date((document.getElementById('endTime') as HTMLInputElement).value)).then(r => {
-                        this.presentToast('Event Downloaded!');
+                    this.presentToast('Event Downloaded!');
                 });
             });
     }
+
+    closeModal() {
+        // using the injected ModalController this page
+        // can "dismiss" itself and optionally pass back data
+        this.modalController.dismiss({
+            dismissed: true
+        });
+    }
+
 }

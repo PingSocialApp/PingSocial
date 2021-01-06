@@ -49,10 +49,22 @@
                     <ion-label>Today's Events</ion-label>
                     <ion-toggle [(ngModel)]="queryDate" (ionChange)="filterMarkers()"></ion-toggle>
                 </ion-item>
-                <ion-button expand="full" (click)="presentFilter()">
-                    <ion-icon name="arrow-up-outline"></ion-icon>
-                </ion-button>
             </ion-list>
+        </ion-card-content>
+    </ion-card>
+
+    <ion-card style="z-index: 3" *ngIf="showPing">
+        <ion-card-content>
+                <ion-avatar style="margin: 0 auto;  border: solid 3px var(--ion-color-primary);" >
+                    <img [src]="this.pingImg">
+                </ion-avatar>
+                <ion-label>
+                    <h1 style="text-align: center;">{{pingAuthor}}</h1>
+                    <h3 style="margin: 3%">{{pingMessage}}</h3>
+                </ion-label>
+            <ion-chip>
+                <ion-label>{{pingDate}}</ion-label>
+            </ion-chip>
         </ion-card-content>
     </ion-card>
 
