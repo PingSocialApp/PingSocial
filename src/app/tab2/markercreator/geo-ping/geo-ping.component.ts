@@ -102,7 +102,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
         });
         document.getElementById('geocoder-container-geoping').appendChild(this.geocoder.onAdd(this.map));
         this.geocoder.on('result', (res) => {
-            this.location = res.result.geometry.coordinates;
+            this.location = [res.result.geometry.coordinates[1], res.result.geometry.coordinates[0]];
         });
     }
 
@@ -117,7 +117,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     showLocation() {
         if (document.getElementById('mapContainer').style.display === 'none'
             || document.getElementById('mapContainer').style.display === '') {
-            document.getElementById('mapContainer').style.display = 'inherit';
+            document.getElementById('mapContainer').style.display = 'block';
         } else {
             document.getElementById('mapContainer').style.display = 'none';
         }

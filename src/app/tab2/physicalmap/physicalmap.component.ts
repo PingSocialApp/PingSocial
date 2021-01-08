@@ -343,7 +343,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
         }
-        const startTime = new Date(eventInfo.startTime);
+        const startTime = eventInfo.startTime.toDate();
+        // console.log(startTime);
         let minutes = startTime.getMinutes() < 10 ? '0' : '';
         minutes += startTime.getMinutes();
 
@@ -433,6 +434,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showFilter = !this.showFilter;
         if (!this.showFilter) {
             const elements = document.getElementsByClassName('mapboxgl-marker');
+            // tslint:disable-next-line:prefer-for-of
             for (let i = 0; i < elements.length; i++) {
                 (elements[i] as HTMLElement).style.display = 'block';
             }
@@ -441,6 +443,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     filterMarkers() {
         const elements = document.getElementsByClassName('mapboxgl-marker');
+        // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < elements.length; i++) {
             (elements[i] as HTMLElement).style.display = 'block';
             if (elements[i].id === 'currentLocation') {

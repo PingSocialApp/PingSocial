@@ -29,6 +29,7 @@ import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
         FCM,
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy,
         },
+        // TODO Remove in production
         {
             provide: FIRESTORE_SETTINGS,
             useValue: environment.production ? undefined : {

@@ -52,6 +52,8 @@ export class LoginPage implements OnInit {
     login() {
         if (this.email !== '' && this.password !== '') {
             this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then((value) => {
+                this.email = '';
+                this.password = '';
                 this.router.navigate(['/tabs']);
             }).catch(async (error) => {
                 const toast = await this.toastController.create({
