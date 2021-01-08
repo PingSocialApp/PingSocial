@@ -11,13 +11,14 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
-    <ion-img *ngIf="links.length == 0" class="emptyRequests" src="assets/undraw_accept_request_vdsd.svg">
+    <!-- TODO doesn't work -->
+    <ion-img *ngIf="(links | async)?.length == 0" class="emptyRequests" src="assets/undraw_accept_request_vdsd.svg">
     </ion-img>
-    <h2 *ngIf="links.length == 0" class="emptyRequestsLabel">
+    <h2 *ngIf="(links | async)?.length == 0" class="emptyRequestsLabel">
         <ion-label>No Pending Requests</ion-label>
     </h2>
     <ion-list id="memberList">
-        <ion-item-sliding *ngFor="let link of links">
+        <ion-item-sliding *ngFor="let link of links | async">
             <ion-item-options side="start">
                 <ion-item-option (click)="acceptUser(link.id)">
                     <ion-icon name="checkmark-circle"></ion-icon>
@@ -25,7 +26,7 @@
             </ion-item-options>
             <ion-item>
                 <ion-avatar slot="start">
-                    <img src="{{link.img}}">
+                    <img src="{{link.img | async}}">
                 </ion-avatar>
                 <ion-label>
                     <h2>{{link.name}}</h2>

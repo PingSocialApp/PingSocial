@@ -28,11 +28,11 @@
     </ion-refresher>
     <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
     <ion-list>
-        <ion-img *ngIf="links.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
-        <h1 *ngIf="links.length === 0" class="addLinkDisplay">No Sent Links Yet!</h1>
-        <ion-item *ngFor="let link of links" [routerLink]="['/userprofile/', link.id]">
+        <ion-img *ngIf="(links | async)?.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
+        <h1 *ngIf="(links | async)?.length === 0" class="addLinkDisplay">No Sent Links Yet!</h1>
+        <ion-item *ngFor="let link of links | async | sortBy:'asc':'name'" [routerLink]="['/userprofile/', link.id]">
             <ion-avatar slot="start">
-                <ion-img src="{{link.img}}"></ion-img>
+                <ion-img src="{{link.img | async}}"></ion-img>
             </ion-avatar>
             <ion-label>
                 <h2>{{link.name}}</h2>

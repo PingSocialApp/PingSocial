@@ -6,6 +6,7 @@ import {FormsModule} from '@angular/forms';
 import {Tab3Page} from './tab3.page';
 import {SettingsPage} from '../settings/settings.page';
 import {RequestsPage} from '../requests/requests.page';
+import { SortByPipe } from './sort-by.pipe';
 
 @NgModule({
     imports: [
@@ -14,7 +15,7 @@ import {RequestsPage} from '../requests/requests.page';
         FormsModule,
         RouterModule.forChild([{path: '', component: Tab3Page}])
     ],
-    declarations: [Tab3Page, SettingsPage, RequestsPage],
+    declarations: [Tab3Page, SettingsPage, RequestsPage, SortByPipe],
     entryComponents: [SettingsPage, RequestsPage]
 })
 export class Tab3PageModule {

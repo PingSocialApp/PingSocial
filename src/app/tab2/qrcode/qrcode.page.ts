@@ -6,6 +6,7 @@ import {AngularFirestore} from '@angular/fire/firestore';
 import {AlertController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
 import {SocialSharing} from '@ionic-native/social-sharing/ngx'
+import {first} from 'rxjs/operators';
 
 @Component({
     selector: 'app-qrcode',
@@ -102,7 +103,8 @@ export class QrcodePage implements OnInit {
     }
 
     async presentAlertConfirm(dataArray: Array<string>) {
-        this.db.collection('users').doc(dataArray[0]).get().subscribe(async (data) => {
+        this.db.collection('users').doc(dataArray[0]).get().pipe(first())
+            .subscribe(async (data) => {
             const alert = await this.alertController.create({
                 header: 'Confirm Request!',
                 message: 'Do you want to link with ' + data.get('name'),
@@ -121,7 +123,6 @@ export class QrcodePage implements OnInit {
                     }
                 ]
             });
-
             await alert.present();
         });
     }

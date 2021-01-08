@@ -9,6 +9,8 @@ import {ModalController, ToastController} from '@ionic/angular';
 import {GeoFireClient} from 'geofirex';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import * as firebase from 'firebase';
+import {first, map, mergeMap} from 'rxjs/operators';
+import {forkJoin, Observable} from 'rxjs';
 
 @Component({
     selector: 'app-geo-ping',
@@ -22,7 +24,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     isPublic: boolean;
     durationString: string;
     showPublic: boolean;
-    links: Array<object>;
+    links: Observable<any>;
     map: mapboxgl.Map;
     geocoder: any;
     geo: GeoFireClient;
@@ -47,11 +49,29 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
-        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false))
-            .get().subscribe(res => {
-            this.links = [];
-            this.renderLink(res.docs);
-        });
+        this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
+            .pipe(mergeMap(querySnap => forkJoin(
+                querySnap.docs.map(doc => doc.get('otherUser').get())
+            )), map((val: any) => {
+                return val.map(userData => {
+                    return {
+                        id: userData.id,
+                        img: this.getImage(userData.get('profilepic')),
+                        name: userData.get('name'),
+                        bio: userData.get('bio')
+                    };
+                });
+            }));
+    }
+
+    async getImage(profilePic: string) {
+        if (profilePic.startsWith('h')) {
+            return profilePic;
+        } else {
+            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
+                return url;
+            }).catch((e) => console.log(e));
+        }
     }
 
     ngAfterViewInit() {
@@ -68,12 +88,12 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     }
 
     buildMap() {
-            this.map = new mapboxgl.Map({
-                container: 'pingmap',
-                style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
-                zoom: 7,
-                center: [this.location[1], this.location[0]]
-            });
+        this.map = new mapboxgl.Map({
+            container: 'pingmap',
+            style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
+            zoom: 7,
+            center: [this.location[1], this.location[0]]
+        });
         new mapboxgl.Marker().setLngLat([this.location[1], this.location[0]]).addTo(this.map);
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
@@ -94,36 +114,11 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
         }
     }
 
-    private renderLink(docs: Array<firebase.firestore.QueryDocumentSnapshot<firebase.firestore.DocumentData>>) {
-        docs.map(link => {
-            link.get('otherUser').get().then(USdata => {
-                const linkObject = {
-                    id: USdata.id,
-                    name: USdata.get('name'),
-                    bio: USdata.get('bio'),
-                    img: '',
-                    checked: false
-                };
-
-                const profilePic = USdata.get('profilepic');
-
-                if (profilePic.startsWith('h')) {
-                    linkObject.img = profilePic;
-                } else {
-                    this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                        linkObject.img = url;
-                    });
-                }
-                this.links.push(linkObject);
-            });
-        });
-    }
-
     showLocation() {
-        if(document.getElementById('mapContainer').style.display === 'none'
-            || document.getElementById('mapContainer').style.display === ''){
+        if (document.getElementById('mapContainer').style.display === 'none'
+            || document.getElementById('mapContainer').style.display === '') {
             document.getElementById('mapContainer').style.display = 'inherit';
-        }else{
+        } else {
             document.getElementById('mapContainer').style.display = 'none';
         }
         this.showPublic = false;
@@ -154,14 +149,14 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
         });
     }
 
-    sendPing(){
+    sendPing() {
         let duration;
-        if(this.durationString === '5 Min'){
-            duration = new Date(new Date().getTime() + 5*60000);
-        }else if (this.durationString === '1 Hour') {
-            duration = new Date(new Date().getTime() + 60*60000);
-        }else {
-            duration = new Date(new Date().getTime() + 24*60*60000);
+        if (this.durationString === '5 Min') {
+            duration = new Date(new Date().getTime() + 5 * 60000);
+        } else if (this.durationString === '1 Hour') {
+            duration = new Date(new Date().getTime() + 60 * 60000);
+        } else {
+            duration = new Date(new Date().getTime() + 24 * 60 * 60000);
         }
 
         const position = this.geo.point(this.location[0], this.location[1]);
@@ -173,7 +168,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
             timeCreate: firebase.firestore.FieldValue.serverTimestamp(),
             timeExpire: firebase.firestore.Timestamp.fromDate(duration)
         }).then((val) => {
-            if(!this.isPublic){
+            if (!this.isPublic) {
                 const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
                 const userArray = [];
                 for (const element of toggle) {

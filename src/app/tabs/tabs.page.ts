@@ -1,6 +1,7 @@
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
+import {Subscription} from 'rxjs';
 
 @Component({
     selector: 'app-tabs',
@@ -8,13 +9,21 @@ import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestor
     styleUrls: ['tabs.page.scss'],
     providers: [AngularFireAuth]
 })
-export class TabsPage {
+export class TabsPage implements OnInit, OnDestroy{
     requestAmount: number;
     currentUserRef: AngularFirestoreDocument;
+    pingLengthRef: Subscription;
 
     constructor(private auth: AngularFireAuth, private db: AngularFirestore) {
         this.currentUserRef = this.db.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', true))
+    }
+
+    ngOnDestroy(): void {
+        this.pingLengthRef.unsubscribe();
+    }
+
+    ngOnInit(): void {
+        this.pingLengthRef = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', true))
             .valueChanges().subscribe(res => {
             this.requestAmount = res.length;
         });

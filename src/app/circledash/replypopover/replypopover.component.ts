@@ -1,6 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {NavParams, PopoverController, ToastController} from '@ionic/angular';
 import {firestore} from 'firebase/app';
+import {AngularFirestore} from '@angular/fire/firestore';
+import {first} from 'rxjs/operators';
 
 @Component({
     selector: 'app-replypopover',
@@ -11,7 +13,8 @@ import {firestore} from 'firebase/app';
 export class ReplypopoverComponent implements OnInit {
     responseMessage: string;
 
-    constructor(private navParams: NavParams, private popoverController: PopoverController, private toastController: ToastController) {
+    constructor(private navParams: NavParams, private popoverController: PopoverController,
+                private toastController: ToastController, private afs: AngularFirestore) {
     }
 
     ngOnInit() {
@@ -19,13 +22,12 @@ export class ReplypopoverComponent implements OnInit {
     }
 
     sendReplyData() {
-        const db = this.navParams.get('fs');
         if (this.responseMessage === '') {
             this.presentToast('Whoops! You have an empty message');
             return;
         }
-        db.collection('pings').doc(this.navParams.get('pingId')).get().subscribe((ref) => {
-            db.collection('pings').doc(this.navParams.get('pingId')).update({
+        this.afs.collection('pings').doc(this.navParams.get('pingId')).get().pipe(first()).subscribe((ref) => {
+            this.afs.collection('pings').doc(this.navParams.get('pingId')).update({
                 responseMessage: this.responseMessage,
                 userRec: ref.get('userSent'),
                 userSent: ref.get('userRec'),

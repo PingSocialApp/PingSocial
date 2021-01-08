@@ -38,9 +38,9 @@
     <ion-card-content>
         <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
         <ion-list id="memberList">
-            <ion-item *ngFor="let link of links">
+            <ion-item *ngFor="let link of links | async">
                 <ion-avatar slot="start">
-                    <img src="{{link.img}}">
+                    <img src="{{link.img | async}}">
                 </ion-avatar>
                 <ion-label>
                     <h2>{{link.name}}</h2>

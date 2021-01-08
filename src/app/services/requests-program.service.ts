@@ -3,6 +3,7 @@ import {AngularFirestoreDocument, AngularFirestore} from '@angular/fire/firestor
 import {ToastController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {firestore} from 'firebase/app';
+import {first} from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root'
@@ -25,7 +26,7 @@ export class RequestsProgramService {
         const otherUserRef = this.afs.collection('users').doc(userId);
 
         this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', true)
-            .where('otherUser', '==', otherUserRef.ref)).get().subscribe(data => {
+            .where('otherUser', '==', otherUserRef.ref)).get().pipe(first()).subscribe(data => {
             if (!data.empty) {
                 console.log(data.docs);
                 data.docs[0].ref.update({
@@ -43,7 +44,7 @@ export class RequestsProgramService {
         });
 
         otherUserRef.collection('links', ref => ref.where('pendingRequest', '==', true)
-            .where('otherUser', '==', this.currentUserRef.ref)).get().subscribe(data => {
+            .where('otherUser', '==', this.currentUserRef.ref)).get().pipe(first()).subscribe(data => {
             if (!data.empty) {
                 data.docs[0].ref.update({
                     pendingRequest: false

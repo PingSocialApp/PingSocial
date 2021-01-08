@@ -1,18 +1,20 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {MarkercreatorPage} from '../tab2/markercreator/markercreator.page';
 import {ModalController} from '@ionic/angular';
 import {ActivatedRoute} from '@angular/router';
+import {Subscription} from 'rxjs';
 
 @Component({
     selector: 'app-eventmanager',
     templateUrl: './eventmanager.page.html',
     styleUrls: ['./eventmanager.page.scss'],
 })
-export class EventmanagerPage implements OnInit {
+export class EventmanagerPage implements OnInit, OnDestroy {
     myEvents: Array<object>;
     isMe: boolean;
+    private eventsSub: Subscription;
 
     constructor(private acr: ActivatedRoute, private modalController: ModalController, private firestore: AngularFirestore,
                 private auth: AngularFireAuth) {
@@ -20,11 +22,15 @@ export class EventmanagerPage implements OnInit {
     }
 
     ngOnInit() {
-        this.firestore.collection('events', ref => ref.where('creator', '==',
+        this.eventsSub = this.firestore.collection('events', ref => ref.where('creator', '==',
             this.firestore.collection('users').doc(this.acr.snapshot.params.id).ref).orderBy('startTime', 'asc'))
             .snapshotChanges().subscribe(val => {
                 this.renderMyEvents(val);
         });
+    }
+
+    ngOnDestroy(): void {
+        this.eventsSub.unsubscribe();
     }
 
     renderMyEvents(val: Array<any>) {

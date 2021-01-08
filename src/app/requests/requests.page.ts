@@ -4,6 +4,8 @@ import {Link} from '../tab3/tab3.page';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {ModalController} from '@ionic/angular';
+import {forkJoin, Observable} from 'rxjs';
+import {map, mergeMap} from 'rxjs/operators';
 
 @Component({
     selector: 'app-requests',
@@ -12,49 +14,47 @@ import {ModalController} from '@ionic/angular';
     providers: [AngularFireStorage]
 })
 export class RequestsPage implements OnInit {
-    links: Array<Link>;
+    links: Observable<any>;
 
     constructor(private modalCtrl: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage,
                 private auth: AngularFireAuth) {
-        this.links = [];
-        this.firestore.collection('users').doc(
-            this.auth.auth.currentUser.uid).collection('links', ref =>
-            ref.where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
-            this.links = [];
-            this.renderLink(res);
-        })
     }
 
     ngOnInit() {
+        this.links = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid)
+            .collection('links', ref => ref.where('pendingRequest', '==', true)).snapshotChanges()
+            .pipe(mergeMap(querySnap => forkJoin(
+                querySnap.map(doc => {
+                    const data = doc.payload.doc;
+                    return data.get('otherUser').get().then(userData => {
+                        return {
+                            id: data.id,
+                            img: this.getImage(userData.get('profilepic')),
+                            name: userData.get('name'),
+                            bio: userData.get('bio')
+                        };
+                    });
+                })
+            )));
     }
 
-    async renderLink(linkData: Array<any>) {
-        await Promise.all(linkData.map(link => {
-            link.get('userSent').get().then(USdata => {
-                const linkObject: Link = {
-                    id: link.payload.doc.id,
-                    img: '',
-                    name: USdata.get('name'),
-                    bio: USdata.get('bio')
-                };
-                if (USdata.get('profilepic').startsWith('h')) {
-                    linkObject.img = USdata.get('profilepic');
-                } else {
-                    this.storage.storage.refFromURL(USdata.get('profilepic')).getDownloadURL().then(url => {
-                        linkObject.img = 'url(' + url + ')';
-                    });
-                }
-                this.links.push(linkObject);
-            });
-        }));
+    async getImage(profilePic: string) {
+        if (profilePic.startsWith('h')) {
+            return profilePic;
+        } else {
+            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
+                return url;
+            }).catch((e) => console.log(e));
+        }
     }
 
     acceptUser(linkId: string) {
-
         this.firestore.collection('users').doc(
             this.auth.auth.currentUser.uid).collection('links').doc(linkId).update({
             pendingRequest: false
-        });
+        }).then(val => {
+            console.log('updated');
+        })
     }
 
     deleteUser(linkId: string) {

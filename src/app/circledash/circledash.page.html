@@ -12,9 +12,11 @@
 <ion-content>
     <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
     <ion-list>
-        <ion-img *ngIf="pingArray.length === 0" src="assets/noping.svg" class="noPingImg"></ion-img>
-        <h1 *ngIf="pingArray.length === 0" class="noPingDisplay">No New Pings!</h1>
-        <ion-item-sliding *ngFor="let ping of pingArray">
+        <!-- TODO Not showing up -->
+        <ion-img *ngIf="(pingArray | async)?.length === 0" src="assets/noping.svg" class="noPingImg"></ion-img>
+        <h1 *ngIf="(pingArray | async)?.length === 0" class="noPingDisplay">No New Pings!</h1>
+        <!-- TODO Not removing after ping replied -->
+        <ion-item-sliding *ngFor="let ping of pingArray | async">
             <ion-item-options side="start">
                 <ion-item-option class="left-swipe-1" (click)="replyPing($event, ping.id, ping.userSentId)">
                     <ion-icon name="send"></ion-icon>
@@ -25,7 +27,7 @@
             </ion-item-options>
             <ion-item>
                 <ion-avatar slot="start">
-                    <img src="{{ping.userSentImg}}">
+                    <img src="{{ping.userSentImg | async}}">
                 </ion-avatar>
                 <ion-label>
                     <h2>{{ping.recMessage}}</h2>

@@ -5,6 +5,8 @@ import {ReplypopoverComponent} from './replypopover/replypopover.component';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {NewPingPage} from './new-ping/new-ping.page';
+import {forkJoin, Observable} from 'rxjs';
+import {mergeMap} from 'rxjs/operators';
 
 export interface Ping {
     id: any;
@@ -25,54 +27,41 @@ export interface Ping {
 
 export class CircledashPage implements OnInit {
     currentUser: AngularFirestoreDocument;
-    pingArray: Array<Ping>;
+    pingArray: Observable<any>;
 
 
     // tslint:disable-next-line:max-line-length
     constructor(private alertController: AlertController, private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController,
                 private toastController: ToastController, private storage: AngularFireStorage, private auth: AngularFireAuth) {
-        this.pingArray = [];
-        this.firestore.collection('pings', ref => ref.where('userRec', '==',
-            this.firestore.doc('/users/' + this.auth.auth.currentUser.uid).ref).orderBy('timeStamp', 'desc'))
-            .snapshotChanges().subscribe(res => {
-            if (res !== null) {
-                this.renderPings(res);
-                this.pingArray = [];
-            }
-        });
     }
 
     ngOnInit() {
-
+        this.pingArray = this.firestore.collection('pings', ref => ref.where('userRec', '==',
+            this.firestore.doc('/users/' + this.auth.auth.currentUser.uid).ref).orderBy('timeStamp','desc'))
+            .snapshotChanges().pipe(mergeMap(querySnap =>
+                forkJoin(querySnap.map(doc => {
+                    const data = doc.payload.doc;
+                    return data.get('userSent').get().then(val => {
+                        return {
+                            id: data.id,
+                            sentMessage: data.get('sentMessage'),
+                            recMessage: data.get('responseMessage'),
+                            userSentId: data.get('userSent').id,
+                            userSentImg: this.getImage(val.get('profilepic')),
+                            userSent: val.get('name'),
+                        };
+                    });
+                }))));
     }
 
-    async renderPings(pings: any) {
-        await Promise.all(pings.map(ping => {
-            const pingId = ping.payload.doc.id;
-            const pingdata = ping.payload.doc;
-            pingdata.get('userSent').get().then(userdata => {
-                const ud = userdata.data();
-                let imgUrl = '';
-                if (ud.profilepic.startsWith('h')) {
-                    imgUrl = ud.profilepic;
-                } else {
-                    this.storage.storage.refFromURL(ud.profilepic).getDownloadURL().then(url => {
-                        imgUrl = 'url(' + url + ')';
-                    });
-                }
-                const pingObject: Ping = {
-                    id: pingId,
-                    userSentId: userdata.id,
-                    userSentImg: imgUrl,
-                    userSent: ud.name,
-                    sentMessage: pingdata.sentMessage,
-                    recMessage: pingdata.responseMessage
-                };
-                this.pingArray.push(pingObject);
-            }).catch(e => {
-                console.log(e);
-            });
-        }));
+    async getImage(profilePic: string) {
+        if (profilePic.startsWith('h')) {
+            return profilePic;
+        } else {
+            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
+                return url;
+            }).catch((e) => console.log(e));
+        }
     }
 
     async presentAlert(message: string, header: string) {
@@ -104,7 +93,6 @@ export class CircledashPage implements OnInit {
             event: ev,
             componentProps: {
                 pingId: id,
-                fs: this.firestore,
                 userSent: us
             },
         });
