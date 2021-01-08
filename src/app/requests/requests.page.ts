@@ -1,11 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {Link} from '../tab3/tab3.page';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {ModalController} from '@ionic/angular';
 import {forkJoin, Observable} from 'rxjs';
-import {map, mergeMap} from 'rxjs/operators';
+import {mergeMap} from 'rxjs/operators';
 
 @Component({
     selector: 'app-requests',

@@ -246,6 +246,9 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                                 this.closeModal();
                             })
                         }
+                    }else{
+                        this.presentToast('Event Created!');
+                        this.closeModal();
                     }
                 });
             }

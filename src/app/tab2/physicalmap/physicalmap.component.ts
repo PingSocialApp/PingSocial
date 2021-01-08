@@ -251,6 +251,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
         this.eventSub = events.subscribe(eventData => {
+            console.log(eventData);
             eventData.map((event) => {
                 this.renderEvent(event.payload.doc);
             });

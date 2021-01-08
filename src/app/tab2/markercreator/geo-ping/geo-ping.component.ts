@@ -188,6 +188,9 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
                         this.presentToast(err);
                     });
                 }
+            }else{
+                this.presentToast('Ping Made!');
+                this.closeModal();
             }
         }).catch(err => {
             this.presentToast(err);
