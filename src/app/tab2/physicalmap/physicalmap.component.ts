@@ -65,6 +65,25 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     }
 
+
+    ngAfterViewInit() {
+        this.geo.getCurrentPosition().then((resp) => {
+            this.buildMap(resp.coords);
+            // resp.coords.latitude
+            // resp.coords.longitude
+        }).then(() => {
+            this.map.on('load', () => {
+                this.renderCurrent();
+                this.renderLinks();
+                this.presentCurrentLocation();
+                this.presentEvents();
+                this.presentGeoPing();
+            });
+        }).catch((error) => {
+            console.log('Error getting location', error);
+        });
+    }
+
     ngOnDestroy() {
         this.geoSub.unsubscribe();
         this.linksSub.unsubscribe();
@@ -251,7 +270,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
         this.eventSub = events.subscribe(eventData => {
-            console.log(eventData);
             eventData.map((event) => {
                 this.renderEvent(event.payload.doc);
             });
@@ -274,6 +292,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.geopingSub = pings.subscribe(eventData => {
             eventData.map((event) => {
+                // TODO Remove Deleted event
                 this.renderPings(event.payload.doc);
             });
         });
@@ -332,8 +351,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
-        if (!!document.querySelector('#' + el.id)) {
-            document.querySelector('#' + el.id).remove();
+        if (!!document.getElementById(el.id)) {
+            document.getElementById(el.id).remove();
         }
         // @ts-ignore
         if (eventInfo.type === 'party') {
@@ -396,24 +415,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         el.id = 'currentLocation';
         this.currentLocationMarker = new mapboxgl.Marker(el);
-    }
-
-    ngAfterViewInit() {
-        this.geo.getCurrentPosition().then((resp) => {
-            this.buildMap(resp.coords);
-            // resp.coords.latitude
-            // resp.coords.longitude
-        }).then(() => {
-            this.map.on('load', () => {
-                this.renderCurrent();
-                this.renderLinks();
-                this.presentCurrentLocation();
-                this.presentEvents();
-                this.presentGeoPing();
-            });
-        }).catch((error) => {
-            console.log('Error getting location', error);
-        });
     }
 
     buildMap(coords: Coordinates) {

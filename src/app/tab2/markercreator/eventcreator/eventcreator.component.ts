@@ -83,7 +83,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
            this.afs.collection('events').doc(this.eventID).get().pipe(first()).subscribe((ref) => {
             const data = ref.data();
             (document.getElementById('startTime') as HTMLInputElement).value = data.startTime.toDate().toISOString();
-            // TODO Add one hour
             (document.getElementById('endTime') as HTMLInputElement).value = data.endTime.toDate().toISOString();
             this.eventName = data.name;
             this.eventCreator = data.creator.id;

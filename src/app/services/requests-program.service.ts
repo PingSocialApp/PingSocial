@@ -25,30 +25,37 @@ export class RequestsProgramService {
 
         const otherUserRef = this.afs.collection('users').doc(userId);
 
-        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', true)
+        this.currentUserRef.collection('links', ref => ref
             .where('otherUser', '==', otherUserRef.ref)).get().pipe(first()).subscribe(data => {
             if (!data.empty) {
-                console.log(data.docs);
-                data.docs[0].ref.update({
-                    pendingRequest: false
-                });
+                if(data.docs[0].get('pendingRequest')){
+                    data.docs[0].ref.update({
+                        pendingRequest: false
+                    }).then(val => {
+                       this.presentToast('This member\'s request has been accepted');
+                    });
+                }else{
+                    this.presentToast('This member is already added!');
+                }
             } else {
                 this.currentUserRef.collection('links').add({
                     pendingRequest: false,
                     otherUser: otherUserRef.ref,
-                    linkPermissions: 0
+                    linkPermissions: optionsData
                 }).then((d) => {
                     this.presentToast('Sent Request!');
                 });
             }
         });
 
-        otherUserRef.collection('links', ref => ref.where('pendingRequest', '==', true)
+        otherUserRef.collection('links', ref => ref
             .where('otherUser', '==', this.currentUserRef.ref)).get().pipe(first()).subscribe(data => {
             if (!data.empty) {
-                data.docs[0].ref.update({
-                    pendingRequest: false
-                });
+                if(data.docs[0].get('pendingRequest')) {
+                    this.presentToast('Waiting for member to accept your request');
+                }else{
+                    this.presentToast('This member is already added!');
+                }
             } else {
                 otherUserRef.collection('links').add({
                     pendingRequest: true,
@@ -56,16 +63,15 @@ export class RequestsProgramService {
                     linkPermissions: 0
                 }).then((d) => {
                     this.presentToast('Sent Request!');
+                    this.afs.collection('pings').add({
+                        userSent: this.currentUserRef.ref,
+                        userRec: otherUserRef.ref,
+                        sentMessage: '',
+                        responseMessage: 'New Link Created!',
+                        timeStamp: firestore.FieldValue.serverTimestamp()
+                    });
                 });
             }
-        });
-
-        this.afs.collection('pings').add({
-            userSent: this.currentUserRef.ref,
-            userRec: otherUserRef.ref,
-            sentMessage: '',
-            responseMessage: 'New Link Created!',
-            timeStamp: firestore.FieldValue.serverTimestamp()
         });
     }
 

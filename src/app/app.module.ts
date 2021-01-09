@@ -29,7 +29,7 @@ import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
         FCM,
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy,
         },
-        // TODO Remove in production
+       // TODO Remove in production
         {
             provide: FIRESTORE_SETTINGS,
             useValue: environment.production ? undefined : {
@@ -46,7 +46,7 @@ import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
         {
             provide: DATABASE_URL,
             useValue: !environment.production ? `http://localhost:9000?ns=${environment.firebase.projectId}` : undefined
-        },
+        }
     ],
     bootstrap: [AppComponent],
 })

@@ -101,7 +101,6 @@ export class CircledashPage implements OnInit {
 
     deletePing(id: any) {
         this.firestore.collection('pings').doc(id).delete().then(() => {
-            console.log('Document successfully deleted!');
             this.presentToast('Ping Successfully Deleted!');
         }).catch((error) => {
             console.error('Error removing document: ', error);
