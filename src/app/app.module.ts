@@ -30,23 +30,23 @@ import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy,
         },
        // TODO Remove in production
-        {
-            provide: FIRESTORE_SETTINGS,
-            useValue: environment.production ? undefined : {
-                host: 'localhost:8080',
-                ssl: false
-            }
-        },
-        {
-            provide: FUNCTIONS_ORIGIN,
-            useValue: environment.production ? undefined : {
-                host: 'localhost:5001',
-            }
-        },
-        {
-            provide: DATABASE_URL,
-            useValue: !environment.production ? `http://localhost:9000?ns=${environment.firebase.projectId}` : undefined
-        }
+       //  {
+       //      provide: FIRESTORE_SETTINGS,
+       //      useValue: environment.production ? undefined : {
+       //          host: 'localhost:8080',
+       //          ssl: false
+       //      }
+       //  },
+       //  {
+       //      provide: FUNCTIONS_ORIGIN,
+       //      useValue: environment.production ? undefined : {
+       //          host: 'localhost:5001',
+       //      }
+       //  },
+       //  {
+       //      provide: DATABASE_URL,
+       //      useValue: !environment.production ? `http://localhost:9000?ns=${environment.firebase.projectId}` : undefined
+       //  }
     ],
     bootstrap: [AppComponent],
 })
