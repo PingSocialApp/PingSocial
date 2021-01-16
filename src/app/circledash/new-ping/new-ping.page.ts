@@ -4,13 +4,8 @@ import {ModalController, ToastController} from '@ionic/angular';
 import {firestore} from 'firebase/app';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFireAuth} from '@angular/fire/auth';
-
-export interface Link {
-    id: string;
-    img: string;
-    name: string;
-    bio: string;
-}
+import {map, mergeMap} from 'rxjs/operators';
+import {forkJoin, Observable} from 'rxjs';
 
 @Component({
     selector: 'app-new-ping',
@@ -21,20 +16,28 @@ export interface Link {
 
 export class NewPingPage implements OnInit {
     currentUserRef: AngularFirestoreDocument;
-    links: Array<Link>;
+    links: Observable<any>;
     pingMessage: string;
 
     constructor(private fs: AngularFirestore, private auth: AngularFireAuth, private modalCtrl: ModalController,
                 private toastController: ToastController, private storage: AngularFireStorage) {
         this.currentUserRef = this.fs.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.links = [];
-        this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get().subscribe(res => {
-            this.links = [];
-            this.renderLink(res.docs);
-        });
     }
 
     ngOnInit() {
+        this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
+            .pipe(mergeMap(querySnap => forkJoin(
+                querySnap.docs.map(doc => doc.get('otherUser').get())
+            )), map((val: any) => {
+                return val.map(userData => {
+                    return {
+                        id: userData.id,
+                        img: this.getImage(userData.get('profilepic')),
+                        name: userData.get('name'),
+                        bio: userData.get('bio')
+                    };
+                });
+            }));
     }
 
     sendPing() {
@@ -59,30 +62,17 @@ export class NewPingPage implements OnInit {
         this.closeModal();
     }
 
-    async renderLink(linkData: Array<any>) {
-        await Promise.all(linkData.map(link => {
-            link.get('otherUser').get().then(USdata => {
-                const linkObject: Link = {
-                    id: USdata.id,
-                    img: '',
-                    name: USdata.get('name'),
-                    bio: USdata.get('bio')
-                };
-                if (USdata.get('profilepic').startsWith('h')) {
-                    linkObject.img = USdata.get('profilepic');
-                } else {
-                    this.storage.storage.refFromURL(USdata.get('profilepic')).getDownloadURL().then(url => {
-                        linkObject.img = url;
-                    }).catch((e) => console.log(e));
-                }
-                this.links.push(linkObject);
-            });
-        }));
+    async getImage(profilePic: string) {
+        if (profilePic.startsWith('h')) {
+            return profilePic;
+        } else {
+            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
+                return url;
+            }).catch((e) => console.log(e));
+        }
     }
 
     closeModal() {
-        // using the injected ModalController this page
-        // can "dismiss" itself and optionally pass back data
         this.modalCtrl.dismiss({
             dismissed: true
         });

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument, DocumentReference} from '@angular/fire/firestore';
 import {RequestsProgramService} from '../services/requests-program.service';
@@ -8,6 +8,8 @@ import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {environment} from '../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
+import {first} from 'rxjs/operators';
+import {Subscription} from 'rxjs';
 
 @Component({
     selector: 'app-userprofile',
@@ -15,42 +17,21 @@ import * as mapboxgl from 'mapbox-gl';
     styleUrls: ['./userprofile.page.scss'],
     providers: [RequestsProgramService, AngularFireStorage, AngularFireAuth, AngularFireDatabase]
 })
-export class UserprofilePage implements OnInit {
+export class UserprofilePage implements OnInit, OnDestroy {
     currCode: number;
     userRef: AngularFirestoreDocument;
     linkDoc: DocumentReference;
     userId: string;
     userName: string;
     userBio: string;
+    userImg: string;
     displayTF: boolean;
     theirInfo: boolean;
     myInfo: boolean;
-    img: string;
-    userPhone: string;
-    userInstagram: string;
-    userFacebook: string;
-    userLinkedin: string;
-    userProfessionalEmail: string;
-    userTiktok: string;
-    userPersonalEmail: string;
-    userTwitter: string;
-    userWebsite: string;
-    userVenmo: string;
-    userSnapchat: string;
-    phone: boolean;
-    email: boolean;
-    instagram: boolean;
-    snapchat: boolean;
-    facebook: boolean;
-    tiktok: boolean;
-    twitter: boolean;
-    venmo: boolean;
-    linkedin: boolean;
-    professionalemail: boolean;
-    website: boolean;
-    location: boolean;
-    userLocation = '';
     private currentUserRef: AngularFirestoreDocument<unknown>;
+    permissions: boolean[];
+    socials: string [];
+    private userSocialsSub: Subscription;
 
     constructor(private actionSheet: ActionSheetController, private modalController: ModalController,
                 private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute,
@@ -61,22 +42,7 @@ export class UserprofilePage implements OnInit {
         this.userId = this.acr.snapshot.params.id;
         this.userRef = this.firestore.collection('users').doc(this.userId);
         this.currentUserRef = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.userLocation = 'Loading';
-        this.userRef.get()
-            .subscribe(res => {
-                // @ts-ignore
-                const userData = res.data();
-                this.userName = userData.name;
-                this.userBio = userData.bio;
-
-                if (userData.profilepic.startsWith('h')) {
-                    this.img = userData.profilepic;
-                } else {
-                    this.storage.storage.refFromURL(userData.profilepic).getDownloadURL().then(url => {
-                        this.img = url;
-                    });
-                }
-            });
+        this.socials = new Array(12);
     }
 
     async ngOnInit() {
@@ -85,15 +51,38 @@ export class UserprofilePage implements OnInit {
         isModalOpened ? this.closeModal() : null;
         this.getMyData();
         this.getOtherData();
+
+        this.userRef.get().pipe(first())
+            .subscribe(async res => {
+                // @ts-ignore
+                const userData = res.data();
+                this.userName = userData.name;
+                this.userBio = userData.bio;
+                this.userImg = await this.getImage(userData.profilepic);
+            });
+    }
+
+    ngOnDestroy(){
+        this.userSocialsSub.unsubscribe();
+    }
+
+    async getImage(profilePic: string) {
+        if (profilePic.startsWith('h')) {
+            return profilePic;
+        } else {
+            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
+                return url;
+            }).catch((e) => console.log(e));
+        }
     }
 
     getMyData(){
         this.currentUserRef.collection('links', ref => ref
             .where('otherUser', '==', this.userRef.ref)
-            .where('pendingRequest', '==', false)).get().subscribe(res => {
+            .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(res => {
             if (!res.empty) {
                 this.linkDoc = res.docs[0].ref;
-                this.renderMyPermissions(res.docs[0].data());
+                this.permissions = this.getPermission(res.docs[0].get('linkPermissions'));
                 this.myInfo = true;
             } else {
                 this.myInfo = false;
@@ -102,12 +91,13 @@ export class UserprofilePage implements OnInit {
     }
 
     getOtherData(){
-        this.userRef.collection('links', ref => ref
+        this.userSocialsSub = this.userRef.collection('links', ref => ref
             .where('otherUser', '==', this.currentUserRef.ref).where('pendingRequest', '==', false)
-        ).snapshotChanges().subscribe(linkeData => {
-            if (linkeData.length !== 0) {
-                this.firestore.collection('socials').doc(this.userId).valueChanges().subscribe(res => {
-                    this.renderUserPermissions(res, linkeData[0].payload.doc.get('linkPermissions'));
+        ).valueChanges().subscribe(linkData => {
+            if (linkData.length !== 0) {
+                this.firestore.collection('socials').doc(this.userId).valueChanges().
+                subscribe(res => {
+                    this.renderUserPermissions(res, linkData[0].linkPermissions);
                     this.theirInfo = true;
                 });
             } else {
@@ -120,41 +110,31 @@ export class UserprofilePage implements OnInit {
         this.displayTF = ev.detail.value === 'tf';
     }
 
+    // TODO check if request exists
     createRequest(id: string) {
         this.rps.sendRequest(id, 2047);
     }
 
-    renderUserPermissions(userData: any, userPermissions: any) {
+    async renderUserPermissions(userData: any, userPermissions: any) {
         const permissions = this.getPermission(userPermissions);
-
-        this.userPhone = permissions[1] ? userData.numberID.replace('(', '').replace(')', '')
-            .replace('-', '').replace(' ', '') : '';
-        this.userPersonalEmail = permissions[2] ? userData.personalEmailID : '';
-        this.userInstagram = permissions[3] ? userData.instagramID : '';
-        this.userSnapchat = permissions[4] ? userData.snapchatID : '';
-        this.userFacebook = permissions[5] ? userData.facebookID : '';
-        this.userTiktok = permissions[6] ? userData.tiktokID : '';
-        this.userTwitter = permissions[7] ? userData.twitterID : '';
-        this.userVenmo = permissions[8] ? userData.venmoID : '';
-        this.userLinkedin = permissions[9] ? userData.linkedinID : '';
-        this.userProfessionalEmail = permissions[10] ? userData.professionalEmailID : '';
-        let website;
-        if (!((userData.websiteID.includes('http://')) || (userData.websiteID.includes('https://')) || userData.websiteID.length <= 0)) {
-            website = 'http://' + userData.websiteID;
-        } else {
-            website = userData.websiteID;
+        this.socials = Object.values(userData);
+        this.socials.push('');
+        for (let i = 0; i < this.socials.length; i++) {
+            this.socials[i] = permissions[i] ? this.socials[i] : '';
         }
-        this.userWebsite = permissions[11] ? website : '';
-        this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
+
+        this.socials[0] = this.socials[0].replace('(', '').replace(')', '')
+            .replace('-', '').replace(' ', '');
+
+        this.socials[4] = !((this.socials[4].includes('http://')) || (this.socials[4].includes('https://')) || this.socials[4].length <= 0) ?
+            'http://' + this.socials[4] : this.socials[4];
+
+        await this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
             if (snapshot.val()) {
                 // get other users longitude, latitude, and lastOnline vals
                 const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
-
-                const currTime = Date.now();
-                const lastOn = snapshot.val().lastOnline;
-                const oStat = this.convertTime(currTime - lastOn);
-
-                this.userLocation = permissions[0] ? locat + ' ' + oStat : '';
+                const oStat = this.convertTime(Date.now() - snapshot.val().lastOnline);
+                this.socials[11] = permissions[0] ? locat + ' ' + oStat : '';
             }
         });
     }
@@ -175,22 +155,6 @@ export class UserprofilePage implements OnInit {
         } else {
             return 'Just Now';
         }
-    }
-
-    renderMyPermissions(myData: any) {
-        const permissions = this.getPermission(myData.linkPermissions);
-        this.location = permissions[0];
-        this.phone = permissions[1];
-        this.email = permissions[2];
-        this.instagram = permissions[3];
-        this.snapchat = permissions[4];
-        this.facebook = permissions[5];
-        this.tiktok = permissions[6];
-        this.twitter = permissions[7];
-        this.venmo = permissions[8];
-        this.linkedin = permissions[9];
-        this.professionalemail = permissions[10];
-        this.website = permissions[11];
     }
 
     getPermission(value: any) {
@@ -214,32 +178,12 @@ export class UserprofilePage implements OnInit {
     }
 
     changePermissions() {
-        // tslint:disable-next-line:no-bitwise
-        const locationVal = +!!this.location << 11;
-        // tslint:disable-next-line:no-bitwise
-        const phoneVal = +!!this.phone << 10;
-        // tslint:disable-next-line:no-bitwise
-        const emailVal = +!!this.email << 9;
-        // tslint:disable-next-line:no-bitwise
-        const instagramVal = +!!this.instagram << 8;
-        // tslint:disable-next-line:no-bitwise
-        const snapVal = +!!this.snapchat << 7;
-        // tslint:disable-next-line:no-bitwise
-        const facebookVal = +!!this.facebook << 6;
-        // tslint:disable-next-line:no-bitwise
-        const tiktokVal = +!!this.tiktok << 5;
-        // tslint:disable-next-line:no-bitwise
-        const twitterVal = +!!this.twitter << 4;
-        // tslint:disable-next-line:no-bitwise
-        const venmoVal = +!!this.venmo << 3;
-        // tslint:disable-next-line:no-bitwise
-        const linkedinVal = +!!this.linkedin << 2;
-        // tslint:disable-next-line:no-bitwise
-        const proemailVal = +!!this.professionalemail << 1;
-        // tslint:disable-next-line:no-bitwise
-        const websiteVal = +!!this.website << 0;
-        // tslint:disable-next-line:no-bitwise max-line-length
-        const code = phoneVal | emailVal | instagramVal | snapVal | facebookVal | tiktokVal | twitterVal | venmoVal | linkedinVal | proemailVal | websiteVal | locationVal;
+        let code = 0;
+        for(let i = 0; i < this.permissions.length; i++){
+            // tslint:disable-next-line:no-bitwise
+            code |= +!!this.permissions[i] << (11-i);
+        }
+
         this.firestore.doc(this.linkDoc).update({
             linkPermissions: code
         }).then(async value => {
@@ -258,18 +202,18 @@ export class UserprofilePage implements OnInit {
 
     async presentActionSheet() {
         const actionSheet = await this.actionSheet.create({
-            header: this.userPhone,
+            header: this.socials[0],
             buttons: [{
                 text: 'Call',
                 icon: 'call',
                 handler: () => {
-                    window.open('tel:' + this.userPhone);
+                    window.open('tel:' + this.socials[0]);
                 }
             }, {
                 text: 'Text/SMS',
                 icon: 'chatbubble',
                 handler: () => {
-                    window.open('sms:' + this.userPhone);
+                    window.open('sms:' + this.socials[0]);
                 }
             }, {
                 text: 'Cancel',
@@ -283,7 +227,7 @@ export class UserprofilePage implements OnInit {
     async showLocation() {
         const alert = await this.alertController.create({
             header: this.userName + ' is at ',
-            subHeader: this.userLocation,
+            subHeader: this.socials[11],
             buttons: ['OK']
         });
         await alert.present();

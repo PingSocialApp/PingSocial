@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ModalController, Platform} from '@ionic/angular';
 import {PhysicalmapComponent} from './physicalmap/physicalmap.component';
 import {AngularFireAuth} from '@angular/fire/auth';
@@ -10,6 +10,7 @@ import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {FCM} from '@ionic-native/fcm/ngx';
+import {Subscription} from 'rxjs';
 
 @Component({
     selector: 'app-tab2',
@@ -18,10 +19,11 @@ import {FCM} from '@ionic-native/fcm/ngx';
     providers: [AngularFireDatabase, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore, PhysicalmapComponent]
 })
 
-export class Tab2Page implements OnInit {
+export class Tab2Page implements OnInit, OnDestroy {
     currentUserId: string;
     currentUserRef: any;
     unreadPings: number;
+    private unreadPingSub: Subscription;
 
     constructor(private pm: PhysicalmapComponent, private platform: Platform, private firestore: AngularFirestore, private auth: AngularFireAuth,
                 private geo: Geolocation, private modalController: ModalController, private fcm: FCM) {
@@ -32,7 +34,7 @@ export class Tab2Page implements OnInit {
     }
 
     ngOnInit(): void {
-        this.firestore.collection('pings', ref => ref.where('userRec', '==', this.currentUserRef.ref)
+        this.unreadPingSub = this.firestore.collection('pings', ref => ref.where('userRec', '==', this.currentUserRef.ref)
         ).valueChanges().subscribe(res => {
             if (res !== null) {
                 this.unreadPings = res.length;
@@ -46,6 +48,10 @@ export class Tab2Page implements OnInit {
                 });
             });
         }
+    }
+
+    ngOnDestroy() {
+        this.unreadPingSub.unsubscribe();
     }
 
     async presentQRModal() {

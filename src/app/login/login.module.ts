@@ -5,9 +5,7 @@ import {IonicModule} from '@ionic/angular';
 import {LoginPageRoutingModule} from './login-routing.module';
 import {LoginPage} from './login.page';
 // tslint:disable-next-line:import-spacing
-import {AngularFireModule} from '@angular/fire';
 import {AngularFireAuthModule} from '@angular/fire/auth';
-import {environment} from '../../environments/environment';
 import {RouterModule} from '@angular/router';
 
 @NgModule({
@@ -17,7 +15,6 @@ import {RouterModule} from '@angular/router';
         IonicModule,
         LoginPageRoutingModule,
         RouterModule,
-        AngularFireModule.initializeApp(environment.firebase),
         AngularFireAuthModule,
     ],
     declarations: [LoginPage],

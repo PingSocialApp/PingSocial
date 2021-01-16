@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import {IonSearchbar, ModalController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../../environments/environment';
@@ -6,17 +6,18 @@ import * as mapboxgl from 'mapbox-gl';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {merge} from 'rxjs';
+import {merge, Subscription} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {MarkercreatorPage} from '../markercreator/markercreator.page';
 import {firestore} from 'firebase/app';
+import {first} from 'rxjs/operators';
 
 @Component({
     selector: 'app-physicalmap',
     templateUrl: './physicalmap.component.html',
     styleUrls: ['./physicalmap.component.scss'],
 })
-export class PhysicalmapComponent implements OnInit, AfterViewInit {
+export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     showPing: boolean;
     currentUserId: string;
     currentUserRef: any;
@@ -43,6 +44,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     pingImg: any;
     pingAuthor: string;
     pingDate: string;
+    private geoSub: Subscription;
+    private linksSub: Subscription;
+    private eventSub: Subscription;
+    private geopingSub: Subscription;
+    private cus: Subscription;
 
     constructor(private rtdb: AngularFireDatabase, private afs: AngularFirestore, private auth: AngularFireAuth,
                 private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController,) {
@@ -59,20 +65,46 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
 
     }
 
+
+    ngAfterViewInit() {
+        this.geo.getCurrentPosition().then((resp) => {
+            this.buildMap(resp.coords);
+            // resp.coords.latitude
+            // resp.coords.longitude
+        }).then(() => {
+            this.map.on('load', () => {
+                this.renderCurrent();
+                this.renderLinks();
+                this.presentCurrentLocation();
+                this.presentEvents();
+                this.presentGeoPing();
+            });
+        }).catch((error) => {
+            console.log('Error getting location', error);
+        });
+    }
+
+    ngOnDestroy() {
+        this.geoSub.unsubscribe();
+        this.linksSub.unsubscribe();
+        this.eventSub.unsubscribe();
+        this.geopingSub.unsubscribe();
+        this.cus.unsubscribe();
+    }
+
     renderCurrent() {
         const watch = this.geo.watchPosition({
             enableHighAccuracy: true,
         });
 
-        // references
-        const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
-        this.updateStatus(locationRef);
 
         // update current user location
-        watch.subscribe((data) => {
+        this.geoSub = watch.subscribe((data) => {
             const lng = data.coords.longitude;
             const lat = data.coords.latitude;
 
+            const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
+            this.updateStatus(locationRef);
             this.updateLocation(locationRef, lng, lat);
 
             // use api to get location
@@ -87,7 +119,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
     }
 
     renderLinks() {
-        this.afs.collectionGroup('links',
+        this.linksSub = this.afs.collectionGroup('links',
             ref => ref.where('otherUser', '==', this.currentUserRef.ref)
                 .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
             this.allUserMarkers.forEach(tempMarker => {
@@ -99,8 +131,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
                 otherId = doc.payload.doc.ref.parent.parent.id;
                 // console.log(otherId);
                 otherRef = this.rtdb.database.ref('/location/' + otherId);
-                // TODO Unsubscribe from all get
-                this.afs.doc('/users/' + otherId).get().subscribe(oUserDoc => {
+                this.afs.doc('/users/' + otherId).get().pipe(first()).subscribe(oUserDoc => {
                     // get other user name and profile pic
                     oName = oUserDoc.get('name');
                     const oUrl = oUserDoc.get('profilepic');
@@ -238,7 +269,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
 
-        events.subscribe(eventData => {
+        this.eventSub = events.subscribe(eventData => {
             eventData.map((event) => {
                 this.renderEvent(event.payload.doc);
             });
@@ -259,8 +290,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         const pings = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
 
-        pings.subscribe(eventData => {
+        this.geopingSub = pings.subscribe(eventData => {
             eventData.map((event) => {
+                // TODO Remove Deleted event
                 this.renderPings(event.payload.doc);
             });
         });
@@ -314,13 +346,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
         this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-            .where('pendingRequest', '==', false)).get().subscribe(val => {
+            .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
                 el.setAttribute('data-link', val.empty ? 'false' : 'true');
         });
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
-        if (!!document.querySelector('#' + el.id)) {
-            document.querySelector('#' + el.id).remove();
+        if (!!document.getElementById(el.id)) {
+            document.getElementById(el.id).remove();
         }
         // @ts-ignore
         if (eventInfo.type === 'party') {
@@ -330,7 +362,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         } else {
             el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
         }
-        const startTime = new Date(eventInfo.startTime);
+        const startTime = eventInfo.startTime.toDate();
+        // console.log(startTime);
         let minutes = startTime.getMinutes() < 10 ? '0' : '';
         minutes += startTime.getMinutes();
 
@@ -360,13 +393,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         const el = this.createMarker();
         el.style.width = '30px';
         el.style.height = '30px';
-        this.currentUserRef.snapshotChanges().subscribe(ref => {
+        this.cus = this.currentUserRef.valueChanges().subscribe(ref => {
             if (ref !== null) {
-                const data = ref.payload;
-                if (data.get('profilepic').startsWith('h')) {
-                    el.style.backgroundImage = 'url(' + data.get('profilepic') + ')';
+                if (ref.profilepic.startsWith('h')) {
+                    el.style.backgroundImage = 'url(' + ref.profilepic + ')';
                 } else {
-                    this.storage.storage.refFromURL(data.get('profilepic')).getDownloadURL().then(url => {
+                    this.storage.storage.refFromURL(ref.profilepic).getDownloadURL().then(url => {
                         el.style.backgroundImage = 'url(' + url + ')';
                     });
                 }
@@ -374,7 +406,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
                     this.showPing = false;
-                    this.otherUserName = data.get('name');
+                    this.otherUserName = ref.name;
                     this.otherUserStatus = 'Online';
                     this.otherUserId = 'currentLocation';
                     this.otherUserLocation = 'Here';
@@ -383,24 +415,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         });
         el.id = 'currentLocation';
         this.currentLocationMarker = new mapboxgl.Marker(el);
-    }
-
-    ngAfterViewInit() {
-        this.geo.getCurrentPosition().then((resp) => {
-            this.buildMap(resp.coords);
-            // resp.coords.latitude
-            // resp.coords.longitude
-        }).then(() => {
-            this.map.on('load', () => {
-                this.renderCurrent();
-                this.renderLinks();
-                this.presentCurrentLocation();
-                this.presentEvents();
-                this.presentGeoPing();
-            });
-        }).catch((error) => {
-            console.log('Error getting location', error);
-        });
     }
 
     buildMap(coords: Coordinates) {
@@ -421,6 +435,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
         this.showFilter = !this.showFilter;
         if (!this.showFilter) {
             const elements = document.getElementsByClassName('mapboxgl-marker');
+            // tslint:disable-next-line:prefer-for-of
             for (let i = 0; i < elements.length; i++) {
                 (elements[i] as HTMLElement).style.display = 'block';
             }
@@ -429,6 +444,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit {
 
     filterMarkers() {
         const elements = document.getElementsByClassName('mapboxgl-marker');
+        // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < elements.length; i++) {
             (elements[i] as HTMLElement).style.display = 'block';
             if (elements[i].id === 'currentLocation') {

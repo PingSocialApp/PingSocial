@@ -5,6 +5,7 @@ import {Router} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {UpdateProfileService} from '../services/update-profile.service';
+import {first} from 'rxjs/operators';
 
 @Component({
     selector: 'app-settings',
@@ -31,7 +32,7 @@ export class SettingsPage implements OnInit {
     }
 
     ngOnInit() {
-        this.currentUserRef.get()
+        this.currentUserRef.get().pipe(first())
             .subscribe(res => {
                 this.currentUserBasic = res.data();
                 if (this.currentUserBasic.profilepic.startsWith('h')) {
@@ -42,10 +43,10 @@ export class SettingsPage implements OnInit {
                     });
                 }
             });
-        this.firestore.collection('socials').doc(this.currentUserId).get().subscribe(res => {
+        this.firestore.collection('socials').doc(this.currentUserId).get().pipe(first()).subscribe(res => {
             this.currentUser = res.data();
         });
-        this.firestore.collection('preferences').doc(this.currentUserId).get().subscribe(res => {
+        this.firestore.collection('preferences').doc(this.currentUserId).get().pipe(first()).subscribe(res => {
             this.myValues = res.get('valueTraits');
             this.myInterests = res.get('preferences');
         });
