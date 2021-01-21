@@ -22,6 +22,7 @@ export class EventmanagerPage implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        // TODO Check to Pipe
         this.eventsSub = this.firestore.collection('events', ref => ref.where('creator', '==',
             this.firestore.collection('users').doc(this.acr.snapshot.params.id).ref).orderBy('startTime', 'asc'))
             .snapshotChanges().subscribe(val => {

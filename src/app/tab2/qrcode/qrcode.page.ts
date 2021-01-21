@@ -3,7 +3,7 @@ import {RequestsProgramService} from '../../services/requests-program.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {AlertController, ToastController} from '@ionic/angular';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
 import {SocialSharing} from '@ionic-native/social-sharing/ngx'
 import {first} from 'rxjs/operators';
@@ -37,7 +37,8 @@ export class QrcodePage implements OnInit {
     displayScan: boolean;
     location = true;
 
-    constructor(private socialSharing: SocialSharing, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner,
+    constructor(private modalController: ModalController,
+    private socialSharing: SocialSharing, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner,
                 private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController,
                 public rs: RequestsProgramService) {
         this.userId = this.auth.auth.currentUser.uid;
@@ -163,5 +164,9 @@ export class QrcodePage implements OnInit {
             files: ['https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + this.qrData]
         }
         this.socialSharing.shareWithOptions(options);
+    }
+
+    closeModal() {
+        this.modalController.dismiss();
     }
 }

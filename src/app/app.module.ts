@@ -13,7 +13,6 @@ import {FCM} from '@ionic-native/fcm/ngx';
 import {ORIGIN as FUNCTIONS_ORIGIN} from '@angular/fire/functions';
 import { URL as DATABASE_URL } from '@angular/fire/database';
 import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
-// import {AngularFireAnalyticsModule, ScreenTrackingService, UserTrackingService} from '@angular/fire/analytics';
 
 @NgModule({
     declarations: [AppComponent],
@@ -24,8 +23,6 @@ import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
         StatusBar,
         SplashScreen,
         AngularFirestore,
-        // ScreenTrackingService,
-        // UserTrackingService,
         FCM,
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy,
         },

@@ -56,6 +56,10 @@ const routes: Routes = [
     path: 'eventmanager/:id',
     canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
     loadChildren: () => import('./eventmanager/eventmanager.module').then( m => m.EventmanagerPageModule)
+  },
+  {
+    path: 'rating',
+    loadChildren: () => import('./rating/rating.module').then( m => m.RatingPageModule)
   }
 ];
 

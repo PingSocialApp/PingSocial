@@ -3,6 +3,9 @@
         <ion-fab-button (click)="presentFilter()" class="filterButton">
             <ion-icon name="funnel"></ion-icon>
         </ion-fab-button>
+        <ion-fab-button [routerLink]="['/eventmanager/', currentUserId]" class="filterButton" style="margin-top: 20%">
+            <ion-icon name="calendar-outline"></ion-icon>
+        </ion-fab-button>
     </ion-fab>
     <ion-card *ngIf="showFilter" id="filterList">
         <ion-card-content>
@@ -72,8 +75,14 @@
         <ion-card-content>
             <ion-card-title>{{currentEventTitle}}</ion-card-title>
             <ion-card-subtitle>{{currentEventDes}}</ion-card-subtitle>
-            <ion-button expand="block" (click)="presentEventCreatorModal(currentEventId)">
+            <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(currentEventId)">
                 <ion-icon name="expand-outline"></ion-icon>
+            </ion-button>
+            <ion-button *ngIf='showCheckIn && checkedIn === null' (click)="checkIn()" style="width: 79%">
+                <ion-icon name="log-in"></ion-icon>
+            </ion-button>
+            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut()" style="width: 79%">
+                <ion-icon name="log-out"></ion-icon>
             </ion-button>
         </ion-card-content>
     </ion-card>

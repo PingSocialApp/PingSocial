@@ -73,7 +73,7 @@ export class RegistrationPage implements OnInit, OnDestroy {
             this.updateProfileService.presentToast('Whoops! Looks like you forgot your name');
             return;
         }
-        this.updateProfileService.updateSettings([''],['']).then(() => {
+        this.updateProfileService.updateSettings().then(() => {
             loading.dismiss();
             this.r.navigate(['']);
         });

@@ -1,9 +1,9 @@
 import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
-import {IonSearchbar, ModalController} from '@ionic/angular';
+import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {Coordinates, Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {merge, Subscription} from 'rxjs';
@@ -11,11 +11,16 @@ import {AngularFireDatabase} from '@angular/fire/database';
 import {MarkercreatorPage} from '../markercreator/markercreator.page';
 import {firestore} from 'firebase/app';
 import {first} from 'rxjs/operators';
+import * as geofire from 'geofirex';
+import * as firebase from 'firebase';
+import {GeoFireClient} from 'geofirex';
+import {RatingPage} from '../../rating/rating.page';
 
 @Component({
     selector: 'app-physicalmap',
     templateUrl: './physicalmap.component.html',
     styleUrls: ['./physicalmap.component.scss'],
+    providers: []
 })
 export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     showPing: boolean;
@@ -38,6 +43,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     otherUserLocation: any;
     otherUserStatus = '';
     otherUserId: string;
+    geofirex: GeoFireClient;
 
     // puts marker on the map with user info
     pingMessage: string;
@@ -49,9 +55,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     private eventSub: Subscription;
     private geopingSub: Subscription;
     private cus: Subscription;
+    showCheckIn: boolean;
+    location: number[];
+    private currentUserData: any;
+    checkedIn: string;
 
-    constructor(private rtdb: AngularFireDatabase, private afs: AngularFirestore, private auth: AngularFireAuth,
-                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController,) {
+    constructor(private rtdb: AngularFireDatabase, private afs: AngularFirestore, private auth: AngularFireAuth, private platform: Platform,
+                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.currentUserId = this.auth.auth.currentUser.uid;
         this.currentUserRef = this.afs.collection('users').doc(this.currentUserId);
@@ -59,12 +69,18 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showEventDetails = false;
         this.showUserDetails = false;
         this.showPing = false;
+        this.geofirex = new geofire.GeoFireClient(firebase);
+        this.checkedIn = null;
     }
 
     ngOnInit() {
-
+        this.afs.collection('eventProfile').doc(this.currentUserId).valueChanges().subscribe(data => {
+            if(data){
+                // @ts-ignore
+                this.checkedIn = data.partyAt === null ? null : data.partyAt.id;
+            }
+        });
     }
-
 
     ngAfterViewInit() {
         this.geo.getCurrentPosition().then((resp) => {
@@ -74,7 +90,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }).then(() => {
             this.map.on('load', () => {
                 this.renderCurrent();
-                this.renderLinks();
+                // this.renderLinks();
                 this.presentCurrentLocation();
                 this.presentEvents();
                 this.presentGeoPing();
@@ -103,9 +119,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             const lng = data.coords.longitude;
             const lat = data.coords.latitude;
 
+            this.location = [lng, lat];
+
             const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
             this.updateStatus(locationRef);
-            this.updateLocation(locationRef, lng, lat);
+            this.updateLocation(locationRef);
 
             // use api to get location
             this.renderUser(this.currentLocationMarker, lng, lat);
@@ -176,6 +194,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             });
         });
     }
+
     renderUser(marker, lng, lat) {
         try {
             marker.setLngLat([lng, lat])
@@ -203,9 +222,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    updateLocation(lRef, long, lat) {
+    updateLocation(lRef) {
         let locat = 'Loading...';
-        const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + long + ',' + lat + '.json?access_token=' +
+        const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + this.location[0] + ',' + this.location[1] + '.json?access_token=' +
             mapboxgl.accessToken;
 
         // get info from api
@@ -228,8 +247,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             }).then(() => {
             // update in database
             lRef.update({
-                longitude: long,
-                latitude: lat,
+                longitude: this.location[0],
+                latitude: this.location[1],
                 place: locat
             });
         });
@@ -259,32 +278,30 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         const nowString = firestore.Timestamp.now();
 
         const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
-            .where('endTime','>=',nowString));
+            .where('endTime', '>=', nowString));
         const query2 = this.afs.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
-            .where('endTime','>=',nowString));
+            .where('endTime', '>=', nowString));
         const query3 = this.afs.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-            .where('endTime','>=',nowString));
-
+            .where('endTime', '>=', nowString));
 
         const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
-
         this.eventSub = events.subscribe(eventData => {
-            eventData.map((event) => {
+            eventData.forEach((event) => {
                 this.renderEvent(event.payload.doc);
             });
         });
     }
 
-    presentGeoPing(){
+    presentGeoPing() {
         const nowString = firestore.Timestamp.now();
 
         const query1 = this.afs.collection('geoping', ref => ref.where('isPrivate', '==', false)
-            .where('timeExpire','>=',nowString));
+            .where('timeExpire', '>=', nowString));
         const query2 = this.afs.collection('geoping', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-            .where('timeExpire','>=',nowString));
+            .where('timeExpire', '>=', nowString));
         const query3 = this.afs.collection('geoping', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-            .where('timeExpire','>=',nowString));
+            .where('timeExpire', '>=', nowString));
 
 
         const pings = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
@@ -293,19 +310,19 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.geopingSub = pings.subscribe(eventData => {
             eventData.map((event) => {
                 // TODO Remove Deleted event
+                console.log(event);
                 this.renderPings(event.payload.doc);
             });
         });
     }
 
-
-    renderPings(doc){
+    renderPings(doc) {
         const pingInfo = doc.data();
         const el = this.createMarker();
 
         el.id = doc.id;
-        if (!!document.querySelector('#' + el.id)) {
-            document.querySelector('#' + el.id).remove();
+        if (!!document.getElementById(el.id)) {
+            document.getElementById(el.id).remove();
         }
 
         pingInfo.userSent.get().then(val => {
@@ -345,10 +362,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
-        this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-            .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
+        if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
+            el.setAttribute('data-link', 'true');
+        } else {
+            this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
+                .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
                 el.setAttribute('data-link', val.empty ? 'false' : 'true');
-        });
+            });
+        }
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
         if (!!document.getElementById(el.id)) {
@@ -374,6 +395,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.currentEventTitle = eventInfo.name;
             this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
             this.currentEventId = el.id;
+            this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
+                eventInfo.position) < 0.025 && startTime < new Date();
         });
         const marker = new mapboxgl.Marker(el);
         try {
@@ -394,6 +417,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         el.style.width = '30px';
         el.style.height = '30px';
         this.cus = this.currentUserRef.valueChanges().subscribe(ref => {
+            this.currentUserData = ref;
+
             if (ref !== null) {
                 if (ref.profilepic.startsWith('h')) {
                     el.style.backgroundImage = 'url(' + ref.profilepic + ')';
@@ -494,4 +519,45 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         return await modal.present();
     }
 
+    async checkIn() {
+        if (this.checkedIn) {
+            await this.checkOut();
+        }
+
+        const batch = this.afs.firestore.batch();
+        const eventRef = this.afs.collection('events').doc(this.currentEventId);
+
+        batch.set(eventRef.collection('attendeesPrivate').doc(this.currentUserId).ref, {
+            rating: null,
+            review: '',
+            timeAttended: firebase.firestore.FieldValue.serverTimestamp(),
+            timeExited: null
+        });
+
+        batch.set(eventRef.collection('attendeesPublic').doc(this.currentUserId).ref, {
+            profilepic: this.currentUserData.profilepic,
+            name: this.currentUserData.name,
+            bio: this.currentUserData.bio
+        });
+
+        batch.update(this.afs.collection('eventProfile').doc(this.currentUserId).ref, {
+            partyAt: this.afs.collection('events').doc(this.currentEventId).ref
+        });
+
+        batch.commit().then(() => {
+            this.checkedIn = this.currentEventId;
+        }).catch(e => console.log(e));
+    }
+
+    async checkOut() {
+        const modal = await this.modalController.create({
+            component: RatingPage,
+            componentProps: {
+                eventID: this.currentEventId,
+                currentUserId: this.currentUserId
+            }
+        });
+        await modal.present();
+        return modal.onDidDismiss();
+    }
 }

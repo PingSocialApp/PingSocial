@@ -23,6 +23,7 @@
     "@ionic-native/barcode-scanner": "^5.23.0",
     "@ionic-native/calendar": "^5.27.0",
     "@ionic-native/core": "^5.27.0",
+    "@ionic-native/diagnostic": "^5.30.0",
     "@ionic-native/fcm": "^5.26.0",
     "@ionic-native/geolocation": "^5.26.0",
     "@ionic-native/social-sharing": "^5.27.0",
@@ -44,6 +45,7 @@
     "cordova-plugin-geolocation": "^4.0.2",
     "cordova-plugin-x-socialsharing": "^5.6.8",
     "cordova-res": "^0.13.0",
+    "cordova.plugins.diagnostic": "^6.0.3",
     "core-js": "^3.6.4",
     "depcheck": "^0.9.2",
     "es6-promise-plugin": "^4.2.2",
@@ -111,7 +113,10 @@
       "cordova-plugin-x-socialsharing": {
         "ANDROID_SUPPORT_V4_VERSION": "24.1.1+"
       },
-      "cordova-plugin-calendar": {}
+      "cordova-plugin-calendar": {},
+      "cordova.plugins.diagnostic": {
+        "ANDROIDX_VERSION": "1.+"
+      }
     },
     "platforms": [
       "browser",

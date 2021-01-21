@@ -1,0 +1,32 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-title>
+            <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-img class="emptyRequests" src="assets/undraw_hang_out_h9ud.svg">
+    </ion-img>
+    <h2 class="emptyRequestsLabel">
+        <ion-label>How was this event?</ion-label>
+    </h2>
+    <ion-range min="0" max="5" step="0.1" [(ngModel)]="rate" debounce="20">
+        <ion-icon size="small" slot="start" name="star-half"></ion-icon>
+        <ion-icon slot="end" name="star"></ion-icon>
+    </ion-range>
+    <ion-card>
+        <ion-card-content>
+            <ion-textarea debounce="20" rows="6" (ionChange)="textAmt = $event.detail.value.length" inputmode="text"
+                          maxlength="1000" auto-grow="false" [(ngModel)]="review">
+            </ion-textarea>
+            <p>{{1000 - textAmt}}</p>
+        </ion-card-content>
+    </ion-card>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="checkout()">
+            <ion-icon name="checkmark"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</ion-content>

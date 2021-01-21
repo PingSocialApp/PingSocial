@@ -110,7 +110,6 @@ export class UserprofilePage implements OnInit, OnDestroy {
         this.displayTF = ev.detail.value === 'tf';
     }
 
-    // TODO check if request exists
     createRequest(id: string) {
         this.rps.sendRequest(id, 2047);
     }
