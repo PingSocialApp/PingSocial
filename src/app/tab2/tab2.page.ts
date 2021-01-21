@@ -8,15 +8,16 @@ import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {QrcodePage} from './qrcode/qrcode.page';
-import {AngularFireDatabase} from '@angular/fire/database';
 import {FCM} from '@ionic-native/fcm/ngx';
 import {Subscription} from 'rxjs';
+import {Diagnostic} from '@ionic-native/diagnostic/ngx';
+import {AngularFireDatabase} from '@angular/fire/database';
 
 @Component({
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
     styleUrls: ['tab2.page.scss'],
-    providers: [AngularFireDatabase, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore, PhysicalmapComponent]
+    providers: [AngularFireDatabase, AngularFireAuth, Geolocation, AngularFireStorage, AngularFirestore, PhysicalmapComponent, Diagnostic]
 })
 
 export class Tab2Page implements OnInit, OnDestroy {
@@ -24,11 +25,13 @@ export class Tab2Page implements OnInit, OnDestroy {
     currentUserRef: any;
     unreadPings: number;
     private unreadPingSub: Subscription;
+    private notifToken: Subscription;
 
     constructor(private pm: PhysicalmapComponent, private platform: Platform, private firestore: AngularFirestore, private auth: AngularFireAuth,
-                private geo: Geolocation, private modalController: ModalController, private fcm: FCM) {
+                private geo: Geolocation, private modalController: ModalController, private fcm: FCM,) {
 
         mapboxgl.accessToken = environment.mapbox.accessToken;
+
         this.currentUserId = this.auth.auth.currentUser.uid;
         this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
     }
@@ -47,11 +50,17 @@ export class Tab2Page implements OnInit, OnDestroy {
                     notifToken: token
                 });
             });
+            this.notifToken = this.fcm.onTokenRefresh().subscribe(token => {
+                this.firestore.collection('notifTokens').doc(this.currentUserId).update({
+                    notifToken: token
+                });
+            })
         }
     }
 
     ngOnDestroy() {
         this.unreadPingSub.unsubscribe();
+        this.notifToken.unsubscribe();
     }
 
     async presentQRModal() {
@@ -60,12 +69,6 @@ export class Tab2Page implements OnInit, OnDestroy {
         });
         return await modal.present();
     }
-
-
-    presentFilter() {
-        this.pm.presentFilter();
-    }
-
 
     presentEventCreatorModal(s: string) {
         this.pm.presentEventCreatorModal('');

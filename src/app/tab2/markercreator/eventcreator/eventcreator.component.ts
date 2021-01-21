@@ -174,7 +174,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
         }
     }
 
-    manageEvent() {
+    async manageEvent() {
         const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
         if (this.eventName === '' || (document.getElementById('startTime') as HTMLInputElement).value === '' || (document.getElementById('endTime') as HTMLInputElement).value === '' || this.eventDes === '' || this.eventType === ''
             || typeof this.location === 'undefined') {
@@ -182,74 +182,65 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
         } else if (new Date((document.getElementById('startTime') as HTMLInputElement).value) > new Date((document.getElementById('startTime') as HTMLInputElement).value)) {
             this.presentToast('Whoops! Your event ended before it started');
         } else {
-            if (this.editMode) {
-                if (this.isPublic) {
-                    const userArray = [];
-                    for (const element of toggle) {
-                        if (element.checked) {
-                            userArray.push(this.afs.collection('users').doc(element.id).ref);
-                        }
+            const position = this.geo.point(this.location[1], this.location[0]);
+
+            // TODO propogate changes
+            const data = {
+                name: this.eventName,
+                position,
+                creator: {
+                    ref: this.currentUserRef.ref,
+                    profilepic: null,
+                    name: null
+                },
+                // tslint:disable-next-line:max-line-length
+                startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
+                // tslint:disable-next-line:max-line-length
+                endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
+                description: this.eventDes,
+                type: this.eventType,
+                isPrivate: this.isPublic
+            };
+
+            // TODO get from cache
+            this.currentUserRef.get().toPromise().then(val => {
+                data.creator.name = val.get('name');
+                data.creator.profilepic = val.get('profilepic');
+            }).catch(ero => console.log(ero));
+
+            const userArray = [];
+            if (this.isPublic) {
+                for (const element of toggle) {
+                    if (element.checked) {
+                        userArray.push(this.afs.collection('users').doc(element.id).ref);
                     }
                     if (userArray.length > 15) {
                         this.presentToast('Whoops! You have more than 15 people');
-                    } else {
-                        this.afs.collection('events').doc(this.eventID).update({
-                            members: userArray
-                        });
+                        return;
                     }
-                } else {
-                    this.afs.collection('events').doc(this.eventID).update({
-                        members: firestore.FieldValue.delete()
-                    });
                 }
-                const position = this.geo.point(this.location[1],this.location[0]);
-                this.afs.collection('events').doc(this.eventID).update({
-                    name: this.eventName,
-                    creator: this.currentUserRef.ref,
-                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
-                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
-                    description: this.eventDes,
-                    position,
-                    type: this.eventType,
-                    isPrivate: this.isPublic,
-                }).then(() => {
-                    this.presentToast('Event Updated!');
-                    this.closeModal();
-                });
-            } else {
-                const position = this.geo.point(this.location[1],this.location[0]);
-                this.afs.collection('events').add({
-                    name: this.eventName,
-                    position,
-                    creator: this.currentUserRef.ref,
-                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
-                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
-                    description: this.eventDes,
-                    type: this.eventType,
-                    isPrivate: this.isPublic
-                }).then(newEvent => {
-                    if (this.isPublic) {
-                        const userArray = [];
-                        for (const element of toggle) {
-                            if (element.checked) {
-                                userArray.push(this.afs.collection('users').doc(element.id).ref);
-                            }
-                        }
-                        if (userArray.length > 15) {
-                            this.presentToast('Whoops! You have more than 15 people');
-                        } else {
-                            newEvent.update({
-                                members: userArray
-                            }).then(() => {
-                                this.presentToast('Event Created!');
-                                this.closeModal();
-                            })
-                        }
-                    }else{
+
+                // @ts-ignore
+                data.members = userArray;
+            } else if (this.editMode) {
+                // @ts-ignore
+                data.members = firebase.firestore.FieldValue.delete();
+            }
+
+            if (!this.editMode) {
+                this.afs.collection('events').add(data).then(newEvent => {
+                    this.afs.collection('eventDetails').doc(newEvent.id).set({
+                        numAttendees: 0
+                    }).then(() => {
                         this.presentToast('Event Created!');
                         this.closeModal();
-                    }
-                });
+                    }).catch(er => console.log(er));
+                }).catch(e => console.log(e));
+            } else {
+                this.afs.collection('events').doc(this.eventID).update(data).then(newEvent => {
+                    this.presentToast('Event Updated!');
+                    this.closeModal();
+                }).catch(e => console.log(e));
             }
         }
     }

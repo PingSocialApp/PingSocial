@@ -36,11 +36,11 @@
             <ion-card-content>
                 <ion-item>
                     <ion-label position="stacked">Name</ion-label>
-                    <ion-input id="username" value='{{currentUserBasic.name}}'></ion-input>
+                    <ion-input id="username" value='{{(currentUserBasic | async).name}}'></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Bio</ion-label>
-                    <ion-input id="bio" value="{{currentUserBasic.bio}}"></ion-input>
+                    <ion-input id="bio" value="{{(currentUserBasic | async).bio}}"></ion-input>
                 </ion-item>
             </ion-card-content>
         </ion-card>
@@ -50,157 +50,48 @@
             <ion-card-content>
                 <ion-item>
                     <ion-label position="stacked">Facebook</ion-label>
-                    <ion-input id="fb" value="{{currentUser.facebookID}}"></ion-input>
+                    <ion-input id="fb" value="{{(currentUserSocials | async).facebookID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Instagram</ion-label>
-                    <ion-input id="ig" value="{{currentUser.instagramID}}"></ion-input>
+                    <ion-input id="ig" value="{{(currentUserSocials | async).instagramID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Twitter</ion-label>
-                    <ion-input id="tw" value="{{currentUser.twitterID}}"></ion-input>
+                    <ion-input id="tw" value="{{(currentUserSocials | async).twitterID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">LinkedIn</ion-label>
-                    <ion-input id="li" value="{{currentUser.linkedinID}}"></ion-input>
+                    <ion-input id="li" value="{{(currentUserSocials | async).linkedinID}}"
+                               placeholder="https://www.linkedin.com/in/williamhgates/"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Personal Email</ion-label>
-                    <ion-input id="peem" value="{{currentUser.personalEmailID}}"></ion-input>
+                    <ion-input id="peem" value="{{(currentUserSocials | async).personalEmailID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Professional Email</ion-label>
-                    <ion-input id="prem" value="{{currentUser.professionalEmailID}}"></ion-input>
+                    <ion-input id="prem" value="{{(currentUserSocials | async).professionalEmailID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Snapchat</ion-label>
-                    <ion-input id="sc" value="{{currentUser.snapchatID}}"></ion-input>
+                    <ion-input id="sc" value="{{(currentUserSocials | async).snapchatID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">TikTok</ion-label>
-                    <ion-input id="tt" value="{{currentUser.tiktokID}}"></ion-input>
+                    <ion-input id="tt" value="{{(currentUserSocials | async).tiktokID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Venmo</ion-label>
-                    <ion-input id="ve" value="{{currentUser.venmoID}}"></ion-input>
+                    <ion-input id="ve" value="{{(currentUserSocials | async).venmoID}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Website</ion-label>
-                    <ion-input id="ws" value="{{currentUser.websiteID}}"></ion-input>
+                    <ion-input id="ws" value="{{(currentUserSocials | async).websiteID}}"></ion-input>
                 </ion-item>
             </ion-card-content>
         </ion-card>
     </ion-item>
-    <ion-card>
-        <ion-card-content>
-            <ion-list>
-                <ion-item>
-                    <ion-label position="floating">My Interests</ion-label>
-                    <ion-select multiple="true" [(ngModel)]="myInterests">
-                        <ion-select-option value="parties">
-                            Parties
-                        </ion-select-option>
-                        <ion-select-option value="football">
-                            Football
-                        </ion-select-option>
-                        <ion-select-option value="basketball">
-                            Basketball
-                        </ion-select-option>
-                        <ion-select-option value="soccer">
-                            Soccer
-                        </ion-select-option>
-                        <ion-select-option value="baseball">
-                            Baseball
-                        </ion-select-option>
-                        <ion-select-option value="tennis">
-                            Tennis
-                        </ion-select-option>
-                        <ion-select-option value="rhhmusic">
-                            Rap/Hip Hop music
-                        </ion-select-option>
-                        <ion-select-option value="pmusic">
-                            Pop music
-                        </ion-select-option>
-                        <ion-select-option value="cmusic">
-                            Country music
-                        </ion-select-option>
-                        <ion-select-option value="aatm">
-                            Action/Adventure TV Shows/Movies
-                        </ion-select-option>
-                        <ion-select-option value="ctm">
-                            Comedy TV Shows/Movies
-                        </ion-select-option>
-                        <ion-select-option value="dtm">
-                            Drama TV Shows/Movies
-                        </ion-select-option>
-                        <ion-select-option value="httm">
-                            Horror/Thriller TV Shows/Movies
-                        </ion-select-option>
-                        <ion-select-option value="rtm">
-                            Romance TV Shows/Movies
-                        </ion-select-option>
-                        <ion-select-option value="foodie">
-                            Foodie
-                        </ion-select-option>
-                        <ion-select-option value="fpsgame">
-                            FPS Gaming
-                        </ion-select-option>
-                        <ion-select-option value="mgame">
-                            Multiplayer Online Gaming (League, Dota etc)
-                        </ion-select-option>
-                        <ion-select-option value="figame">
-                            Fighting Gaming (Smash, Mortal Combat etc)
-                        </ion-select-option>
-                        <ion-select-option value="sgame">
-                            Sports Gaming
-                        </ion-select-option>
-                        <ion-select-option value="weight">
-                            Weightlifting
-                        </ion-select-option>
-                        <ion-select-option value="run">Running</ion-select-option>
-                        <ion-select-option value="swim">Swimming</ion-select-option>
-                        <ion-select-option value="yoga">Yoga</ion-select-option>
-                        <ion-select-option value="cycle">Cycling</ion-select-option>
-                        <ion-select-option value="hike">Hiking</ion-select-option>
-                        <ion-select-option value="cf">CrossFit</ion-select-option>
-                        <ion-select-option value="dance">Dance</ion-select-option>
-                        <ion-select-option value="politic">Politics</ion-select-option>
-                        <ion-select-option value="cb">Cooking/Baking</ion-select-option>
-                        <ion-select-option value="stem">STEM</ion-select-option>
-                        <ion-select-option value="ent">Entrepreneurship</ion-select-option>
-                    </ion-select>
-                </ion-item>
-            </ion-list>
-            <ion-list>
-                <ion-item>
-                    <ion-label position="floating">
-                        Traits I Value
-                    </ion-label>
-                    <ion-select multiple="true" [(ngModel)]="myValues">
-                        <ion-select-option value="intel">Intelligent</ion-select-option>
-                        <ion-select-option value="ambit">Ambitious</ion-select-option>
-                        <ion-select-option value="advent">Adventurous</ion-select-option>
-                        <ion-select-option value="wit">Witty</ion-select-option>
-                        <ion-select-option value="sar">Sarcastic</ion-select-option>
-                        <ion-select-option value="gl">Good Listener</ion-select-option>
-                        <ion-select-option value="nj">Non-judgemental</ion-select-option>
-                        <ion-select-option value="char">Charismatic</ion-select-option>
-                        <ion-select-option value="op">Open</ion-select-option>
-                        <ion-select-option value="intro">Introverted</ion-select-option>
-                        <ion-select-option value="extro">Extroverted</ion-select-option>
-                        <ion-select-option value="lb">Laid-back</ion-select-option>
-                        <ion-select-option value="disc">Disciplined</ion-select-option>
-                        <ion-select-option value="king">Kind</ion-select-option>
-                        <ion-select-option value="pati">Patient</ion-select-option>
-                        <ion-select-option value="opti">Optimistic</ion-select-option>
-                        <ion-select-option value="cultu">Cultured</ion-select-option>
-                        <ion-select-option value="empa">Empathetic</ion-select-option>
-                        <ion-select-option value="real">Realistic</ion-select-option>
-                    </ion-select>
-                </ion-item>
-            </ion-list>
-        </ion-card-content>
-    </ion-card>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button class="submit-button" (click)="updateSettings()">
             <ion-icon name="checkmark"></ion-icon>

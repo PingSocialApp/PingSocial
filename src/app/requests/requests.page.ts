@@ -25,6 +25,10 @@ export class RequestsPage implements OnInit {
             .pipe(mergeMap(querySnap => forkJoin(
                 querySnap.map(doc => {
                     const data = doc.payload.doc;
+                    if(data.exists){
+                        this.links = null;
+                        return;
+                    }
                     return data.get('otherUser').get().then(userData => {
                         return {
                             id: data.id,

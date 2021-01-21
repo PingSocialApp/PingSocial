@@ -11,10 +11,9 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
-    <!-- TODO doesn't work -->
-    <ion-img *ngIf="(links | async)?.length == 0" class="emptyRequests" src="assets/undraw_accept_request_vdsd.svg">
+    <ion-img *ngIf="(links | async) == null" class="emptyRequests" src="assets/undraw_accept_request_vdsd.svg">
     </ion-img>
-    <h2 *ngIf="(links | async)?.length == 0" class="emptyRequestsLabel">
+    <h2 *ngIf="(links | async) == null" class="emptyRequestsLabel">
         <ion-label>No Pending Requests</ion-label>
     </h2>
     <ion-list id="memberList">
