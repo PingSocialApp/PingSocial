@@ -6,7 +6,11 @@ const routes: Routes = [
     {
         path: '',
         component: MarkercreatorPage
-    }
+    },
+  {
+    path: 'link-selector',
+    loadChildren: () => import('./link-selector/link-selector.module').then( m => m.LinkSelectorPageModule)
+  }
 ];
 
 @NgModule({

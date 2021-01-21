@@ -11,6 +11,7 @@ import {Geolocation} from '@ionic-native/geolocation/ngx';
 import * as firebase from 'firebase';
 import {first, map, mergeMap} from 'rxjs/operators';
 import {forkJoin, Observable} from 'rxjs';
+import {LinkSelectorPage} from '../link-selector/link-selector.page';
 
 @Component({
     selector: 'app-geo-ping',
@@ -24,7 +25,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     isPublic: boolean;
     durationString: string;
     showPublic: boolean;
-    links: Observable<any>;
+    links: Array<string>;
     map: mapboxgl.Map;
     geocoder: any;
     geo: GeoFireClient;
@@ -45,23 +46,23 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
         this.currentUserRef = this.afs.collection('users').doc(this.auth.auth.currentUser.uid);
         this.durationString = '5 Min';
         this.geo = geofirex.init(firebase);
-
+        this.links = [];
     }
 
     ngOnInit() {
-        this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-            .pipe(mergeMap(querySnap => forkJoin(
-                querySnap.docs.map(doc => doc.get('otherUser').get())
-            )), map((val: any) => {
-                return val.map(userData => {
-                    return {
-                        id: userData.id,
-                        img: this.getImage(userData.get('profilepic')),
-                        name: userData.get('name'),
-                        bio: userData.get('bio')
-                    };
-                });
-            }));
+        // this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
+        //     .pipe(mergeMap(querySnap => forkJoin(
+        //         querySnap.docs.map(doc => doc.get('otherUser').get())
+        //     )), map((val: any) => {
+        //         return val.map(userData => {
+        //             return {
+        //                 id: userData.id,
+        //                 img: this.getImage(userData.get('profilepic')),
+        //                 name: userData.get('name'),
+        //                 bio: userData.get('bio')
+        //             };
+        //         });
+        //     }));
     }
 
     async getImage(profilePic: string) {
@@ -106,14 +107,6 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
         });
     }
 
-    handleInput(event) {
-        const query = event.target.value.toLowerCase();
-        for (let i = 0; i < document.getElementsByTagName('ion-item').length; i++) {
-            const shouldShow = document.getElementsByTagName('h2')[i].textContent.toLowerCase().indexOf(query) > -1;
-            document.getElementsByTagName('ion-item')[i].style.display = shouldShow ? 'block' : 'none';
-        }
-    }
-
     showLocation() {
         if (document.getElementById('mapContainer').style.display === 'none'
             || document.getElementById('mapContainer').style.display === '') {
@@ -129,8 +122,26 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     }
 
     togglePublic() {
-        this.showPublic = !this.showPublic;
-        document.getElementById('mapContainer').style.display = 'none';
+        this.isPublic = !this.isPublic;
+        // document.getElementById('mapContainer').style.display = 'none';
+    }
+
+    async showLinks() {
+        if (!this.isPublic) {
+            const modal = await this.modalController.create({
+                component: LinkSelectorPage,
+                componentProps: {
+                    ids: this.links
+                }
+            });
+
+            modal.onDidDismiss().then(data => {
+                this.links = data.data;
+                console.log(this.links);
+            });
+
+            return await modal.present();
+        }
     }
 
     async presentToast(m: string) {
@@ -159,6 +170,21 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
             duration = new Date(new Date().getTime() + 24 * 60 * 60000);
         }
 
+        const userArray = [];
+        if (!this.isPublic) {
+            if (this.links.length > 20) {
+                this.presentToast('Whoops! You have more than 20 people');
+                return;
+            } else if(this.links.length === 0) {
+                this.presentToast('Whoops! You didn\'t add anyone');
+                return;
+            }else {
+                this.links.forEach(link => {
+                    userArray.push(this.afs.collection('users').doc(link).ref);
+                });
+            }
+        }
+
         const position = this.geo.point(this.location[0], this.location[1]);
         this.afs.collection('geoping').add({
             userSent: this.currentUserRef.ref,
@@ -169,26 +195,15 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
             timeExpire: firebase.firestore.Timestamp.fromDate(duration)
         }).then((val) => {
             if (!this.isPublic) {
-                const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
-                const userArray = [];
-                for (const element of toggle) {
-                    if (element.checked) {
-                        userArray.push(this.afs.collection('users').doc(element.id).ref);
-                    }
-                }
-                if (userArray.length > 15) {
-                    this.presentToast('Whoops! You have more than 15 people');
-                } else {
-                    val.update({
-                        members: userArray
-                    }).then(() => {
-                        this.presentToast('Ping Made!');
-                        this.closeModal();
-                    }).catch(err => {
-                        this.presentToast(err);
-                    });
-                }
-            }else{
+                val.update({
+                    members: userArray
+                }).then(() => {
+                    this.presentToast('Ping Made!');
+                    this.closeModal();
+                }).catch(err => {
+                    this.presentToast(err);
+                });
+            } else {
                 this.presentToast('Ping Made!');
                 this.closeModal();
             }
