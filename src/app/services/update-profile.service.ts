@@ -13,7 +13,7 @@ export class UpdateProfileService {
     latestPhoto: string | ArrayBuffer;
     currentUserId: string;
     currentUserRef: AngularFirestoreDocument;
-    currentUserId: GetResult;
+    // currentUserId: GetResult;
 
     constructor(private toastController: ToastController,
                 private auth: AngularFireAuth, private firestore: AngularFirestore, private storage: AngularFireStorage) {

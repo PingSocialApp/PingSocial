@@ -18,8 +18,6 @@ import {FCM} from '@capacitor-community/fcm';
     imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule
         , AngularFireModule.initializeApp(environment.firebase)],
     providers: [
-        StatusBar,
-        SplashScreen,
         AngularFirestore,
         FCM,
         {provide: RouteReuseStrategy, useClass: IonicRouteStrategy,
@@ -28,14 +26,14 @@ import {FCM} from '@capacitor-community/fcm';
         {
             provide: FIRESTORE_SETTINGS,
             useValue: environment.production ? undefined : {
-                host: 'localhost:8080',
+                host: 'localhost:8070',
                 ssl: false
             }
         },
         {
             provide: FUNCTIONS_ORIGIN,
             useValue: environment.production ? undefined : {
-                host: 'localhost:5001',
+                host: 'localhost:5000',
             }
         },
         {

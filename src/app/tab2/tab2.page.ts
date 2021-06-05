@@ -15,7 +15,7 @@ import {AngularFireDatabase} from '@angular/fire/database';
     selector: 'app-tab2',
     templateUrl: 'tab2.page.html',
     styleUrls: ['tab2.page.scss'],
-    providers: [AngularFireDatabase, AngularFireAuth, PhysicalmapComponent]
+    providers: [AngularFireDatabase, AngularFireAuth, PhysicalmapComponent, AngularFireStorage]
 })
 
 export class Tab2Page implements OnInit, OnDestroy {
