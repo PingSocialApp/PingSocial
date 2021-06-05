@@ -13,7 +13,7 @@ import {LinkSelectorPageModule} from './link-selector/link-selector.module';
         FormsModule,
         IonicModule,
         MarkercreatorPageRoutingModule,
-        LinkSelectorPageModule
+        LinkSelectorPageModule,
     ],
     entryComponents: [LinkSelectorPage]
     // declarations: [MarkercreatorPage]

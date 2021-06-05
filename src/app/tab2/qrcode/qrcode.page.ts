@@ -1,18 +1,18 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {RequestsProgramService} from '../../services/requests-program.service';
 import {AngularFireAuth} from '@angular/fire/auth';
-import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
+import {BarcodeScanner} from '@capacitor-community/barcode-scanner';
 import {AngularFirestore} from '@angular/fire/firestore';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
-import {SocialSharing} from '@ionic-native/social-sharing/ngx'
+import { Share } from '@capacitor/share';
 import {first} from 'rxjs/operators';
 
 @Component({
     selector: 'app-qrcode',
     templateUrl: './qrcode.page.html',
     styleUrls: ['./qrcode.page.scss'],
-    providers: [RequestsProgramService, AngularFireAuth, BarcodeScanner, SocialSharing]
+    providers: [RequestsProgramService, AngularFireAuth]
 })
 export class QrcodePage implements OnInit {
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
@@ -38,7 +38,7 @@ export class QrcodePage implements OnInit {
     location = true;
 
     constructor(private modalController: ModalController,
-    private socialSharing: SocialSharing, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner,
+    private auth: AngularFireAuth,
                 private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController,
                 public rs: RequestsProgramService) {
         this.userId = this.auth.auth.currentUser.uid;
@@ -46,20 +46,21 @@ export class QrcodePage implements OnInit {
     }
 
     ngOnInit() {
+        BarcodeScanner.prepare();
     }
 
     segmentChanged(ev: any) {
         this.displayScan = ev.detail.value === 'sc';
     }
 
-    scan() {
+    async scan() {
         // Function doesn't work on web version
-        this.barcodeScanner.scan().then(barcodeData => {
-            const dataArray = this.dataReveal(barcodeData.text);
-            this.presentAlertConfirm(dataArray);
-        }).catch(err => {
-            console.log('Error', err);
-        });
+        const result = await BarcodeScanner.startScan();
+        if (result.hasContent) {
+            console.log(result.content); // log the raw scanned content
+            this.presentAlertConfirm(this.dataReveal(result.content));
+
+          }
     }
 
     captureImage() {
@@ -158,12 +159,11 @@ export class QrcodePage implements OnInit {
         this.qrData = code + '/' + this.userId;
     }
 
-    shareQR() {
-        const options = {
-            message: 'Check out my Ping Code!',
-            files: ['https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + this.qrData]
-        }
-        this.socialSharing.shareWithOptions(options);
+    async shareQR() {
+        await Share.share({
+            title: 'Check out my Ping Code!',
+            url: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + this.qrData
+        })
     }
 
     closeModal() {

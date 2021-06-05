@@ -36,11 +36,11 @@
             <ion-card-content>
                 <ion-item>
                     <ion-label position="stacked">Name</ion-label>
-                    <ion-input id="username" value='{{(currentUserBasic | async).name}}'></ion-input>
+                    <ion-input id="username" value='{{(currentUserBasic | async)?.name}}'></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Bio</ion-label>
-                    <ion-input id="bio" value="{{(currentUserBasic | async).bio}}"></ion-input>
+                    <ion-input id="bio" value="{{(currentUserBasic | async)?.bio}}"></ion-input>
                 </ion-item>
             </ion-card-content>
         </ion-card>

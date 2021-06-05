@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {AlertController, ToastController} from '@ionic/angular';
+import { Storage } from '@capacitor/storage';
 
 // tslint:disable-next-line:import-spacing
 
@@ -30,8 +31,9 @@ export class LoginPage implements OnInit {
     createAccount() {
         if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
             this.auth.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
-                this.auth.auth.signInWithEmailAndPassword(this.newEmail, this.newPass).then((val) => {
-                    this.router.navigate(['/registration']);
+                this.auth.auth.signInWithEmailAndPassword(this.newEmail, this.newPass).then(async (val) => {
+                    await this.setUID(val.user.uid)
+                    await this.router.navigate(['/registration']);
                 }).catch(async (error) => {
                     const toast = await this.toastController.create({
                         message: error.message,
@@ -51,10 +53,11 @@ export class LoginPage implements OnInit {
 
     login() {
         if (this.email !== '' && this.password !== '') {
-            this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then((value) => {
+            this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then(async (value) => {
                 this.email = '';
                 this.password = '';
-                this.router.navigate(['/tabs']);
+                await this.setUID(value.user.uid)
+                await this.router.navigate(['/tabs']);
             }).catch(async (error) => {
                 const toast = await this.toastController.create({
                     message: error.message,
@@ -98,5 +101,12 @@ export class LoginPage implements OnInit {
         });
 
         await alert.present();
+    }
+
+    private async setUID(uid: string) {
+        await Storage.set({
+            key: 'UID',
+            value: uid
+        })
     }
 }

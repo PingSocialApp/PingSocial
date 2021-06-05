@@ -7,17 +7,17 @@ import * as geofirex from 'geofirex';
 import {environment} from '../../../../environments/environment';
 import {ModalController, ToastController} from '@ionic/angular';
 import {GeoFireClient} from 'geofirex';
-import {Geolocation} from '@ionic-native/geolocation/ngx';
 import * as firebase from 'firebase';
 import {first, map, mergeMap} from 'rxjs/operators';
 import {forkJoin, Observable} from 'rxjs';
+import {Geolocation} from '@capacitor/geolocation';
 import {LinkSelectorPage} from '../link-selector/link-selector.page';
 
 @Component({
     selector: 'app-geo-ping',
     templateUrl: './geo-ping.component.html',
     styleUrls: ['./geo-ping.component.scss'],
-    providers: [Geolocation]
+    providers: []
 })
 export class GeoPingComponent implements OnInit, AfterViewInit {
     textAmt: number;
@@ -50,19 +50,6 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
-        // this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-        //     .pipe(mergeMap(querySnap => forkJoin(
-        //         querySnap.docs.map(doc => doc.get('otherUser').get())
-        //     )), map((val: any) => {
-        //         return val.map(userData => {
-        //             return {
-        //                 id: userData.id,
-        //                 img: this.getImage(userData.get('profilepic')),
-        //                 name: userData.get('name'),
-        //                 bio: userData.get('bio')
-        //             };
-        //         });
-        //     }));
     }
 
     async getImage(profilePic: string) {
@@ -76,7 +63,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit() {
-        this.geolocation.getCurrentPosition().then((resp) => {
+        Geolocation.getCurrentPosition().then((resp) => {
             // resp.coords.latitude
             // resp.coords.longitude
             this.location = [resp.coords.latitude, resp.coords.longitude];

@@ -1,14 +1,13 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {EventcreatorComponent} from './eventcreator/eventcreator.component';
+import {GeoPingComponent} from './geo-ping/geo-ping.component';
 import {Calendar} from '@ionic-native/calendar/ngx';
-import {AngularFirestore} from '@angular/fire/firestore';
-import {AngularFireStorage} from '@angular/fire/storage';
 
 @Component({
     selector: 'app-markercreator',
     templateUrl: './markercreator.page.html',
     styleUrls: ['./markercreator.page.scss'],
-    providers: [EventcreatorComponent, Calendar, AngularFirestore, AngularFireStorage]
+    providers: [EventcreatorComponent, Calendar]
 })
 
 export class MarkercreatorPage implements OnInit {

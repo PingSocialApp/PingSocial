@@ -70,7 +70,7 @@ export class RegistrationPage implements OnInit, OnDestroy {
         });
         await loading.present();
         if ((document.getElementById('username') as HTMLInputElement).value === '') {
-            this.updateProfileService.presentToast('Whoops! Looks like you forgot your name');
+            await this.updateProfileService.presentToast('Whoops! Looks like you forgot your name');
             return;
         }
         this.updateProfileService.updateSettings().then(() => {

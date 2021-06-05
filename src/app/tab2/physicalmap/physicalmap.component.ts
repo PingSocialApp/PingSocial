@@ -3,9 +3,9 @@ import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import {Coordinates, Geolocation} from '@ionic-native/geolocation/ngx';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {AngularFirestore} from '@angular/fire/firestore';
+import {Geolocation, Position} from '@capacitor/geolocation'
 import {merge, Subscription} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {MarkercreatorPage} from '../markercreator/markercreator.page';
@@ -61,7 +61,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     checkedIn: string;
 
     constructor(private rtdb: AngularFireDatabase, private afs: AngularFirestore, private auth: AngularFireAuth, private platform: Platform,
-                private storage: AngularFireStorage, private geo: Geolocation, private modalController: ModalController) {
+                private storage: AngularFireStorage, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.currentUserId = this.auth.auth.currentUser.uid;
         this.currentUserRef = this.afs.collection('users').doc(this.currentUserId);
@@ -80,18 +80,21 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.checkedIn = data.partyAt === null ? null : data.partyAt.id;
             }
         });
+        
     }
 
     ngAfterViewInit() {
-        this.geo.getCurrentPosition().then((resp) => {
+        Geolocation.getCurrentPosition().then((resp) => {
             this.buildMap(resp.coords);
             // resp.coords.latitude
             // resp.coords.longitude
         }).then(() => {
             this.map.on('load', () => {
-                this.renderCurrent();
-                // this.renderLinks();
                 this.presentCurrentLocation();
+                // TODO Make realtime
+                Geolocation.watchPosition({
+                    enableHighAccuracy: true,
+                },this.renderCurrent);
                 this.presentEvents();
                 this.presentGeoPing();
             });
@@ -108,22 +111,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cus.unsubscribe();
     }
 
-    renderCurrent() {
-        const watch = this.geo.watchPosition({
-            enableHighAccuracy: true,
-        });
-
-
+    renderCurrent(pos: Position) {
         // update current user location
-        this.geoSub = watch.subscribe((data) => {
-            const lng = data.coords.longitude;
-            const lat = data.coords.latitude;
+            const lng = pos.coords.longitude;
+            const lat = pos.coords.latitude;
 
             this.location = [lng, lat];
 
-            const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
-            this.updateStatus(locationRef);
-            this.updateLocation(locationRef);
+            // const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
+            // this.updateStatus(locationRef);
+            // this.updateLocation(locationRef);
 
             // use api to get location
             this.renderUser(this.currentLocationMarker, lng, lat);
@@ -133,7 +130,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 center: [lng, lat],
                 essential: true
             });
-        });
     }
 
     renderLinks() {
@@ -442,7 +438,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentLocationMarker = new mapboxgl.Marker(el);
     }
 
-    buildMap(coords: Coordinates) {
+    buildMap(coords: any) {
         this.map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',

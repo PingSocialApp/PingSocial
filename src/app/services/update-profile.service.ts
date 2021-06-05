@@ -3,6 +3,7 @@ import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {ToastController} from '@ionic/angular';
+import {GetResult, Storage} from '@capacitor/storage';
 
 @Injectable({
     providedIn: 'root',
@@ -12,6 +13,7 @@ export class UpdateProfileService {
     latestPhoto: string | ArrayBuffer;
     currentUserId: string;
     currentUserRef: AngularFirestoreDocument;
+    currentUserId: GetResult;
 
     constructor(private toastController: ToastController,
                 private auth: AngularFireAuth, private firestore: AngularFirestore, private storage: AngularFireStorage) {
