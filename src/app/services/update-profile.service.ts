@@ -1,9 +1,13 @@
 import {Injectable} from '@angular/core';
 import {AngularFireAuth} from '@angular/fire/auth';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
+import {AngularFirestore} from '@angular/fire/firestore';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {ToastController} from '@ionic/angular';
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../environments/environment';
 import {GetResult, Storage} from '@capacitor/storage';
+import {RESTApi} from './rest-service.service';
+import {retry} from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root',
@@ -11,15 +15,11 @@ import {GetResult, Storage} from '@capacitor/storage';
 export class UpdateProfileService {
     fileName: string;
     latestPhoto: string | ArrayBuffer;
-    currentUserId: string;
-    currentUserRef: AngularFirestoreDocument;
-    // currentUserId: GetResult;
+    currentUserId: GetResult;
 
-    constructor(private toastController: ToastController,
-                private auth: AngularFireAuth, private firestore: AngularFirestore, private storage: AngularFireStorage) {
-        this.currentUserId = this.auth.auth.currentUser.uid;
-        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
-    }
+
+    constructor(private toastController: ToastController, private http: HttpClient, private auth: AngularFireAuth,
+                private firestore: AngularFirestore, private storage: AngularFireStorage, private rs: RESTApi) {}
 
     handleFile(files: FileList) {
         const file = files.item(0);
@@ -37,30 +37,31 @@ export class UpdateProfileService {
 
     async updateSettings() {
         if ((document.getElementById('username') as HTMLInputElement).value === '') {
-            this.presentToast('Whoops! Looks like you forgot your name');
+            await this.presentToast('Whoops! Looks like you forgot your name');
             return;
         } else {
-            const batch = this.firestore.firestore.batch();
-            const obj = {
+            this.currentUserId = await Storage.get({key: 'name'});
+            const userObject = {
                 name: (document.getElementById('username') as HTMLInputElement).value,
-                bio: (document.getElementById('bio') as HTMLInputElement).value
+                bio: (document.getElementById('bio') as HTMLInputElement).value,
+                profilepic: null
             };
 
-            batch.update(this.firestore.collection('socials').doc(this.currentUserId).ref, {
-                facebookID: (document.getElementById('fb') as HTMLInputElement).value,
-                instagramID: (document.getElementById('ig') as HTMLInputElement).value,
-                twitterID: (document.getElementById('tw') as HTMLInputElement).value,
-                personalEmailID: (document.getElementById('peem') as HTMLInputElement).value,
-                linkedinID: (document.getElementById('li') as HTMLInputElement).value,
-                professionalEmailID: (document.getElementById('prem') as HTMLInputElement).value,
-                snapchatID: (document.getElementById('sc') as HTMLInputElement).value,
-                tiktokID: (document.getElementById('tt') as HTMLInputElement).value,
-                venmoID: (document.getElementById('ve') as HTMLInputElement).value,
-                websiteID: (document.getElementById('ws') as HTMLInputElement).value,
+            const socialsPromise = this.firestore.collection('socials').doc(this.currentUserId.value).update({
+                facebook: (document.getElementById('fb') as HTMLInputElement).value,
+                instagram: (document.getElementById('ig') as HTMLInputElement).value,
+                twitter: (document.getElementById('tw') as HTMLInputElement).value,
+                personalEmail: (document.getElementById('peem') as HTMLInputElement).value,
+                linkedin: (document.getElementById('li') as HTMLInputElement).value,
+                professionalEmail: (document.getElementById('prem') as HTMLInputElement).value,
+                snapchat: (document.getElementById('sc') as HTMLInputElement).value,
+                tiktok: (document.getElementById('tt') as HTMLInputElement).value,
+                venmo: (document.getElementById('ve') as HTMLInputElement).value,
+                website: (document.getElementById('ws') as HTMLInputElement).value,
             });
 
             if (this.fileName != null) {
-                // TODO delete old profile pic
+                // TODO delete old profile pic set uniform name of photo
                 const ref = this.storage.ref(this.currentUserId + this.fileName);
                 if (typeof this.latestPhoto === 'string') {
                     ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
@@ -72,13 +73,13 @@ export class UpdateProfileService {
                 }
             }
 
-            batch.update(this.currentUserRef.ref, obj);
-            batch.commit().then(() => this.presentToast('Profile Updated!')).catch(e => {
+            const userPromise = this.http.post(environment.apiURL.users + this.currentUserId, userObject,
+                await this.rs.getHeader()).pipe(retry(3));
+
+            Promise.all([socialsPromise,userPromise]).then(() => this.presentToast('Profile Updated!')).catch(e => {
                 console.log(e);
                 this.presentToast('Whoops! An unexpected error occurred');
             });
-
-            // TODO Update Profile Type
         }
     }
 
@@ -87,6 +88,6 @@ export class UpdateProfileService {
             message: displayMessage,
             duration: 2000
         });
-        toast.present();
+        await toast.present();
     }
 }

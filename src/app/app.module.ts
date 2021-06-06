@@ -11,12 +11,12 @@ import {ORIGIN as FUNCTIONS_ORIGIN} from '@angular/fire/functions';
 import { URL as DATABASE_URL } from '@angular/fire/database';
 import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
 import {FCM} from '@capacitor-community/fcm';
+import {HttpClientModule} from '@angular/common/http';
 
 @NgModule({
     declarations: [AppComponent],
     entryComponents: [],
-    imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule
-        , AngularFireModule.initializeApp(environment.firebase)],
+    imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, HttpClientModule, AngularFireModule.initializeApp(environment.firebase)],
     providers: [
         AngularFirestore,
         FCM,
