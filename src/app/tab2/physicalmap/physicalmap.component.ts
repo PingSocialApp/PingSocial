@@ -123,7 +123,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             // this.updateLocation(locationRef);
 
             // use api to get location
-            this.renderUser(this.currentLocationMarker, lng, lat);
+            // this.renderUser(this.currentLocationMarker, lng, lat);
 
             // just to fly to current user on map
             this.map.flyTo({
@@ -271,45 +271,94 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     presentEvents() {
-        const nowString = firestore.Timestamp.now();
+        // const nowString = firestore.Timestamp.now();
 
-        const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
-            .where('endTime', '>=', nowString));
-        const query2 = this.afs.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
-            .where('endTime', '>=', nowString));
-        const query3 = this.afs.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-            .where('endTime', '>=', nowString));
+        // const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
+        //     .where('endTime', '>=', nowString));
+        // const query2 = this.afs.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
+        //     .where('endTime', '>=', nowString));
+        // const query3 = this.afs.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
+        //     .where('endTime', '>=', nowString));
 
-        const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
+        // const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
-        this.eventSub = events.subscribe(eventData => {
-            eventData.forEach((event) => {
-                this.renderEvent(event.payload.doc);
-            });
-        });
+        // this.eventSub = events.subscribe(eventData => {
+        //     eventData.forEach((event) => {
+        //         this.renderEvent(event.payload.doc);
+        //     });
+        // });
+
+        const data = [
+            {
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [125.6, 10.1]
+                },
+                properties: {
+                    name: "Dinagat Islands",
+                    isPrivate: true,
+                    rating: 3,
+                    startTime: "TIME_STRING",
+                    endTime: "TME_STRIG",
+                    hostName: "Billy",
+                    profilePic: "LINKTOPROFILEPIC"
+                }
+            }
+        ]
+
+        data.forEach(event => {
+            this.renderEvent(event);
+        })
+
+
     }
 
     presentGeoPing() {
-        const nowString = firestore.Timestamp.now();
+        // const nowString = firestore.Timestamp.now();
 
-        const query1 = this.afs.collection('geoping', ref => ref.where('isPrivate', '==', false)
-            .where('timeExpire', '>=', nowString));
-        const query2 = this.afs.collection('geoping', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-            .where('timeExpire', '>=', nowString));
-        const query3 = this.afs.collection('geoping', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-            .where('timeExpire', '>=', nowString));
-
-
-        const pings = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
+        // const query1 = this.afs.collection('geoping', ref => ref.where('isPrivate', '==', false)
+        //     .where('timeExpire', '>=', nowString));
+        // const query2 = this.afs.collection('geoping', ref => ref.where('userSent', '==', this.currentUserRef.ref)
+        //     .where('timeExpire', '>=', nowString));
+        // const query3 = this.afs.collection('geoping', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
+        //     .where('timeExpire', '>=', nowString));
 
 
-        this.geopingSub = pings.subscribe(eventData => {
-            eventData.map((event) => {
-                // TODO Remove Deleted event
-                console.log(event);
-                this.renderPings(event.payload.doc);
-            });
-        });
+        // const pings = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
+
+
+        // this.geopingSub = pings.subscribe(eventData => {
+        //     eventData.map((event) => {
+        //         // TODO Remove Deleted event
+        //         console.log(event);
+        //         this.renderPings(event.payload.doc);
+        //     });
+        // });
+
+        const data = [
+            {
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [125.6, 10.1]
+                },
+                properties: {
+                    sentMessage: "Dinagat Islands",
+                    isPrivate: true,
+                    timeCreate: "TIMESTRIGN",
+                    pingId: "UNIQUE_ID",
+                    creatorName: "John",
+                    creatorPRofilePIc: "LINKTOPROFILEPIC"
+                }
+            }
+        ]
+
+        data.forEach(event => {
+            this.renderPings(event);
+        })
+
+
     }
 
     renderPings(doc) {

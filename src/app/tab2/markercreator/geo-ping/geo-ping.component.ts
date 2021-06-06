@@ -10,7 +10,7 @@ import {GeoFireClient} from 'geofirex';
 import * as firebase from 'firebase';
 import {first, map, mergeMap} from 'rxjs/operators';
 import {forkJoin, Observable} from 'rxjs';
-import {Geolocation} from '@capacitor/geolocation';
+// import {Geolocation} from '@capacitor/geolocation';
 import {LinkSelectorPage} from '../link-selector/link-selector.page';
 
 @Component({
@@ -37,7 +37,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     };
 
 
-    constructor(private geolocation: Geolocation, private toastController: ToastController, private afs: AngularFirestore, private storage: AngularFireStorage,
+    constructor(private toastController: ToastController, private afs: AngularFirestore, private storage: AngularFireStorage,
                 private auth: AngularFireAuth, private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.textAmt = 0;
@@ -63,16 +63,16 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit() {
-        Geolocation.getCurrentPosition().then((resp) => {
+        // Geolocation.getCurrentPosition().then((resp) => {
             // resp.coords.latitude
             // resp.coords.longitude
-            this.location = [resp.coords.latitude, resp.coords.longitude];
+            this.location = [30.5192679, -97.73290159999999];
             this.buildMap();
             (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
             (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
-        }).catch((error) => {
-            console.log('Error getting location', error);
-        });
+        // }).catch((error) => {
+            // console.log('Error getting location', error);
+        // });
     }
 
     buildMap() {
