@@ -80,7 +80,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.checkedIn = data.partyAt === null ? null : data.partyAt.id;
             }
         });
-        
+
     }
 
     ngAfterViewInit() {
@@ -293,14 +293,30 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 type: "Feature",
                 geometry: {
                     type: "Point",
-                    coordinates: [125.6, 10.1]
+                    coordinates: [12.602, 55.6618]
                 },
                 properties: {
-                    name: "Dinagat Islands",
-                    isPrivate: true,
+                    name: "Event 1",
+                    isPrivate: false,
                     rating: 3,
-                    startTime: "TIME_STRING",
-                    endTime: "TME_STRIG",
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
+                    hostName: "Billy",
+                    profilePic: "LINKTOPROFILEPIC"
+                }
+            },
+            {
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [12.61, 55.6628]
+                },
+                properties: {
+                    name: "Event 2",
+                    isPrivate: false,
+                    rating: 3,
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC"
                 }
@@ -402,56 +418,117 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderEvent(doc) {
-        const eventInfo = doc.data();
+      console.log("render func");
+      this.newRenderFunc(doc);
+        // const eventInfo = doc.data();
+        // const el = this.createMarker();
+        // el.setAttribute('data-name', eventInfo.name);
+        // el.setAttribute('data-private', eventInfo.isPrivate);
+        // el.setAttribute('data-type', eventInfo.type);
+        // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
+        //     el.setAttribute('data-link', 'true');
+        // } else {
+        //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
+        //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
+        //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
+        //     });
+        // }
+        // el.setAttribute('data-time', eventInfo.startTime);
+        // el.id = doc.id;
+        // if (!!document.getElementById(el.id)) {
+        //     document.getElementById(el.id).remove();
+        // }
+        // // @ts-ignore
+        // if (eventInfo.type === 'party') {
+        //     el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
+        // } else if (eventInfo.type === 'hangout') {
+        //     el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
+        // } else {
+        //     el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
+        // }
+        // const startTime = eventInfo.startTime.toDate();
+        // // console.log(startTime);
+        // let minutes = startTime.getMinutes() < 10 ? '0' : '';
+        // minutes += startTime.getMinutes();
+        //
+        // el.addEventListener('click', (e) => {
+        //     this.showEventDetails = true;
+        //     this.showUserDetails = false;
+        //     this.showPing = false;
+        //     this.currentEventTitle = eventInfo.name;
+        //     this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+        //     this.currentEventId = el.id;
+        //     this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
+        //         eventInfo.position) < 0.025 && startTime < new Date();
+        // });
+        // const marker = new mapboxgl.Marker(el);
+        // try {
+        //     marker.setLngLat([eventInfo.position.geopoint.longitude, eventInfo.position.geopoint.latitude]).addTo(this.map);
+        // } catch (e) {
+        //     console.log(e.message);
+        // }
+    }
+
+    newRenderFunc(doc){
+      console.log("newRenderFunc");
+        const eventInfo = doc.properties;
         const el = this.createMarker();
+        console.log(el);
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
-        el.setAttribute('data-type', eventInfo.type);
-        if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
-            el.setAttribute('data-link', 'true');
-        } else {
-            this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-                .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
-                el.setAttribute('data-link', val.empty ? 'false' : 'true');
-            });
-        }
-        el.setAttribute('data-time', eventInfo.startTime);
-        el.id = doc.id;
-        if (!!document.getElementById(el.id)) {
-            document.getElementById(el.id).remove();
-        }
-        // @ts-ignore
-        if (eventInfo.type === 'party') {
-            el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
-        } else if (eventInfo.type === 'hangout') {
-            el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
-        } else {
-            el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
-        }
-        const startTime = eventInfo.startTime.toDate();
-        // console.log(startTime);
-        let minutes = startTime.getMinutes() < 10 ? '0' : '';
-        minutes += startTime.getMinutes();
+        //el.setAttribute('data-type', eventInfo.type);
+        // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
+        //     el.setAttribute('data-link', 'true');
+        // } else {
+        //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
+        //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
+        //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
+        //     });
+        // }
+        //el.setAttribute('data-time', eventInfo.startTime);
+          // el.id = doc.id;
+          // if (!!document.getElementById(el.id)) {
+          //     document.getElementById(el.id).remove();
+          // }
+          if (doc.geometry.type === 'party') {
+              el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
+          } else if (doc.geometry.type === 'hangout') {
+              el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
+          } else {
+              el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
+          }
+          // const startTime = eventInfo.startTime.toDate();
+          // // console.log(startTime);
+          // let minutes = startTime.getMinutes() < 10 ? '0' : '';
+          // minutes += startTime.getMinutes();
 
-        el.addEventListener('click', (e) => {
-            this.showEventDetails = true;
-            this.showUserDetails = false;
-            this.showPing = false;
-            this.currentEventTitle = eventInfo.name;
-            this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
-            this.currentEventId = el.id;
-            this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
-                eventInfo.position) < 0.025 && startTime < new Date();
-        });
-        const marker = new mapboxgl.Marker(el);
-        try {
-            marker.setLngLat([eventInfo.position.geopoint.longitude, eventInfo.position.geopoint.latitude]).addTo(this.map);
-        } catch (e) {
-            console.log(e.message);
-        }
+          el.addEventListener('click', (e) => {
+              this.showEventDetails = true;
+              this.showUserDetails = false;
+              this.showPing = false;
+              this.currentEventTitle = eventInfo.name;
+              //this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+              //this.currentEventId = el.id;
+              //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
+                //  eventInfo.position) < 0.025 && startTime < new Date();
+          });
+          console.log(el);
+          //const marker = new mapboxgl.Marker(el);
+          try {
+              console.log('made');
+              const marker = new mapboxgl.Marker(el);
+              marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
+            //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
+
+              console.log(marker);
+          } catch (e) {
+              console.log(e.message);
+              console.log('it');
+          }
     }
 
     createMarker() {
+      console.log("createMarker");
         const el = document.createElement('div');
         el.className = 'marker-style';
         return el;
