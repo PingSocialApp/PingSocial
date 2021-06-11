@@ -302,8 +302,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     //startTime: "TIME_STRING",
                     //endTime: "TME_STRIG",
                     hostName: "Billy",
-                    profilePic: "LINKTOPROFILEPIC"
-                }
+                    profilePic: "LINKTOPROFILEPIC",
+                },
+                id: "22"
             },
             {
                 type: "Feature",
@@ -318,8 +319,43 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     //startTime: "TIME_STRING",
                     //endTime: "TME_STRIG",
                     hostName: "Billy",
-                    profilePic: "LINKTOPROFILEPIC"
-                }
+                    profilePic: "LINKTOPROFILEPIC",
+                },
+                id: "45"
+            },
+            {
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [11.61, 54.6628]
+                },
+                properties: {
+                    name: "Event 3",
+                    isPrivate: false,
+                    rating: 3,
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
+                    hostName: "Billy",
+                    profilePic: "LINKTOPROFILEPIC",
+                },
+                id: "100"
+            },
+            {
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [11.00, 54.6628]
+                },
+                properties: {
+                    name: "Event 4",
+                    isPrivate: false,
+                    rating: 3,
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
+                    hostName: "Billy",
+                    profilePic: "LINKTOPROFILEPIC",
+                },
+                id: "101"
             }
         ]
 
@@ -337,7 +373,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 						},
             cluster: true,
             clusterMaxZoom: 14, // Max zoom to cluster points on
-            clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+            clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+            //id: 100
         });
 
         this.map.addLayer({
@@ -378,17 +415,110 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
         // this.map.addLayer({
-        //     // id: 'unclustered-point',
-        //     // type: 'symbol',
-        //     // source: 'events',
-        //     // filter: ['!', ['has', 'point_count']],
-        //     // paint: {},
-        //     // layout: {
-        //     //   'icon-image': 'url(\'../assets/undraw_having_fun_iais.svg\')'
-        //     // }
-        //     data.forEach(event => {
-        //         this.renderEvent(event);
-        //     })
+        //     id: 'unclustered-point',
+        //     type: 'circle',
+        //     source: 'events',
+        //     filter: ['!', ['has', 'point_count']],
+        //     paint: {
+        //       'circle-color': '#11b4da',
+        //       'circle-radius': 4,
+        //       'circle-stroke-width': 1,
+        //       'circle-stroke-color': '#fff'
+        //     }
+        // });
+
+        this.map.on('moveend', function(e){
+          //var points = this.querySourceFeatures('events');
+          var points = this.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+          // var clusterSource = this.getSource('events');
+          // var clusterId = features[0].properties.cluster_id;
+          // var point_count = features[0].properties.point_count;
+          // clusterSource.getClusterLeaves(clusterId, point_count, 0, function(err, aFeatures){
+          //   console.log('getClusterLeaves', err, aFeatures);
+          // });
+
+          console.log(points);
+
+          points.forEach((feature) =>{
+            console.log("feature")
+            console.log(feature);
+            const geo = feature.geometry;
+            const props = feature.properties;
+            const id = feature.id;
+            var cc = this.getContainer();
+            var els = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+            for(var i = 0; i < els.length; i++){
+              if(props.cluster){
+                document.getElementById(els[i].id).style.display = "none";
+                console.log(els[i].id);
+                console.log(document.getElementById(els[i].id));
+              }else{
+                document.getElementById(els[i].id).style.display = "inline";
+              }
+            }
+              // console.log(id);
+              // console.log(document.getElementById(id));
+              //feature.style.visibility = "hidden";
+              //document.getElementById(id).style.visibility = "hidden";
+              // const el = document.createElement('div');
+              // el.className = 'marker-style';
+              // el.setAttribute('data-name', props.name);
+              // el.setAttribute('data-private', props.isPrivate);
+              // //el.setAttribute('data-type', eventInfo.type);
+              // // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
+              // //     el.setAttribute('data-link', 'true');
+              // // } else {
+              // //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
+              // //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
+              // //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
+              // //     });
+              // // }
+              // //el.setAttribute('data-time', eventInfo.startTime);
+              //   // el.id = doc.id;
+              //   // if (!!document.getElementById(el.id)) {
+              //   //     document.getElementById(el.id).remove();
+              //   // }
+              //   if (geo.type === 'party') {
+              //       el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
+              //   } else if (geo.type === 'hangout') {
+              //       el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
+              //   } else {
+              //       el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
+              //   }
+              //   // const startTime = eventInfo.startTime.toDate();
+              //   // // console.log(startTime);
+              //   // let minutes = startTime.getMinutes() < 10 ? '0' : '';
+              //   // minutes += startTime.getMinutes();
+              //
+              //   el.addEventListener('click', (e) => {
+              //       this.showEventDetails = true;
+              //       this.showUserDetails = false;
+              //       this.showPing = false;
+              //       this.currentEventTitle = props.name;
+              //       //this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+              //       //this.currentEventId = el.id;
+              //       //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
+              //         //  eventInfo.position) < 0.025 && startTime < new Date();
+              //   });
+              //   console.log(el);
+              //   //const marker = new mapboxgl.Marker(el);
+              //   try {
+              //       console.log('made');
+              //       const marker = new mapboxgl.Marker(el);
+              //
+              //       marker.setLngLat(geo.coordinates).addTo(this);
+              //     //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
+              //
+              //       console.log(marker);
+              //   } catch (e) {
+              //       console.log(e.message);
+              //       console.log('it');
+              //   }
+          })
+        });
+
+        // this.map.on('click', 'unclustered-point', function (doc) {
+        //
         // });
 
 
@@ -534,7 +664,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     newRenderFunc(doc){
-      console.log("newRenderFunc");
+        console.log("newRenderFunc");
         const eventInfo = doc.properties;
         const el = this.createMarker();
         console.log(el);
@@ -550,10 +680,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         //     });
         // }
         //el.setAttribute('data-time', eventInfo.startTime);
-          // el.id = doc.id;
-          // if (!!document.getElementById(el.id)) {
-          //     document.getElementById(el.id).remove();
-          // }
+          el.id = doc.id;
+          if (!!document.getElementById(el.id)) {
+              document.getElementById(el.id).remove();
+          }
+          console.log(el.id);
           if (doc.geometry.type === 'party') {
               el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
           } else if (doc.geometry.type === 'hangout') {
