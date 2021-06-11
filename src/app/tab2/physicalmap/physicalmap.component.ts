@@ -429,7 +429,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.map.on('moveend', function(e){
           //var points = this.querySourceFeatures('events');
-          var points = this.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+          var points = this.querySourceFeatures('events');
           // var clusterSource = this.getSource('events');
           // var clusterId = features[0].properties.cluster_id;
           // var point_count = features[0].properties.point_count;
