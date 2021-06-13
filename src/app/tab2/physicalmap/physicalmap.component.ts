@@ -304,7 +304,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
                 },
-                id: "22"
+                id: "1"
             },
             {
                 type: "Feature",
@@ -321,13 +321,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
                 },
-                id: "45"
+                id: "2"
             },
             {
                 type: "Feature",
                 geometry: {
                     type: "Point",
-                    coordinates: [11.61, 54.6628]
+                    coordinates: [12.64, 55.68]
                 },
                 properties: {
                     name: "Event 3",
@@ -338,13 +338,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
                 },
-                id: "100"
+                id: "3"
             },
             {
                 type: "Feature",
                 geometry: {
                     type: "Point",
-                    coordinates: [11.00, 54.6628]
+                    coordinates: [11.61, 54.6628]
                 },
                 properties: {
                     name: "Event 4",
@@ -355,7 +355,24 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
                 },
-                id: "101"
+                id: "4"
+            },
+            {
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [11.00, 54.6628]
+                },
+                properties: {
+                    name: "Event 5",
+                    isPrivate: false,
+                    rating: 3,
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
+                    hostName: "Billy",
+                    profilePic: "LINKTOPROFILEPIC",
+                },
+                id: "5"
             }
         ]
 
@@ -437,84 +454,19 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
           //   console.log('getClusterLeaves', err, aFeatures);
           // });
 
-          console.log(points);
-
-          points.forEach((feature) =>{
-            console.log("feature")
-            console.log(feature);
-            const geo = feature.geometry;
-            const props = feature.properties;
-            const id = feature.id;
-            var cc = this.getContainer();
-            var els = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+          var cc = this.getContainer();
+          var els = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+          for(var i = 0; i < els.length; i++){
+            document.getElementById(els[i].id).style.display = "none";
+          }
+          for(var m = 0; m < points.length; m++){
             for(var i = 0; i < els.length; i++){
-              if(props.cluster){
-                document.getElementById(els[i].id).style.display = "none";
-                console.log(els[i].id);
-                console.log(document.getElementById(els[i].id));
-              }else{
+              if(parseInt(els[i].id) === points[m].id){
                 document.getElementById(els[i].id).style.display = "inline";
+                break;
               }
             }
-              // console.log(id);
-              // console.log(document.getElementById(id));
-              //feature.style.visibility = "hidden";
-              //document.getElementById(id).style.visibility = "hidden";
-              // const el = document.createElement('div');
-              // el.className = 'marker-style';
-              // el.setAttribute('data-name', props.name);
-              // el.setAttribute('data-private', props.isPrivate);
-              // //el.setAttribute('data-type', eventInfo.type);
-              // // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
-              // //     el.setAttribute('data-link', 'true');
-              // // } else {
-              // //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-              // //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
-              // //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
-              // //     });
-              // // }
-              // //el.setAttribute('data-time', eventInfo.startTime);
-              //   // el.id = doc.id;
-              //   // if (!!document.getElementById(el.id)) {
-              //   //     document.getElementById(el.id).remove();
-              //   // }
-              //   if (geo.type === 'party') {
-              //       el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
-              //   } else if (geo.type === 'hangout') {
-              //       el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
-              //   } else {
-              //       el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
-              //   }
-              //   // const startTime = eventInfo.startTime.toDate();
-              //   // // console.log(startTime);
-              //   // let minutes = startTime.getMinutes() < 10 ? '0' : '';
-              //   // minutes += startTime.getMinutes();
-              //
-              //   el.addEventListener('click', (e) => {
-              //       this.showEventDetails = true;
-              //       this.showUserDetails = false;
-              //       this.showPing = false;
-              //       this.currentEventTitle = props.name;
-              //       //this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
-              //       //this.currentEventId = el.id;
-              //       //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
-              //         //  eventInfo.position) < 0.025 && startTime < new Date();
-              //   });
-              //   console.log(el);
-              //   //const marker = new mapboxgl.Marker(el);
-              //   try {
-              //       console.log('made');
-              //       const marker = new mapboxgl.Marker(el);
-              //
-              //       marker.setLngLat(geo.coordinates).addTo(this);
-              //     //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
-              //
-              //       console.log(marker);
-              //   } catch (e) {
-              //       console.log(e.message);
-              //       console.log('it');
-              //   }
-          })
+          }
         });
 
         // this.map.on('click', 'unclustered-point', function (doc) {
