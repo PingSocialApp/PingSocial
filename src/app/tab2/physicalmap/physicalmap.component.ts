@@ -435,28 +435,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.renderEvent(event);
         })
 
-
-        // this.map.addLayer({
-        //     id: 'unclustered-point',
-        //     type: 'circle',
-        //     source: 'events',
-        //     filter: ['!', ['has', 'point_count']],
-        //     paint: {
-        //       'circle-color': '#11b4da',
-        //       'circle-radius': 4,
-        //       'circle-stroke-width': 1,
-        //       'circle-stroke-color': '#fff'
-        //     }
-        // });
-
         this.map.on('moveend', function(e){
           //var points = this.querySourceFeatures('events');
           var points = this.querySourceFeatures('events');
           var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
-          //got coordinates!!!
-          //for loop for each feat, place new marker over location of cluster.
-          //console.log(feat[0].geometry);
-          //console.log(feat[1].geometry);
           for(var i = 0; i < feat.length; i++){
             const el = document.createElement('div');
             el.className = 'marker-style';
@@ -496,8 +478,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 console.log("showing", els[i].id);
                 document.getElementById(els[i].id).style.display = "inline";
                 break;
-              }else if((els[i].id === els[m].id) && (i !== m)){
-                //els[m] = null;
               }
             }
           }
