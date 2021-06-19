@@ -391,6 +391,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             cluster: true,
             clusterMaxZoom: 14, // Max zoom to cluster points on
             clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+            clusterProperties: {
+              coordinates: ['max', ['get', 'coordinates']]
+            },
             //id: 100
         });
 
@@ -422,8 +425,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     30,
                     750,
                     40
-                ]
-            }
+                ],
+                'circle-opacity': 0.0
+            },
+            includeGeometry: true
         });
 
         data.forEach(event => {
@@ -447,23 +452,52 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.map.on('moveend', function(e){
           //var points = this.querySourceFeatures('events');
           var points = this.querySourceFeatures('events');
-          // var clusterSource = this.getSource('events');
-          // var clusterId = features[0].properties.cluster_id;
-          // var point_count = features[0].properties.point_count;
-          // clusterSource.getClusterLeaves(clusterId, point_count, 0, function(err, aFeatures){
-          //   console.log('getClusterLeaves', err, aFeatures);
-          // });
+          var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
+          //got coordinates!!!
+          //for loop for each feat, place new marker over location of cluster.
+          //console.log(feat[0].geometry);
+          //console.log(feat[1].geometry);
+          for(var i = 0; i < feat.length; i++){
+            const el = document.createElement('div');
+            el.className = 'marker-style';
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
+            el.id = feat[i].id;
+            try {
+                const marker = new mapboxgl.Marker(el);
+                marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
+                //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
+                console.log(marker);
+            } catch (e) {
+                console.log(e.message);
+            }
+          }
+          console.log(points);
+          console.log(feat);
 
           var cc = this.getContainer();
           var els = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+          console.log(els);
           for(var i = 0; i < els.length; i++){
+            for(var j = 0; j < els.length; j++){
+              if((els[i].id === els[j].id)){
+                if(i !== j){
+                  document.getElementById(els[i].id).remove();
+                }
+              }
+            }
+          }
+          for(var i = 0; i < els.length; i++){
+            console.log("hidden", els[i].id);
             document.getElementById(els[i].id).style.display = "none";
           }
           for(var m = 0; m < points.length; m++){
             for(var i = 0; i < els.length; i++){
               if(parseInt(els[i].id) === points[m].id){
+                console.log("showing", els[i].id);
                 document.getElementById(els[i].id).style.display = "inline";
                 break;
+              }else if((els[i].id === els[m].id) && (i !== m)){
+                //els[m] = null;
               }
             }
           }
@@ -642,7 +676,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
           } else if (doc.geometry.type === 'hangout') {
               el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
           } else {
-              el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
           }
           // const startTime = eventInfo.startTime.toDate();
           // // console.log(startTime);
