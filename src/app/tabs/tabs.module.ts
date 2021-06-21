@@ -7,6 +7,7 @@ import {TabsPage} from './tabs.page';
 import {AngularFireAuthModule} from '@angular/fire/auth';
 import {RouterModule} from '@angular/router';
 import {RatingPage} from '../rating/rating.page';
+import { AngularFireDatabase, AngularFireDatabaseModule } from '@angular/fire/database';
 
 @NgModule({
     imports: [
@@ -16,6 +17,7 @@ import {RatingPage} from '../rating/rating.page';
         TabsPageRoutingModule,
         RouterModule,
         AngularFireAuthModule,
+        AngularFireDatabaseModule
     ],
     declarations: [TabsPage, RatingPage],
 })
