@@ -1,17 +1,14 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {AngularFireAuth} from '@angular/fire/auth';
+import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
-import * as geofirex from 'geofirex';
 import {environment} from '../../../../environments/environment';
-import {ModalController, ToastController} from '@ionic/angular';
-import {GeoFireClient} from 'geofirex';
-import * as firebase from 'firebase';
-import {first, map, mergeMap} from 'rxjs/operators';
-import {forkJoin, Observable} from 'rxjs';
+import {ModalController} from '@ionic/angular';
 import {Geolocation} from '@capacitor/geolocation';
 import {LinkSelectorPage} from '../link-selector/link-selector.page';
+import { AuthHandler } from 'src/app/services/authHandler.service';
+import { GeopingsService } from 'src/app/services/geopings.service';
+import { concatMap } from 'rxjs/operators';
+import { UtilsService } from 'src/app/services/utils.service';
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'app-geo-ping',
@@ -19,7 +16,7 @@ import {LinkSelectorPage} from '../link-selector/link-selector.page';
     styleUrls: ['./geo-ping.component.scss'],
     providers: []
 })
-export class GeoPingComponent implements OnInit, AfterViewInit {
+export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     textAmt: number;
     message: string;
     isPublic: boolean;
@@ -28,8 +25,6 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     links: Array<string>;
     map: mapboxgl.Map;
     geocoder: any;
-    geo: GeoFireClient;
-    private currentUserRef: AngularFirestoreDocument<unknown>;
     private location: any;
     customAlertOptions: any = {
         header: 'Geo-Ping Duration',
@@ -37,33 +32,31 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     };
 
 
-    constructor(private geolocation: Geolocation, private toastController: ToastController, private afs: AngularFirestore, private storage: AngularFireStorage,
-                private auth: AngularFireAuth, private modalController: ModalController) {
+    constructor(private utils: UtilsService, private auth: AuthHandler, private gs: GeopingsService,
+         private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        this.textAmt = 0;
-        this.showPublic = false;
-        this.isPublic = true;
-        this.currentUserRef = this.afs.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.durationString = '5 Min';
-        this.geo = geofirex.init(firebase);
-        this.links = [];
     }
 
     ngOnInit() {
+        this.textAmt = 0;
+        this.showPublic = false;
+        this.isPublic = true;
+        this.durationString = '5 Min';
+        this.links = [];
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
+    ngOnDestroy() {
+        this.textAmt = 0;
+        this.showPublic = false;
+        this.isPublic = true;
+        this.durationString = '5 Min';
+        this.links = [];
     }
 
     ngAfterViewInit() {
-        Geolocation.getCurrentPosition().then((resp) => {
+        Geolocation.getCurrentPosition({
+            timeout: 15000
+        }).then((resp) => {
             // resp.coords.latitude
             // resp.coords.longitude
             this.location = [resp.coords.latitude, resp.coords.longitude];
@@ -71,7 +64,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
             (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
             (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
         }).catch((error) => {
-            console.log('Error getting location', error);
+            console.error('Error getting location', error);
         });
     }
 
@@ -80,9 +73,9 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
             container: 'pingmap',
             style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
             zoom: 7,
-            center: [this.location[1], this.location[0]]
+            // center: [this.location[1], this.location[0]]
         });
-        new mapboxgl.Marker().setLngLat([this.location[1], this.location[0]]).addTo(this.map);
+        // new mapboxgl.Marker().setLngLat([this.location[1], this.location[0]]).addTo(this.map);
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
@@ -124,19 +117,10 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
 
             modal.onDidDismiss().then(data => {
                 this.links = data.data;
-                console.log(this.links);
             });
 
             return await modal.present();
         }
-    }
-
-    async presentToast(m: string) {
-        const toast = await this.toastController.create({
-            message: m,
-            duration: 2000
-        });
-        await toast.present();
     }
 
     closeModal() {
@@ -150,52 +134,46 @@ export class GeoPingComponent implements OnInit, AfterViewInit {
     sendPing() {
         let duration;
         if (this.durationString === '5 Min') {
-            duration = new Date(new Date().getTime() + 5 * 60000);
+            duration = 5;
         } else if (this.durationString === '1 Hour') {
-            duration = new Date(new Date().getTime() + 60 * 60000);
+            duration = 60;
         } else {
-            duration = new Date(new Date().getTime() + 24 * 60 * 60000);
+            duration = 24*60;
         }
 
         const userArray = [];
         if (!this.isPublic) {
             if (this.links.length > 20) {
-                this.presentToast('Whoops! You have more than 20 people');
+                this.utils.presentToast('Whoops! You have more than 20 people');
                 return;
             } else if(this.links.length === 0) {
-                this.presentToast('Whoops! You didn\'t add anyone');
+                this.utils.presentToast('Whoops! You didn\'t add anyone');
                 return;
-            }else {
-                this.links.forEach(link => {
-                    userArray.push(this.afs.collection('users').doc(link).ref);
-                });
             }
         }
 
-        const position = this.geo.point(this.location[0], this.location[1]);
-        this.afs.collection('geoping').add({
-            userSent: this.currentUserRef.ref,
+        const geoPing = {
+            uid: this.auth.getUID(),
             message: this.message,
-            position,
+            position: {
+                latitude: this.location[0],
+                longitude: this.location[1]
+            },
             isPrivate: !this.isPublic,
-            timeCreate: firebase.firestore.FieldValue.serverTimestamp(),
-            timeExpire: firebase.firestore.Timestamp.fromDate(duration)
-        }).then((val) => {
-            if (!this.isPublic) {
-                val.update({
-                    members: userArray
-                }).then(() => {
-                    this.presentToast('Ping Made!');
-                    this.closeModal();
-                }).catch(err => {
-                    this.presentToast(err);
-                });
-            } else {
-                this.presentToast('Ping Made!');
-                this.closeModal();
+            timeExpire: duration
+        }
+
+        this.gs.createGeoPing(geoPing).pipe(concatMap((val:any) => {
+            if(this.isPublic){
+                return new Observable<any>();
             }
-        }).catch(err => {
-            this.presentToast(err);
+            return this.gs.shareGeoPing(val.data.id, userArray);
+        })).subscribe(val => {
+            this.utils.presentToast('GeoPing Made!');
+            this.closeModal();
+        }, err => {
+            this.utils.presentToast('Whoops! Unexpected Problem');
+            console.log(err);
         });
     }
 }
