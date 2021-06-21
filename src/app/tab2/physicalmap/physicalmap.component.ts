@@ -293,16 +293,17 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 type: "Feature",
                 geometry: {
                     type: "Point",
-                    coordinates: [12.602, 55.6618]
+                    coordinates: [-95.6618, 32.349]
                 },
                 properties: {
                     name: "Event 1",
                     isPrivate: false,
                     rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
+                    startTime: new Date('21 June 2021 20:48 UTC'),
+                    endTime: new Date('22 June 2021 20:48 UTC'),
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
+                    type: "hangout"
                 },
                 id: "1"
             },
@@ -310,16 +311,17 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 type: "Feature",
                 geometry: {
                     type: "Point",
-                    coordinates: [12.61, 55.6628]
+                    coordinates: [-95.6628, 32.61]
                 },
                 properties: {
                     name: "Event 2",
                     isPrivate: false,
                     rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
+                    startTime: new Date('21 June 2021 20:48 UTC'),
+                    endTime: new Date('22 June 2021 20:48 UTC'),
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
+                    type: "party"
                 },
                 id: "2"
             },
@@ -333,10 +335,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     name: "Event 3",
                     isPrivate: false,
                     rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
+                    startTime: new Date('19 June 2021 14:48 UTC'),
+                    endTime: new Date('20 June 2021 14:48 UTC'),
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
+                    type: "networking"
                 },
                 id: "3"
             },
@@ -350,10 +353,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     name: "Event 4",
                     isPrivate: false,
                     rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
+                    startTime: new Date('21 June 2021 16:00 UTC'),
+                    endTime: new Date('21 June 2021 17:00 UTC'),
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
+                    type: "hangout"
                 },
                 id: "4"
             },
@@ -367,18 +371,15 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     name: "Event 5",
                     isPrivate: false,
                     rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
+                    startTime: new Date('21 June 2021 14:48 UTC'),
+                    endTime: new Date('21 June 2021 16:48 UTC'),
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
+                    type: "hangout"
                 },
                 id: "5"
             }
         ]
-
-        // data.forEach(event => {
-        //     this.renderEvent(event);
-        // })
 
         this.map.addSource('events', {
             type: 'geojson',
@@ -393,8 +394,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
             clusterProperties: {
               coordinates: ['max', ['get', 'coordinates']]
-            },
-            //id: 100
+            }
         });
 
         this.map.addLayer({
@@ -403,29 +403,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             source: 'events',
             filter: ['has', 'point_count'],
             paint: {
-                // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
-                // with three steps to implement three types of circles:
-                //   * Blue, 20px circles when point count is less than 100
-                //   * Yellow, 30px circles when point count is between 100 and 750
-                //   * Pink, 40px circles when point count is greater than or equal to 750
-                'circle-color': [
-                    'step',
-                    ['get', 'point_count'],
-                    '#51bbd6',
-                    100,
-                    '#f1f075',
-                    750,
-                    '#f28cb1'
-                ],
-                'circle-radius': [
-                    'step',
-                    ['get', 'point_count'],
-                    20,
-                    100,
-                    30,
-                    750,
-                    40
-                ],
                 'circle-opacity': 0.0
             },
             includeGeometry: true
@@ -447,7 +424,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             try {
                 const marker = new mapboxgl.Marker(el);
                 marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
-                //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
                 console.log(marker);
             } catch (e) {
                 console.log(e.message);
@@ -469,13 +445,59 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
           for(var i = 0; i < els.length; i++){
-            console.log("hidden", els[i].id);
             document.getElementById(els[i].id).style.display = "none";
           }
           for(var m = 0; m < points.length; m++){
             for(var i = 0; i < els.length; i++){
               if(parseInt(els[i].id) === points[m].id){
-                console.log("showing", els[i].id);
+                // var el = document.getElementById(els[i].id);
+                // var currentTime = new Date();
+                // var eventInfo = points[m].properties;
+                // var st = new Date(eventInfo.startTime);
+                // var et = new Date(eventInfo.endTime);
+                // var check = et - st;
+                // console.log(check);
+                // if(st + (check)*0.25 >= currentTime){
+                //   if (eventInfo.type === 'party') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
+                //   } else if (eventInfo.type === 'networking') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
+                //   } else {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
+                //   }
+                // }else if(st + (check)*0.5 >= currentTime){
+                //   if (eventInfo.type === 'party') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
+                //   } else if (eventInfo.type === 'networking') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/BGlAGEj3IYFj1fjwRi1p32x84V-3ZP_PpBvqoRLVtgzOeM1WdGTS3SSm8-dI5zXH8LvXKaqRTH7fDNHwobmMysgA9eUbW7CA8-EA73W87Q9hvTUAER6dTG8ZcVm41Vcdc592q5xzKQ=w2400)';
+                //   } else {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
+                //   }
+                // }else if(st + (check)*0.75 >= currentTime){
+                //   if (eventInfo.type === 'party') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
+                //   } else if (eventInfo.type === 'networking') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ll7lT3lmwMBshUtRjzGfj_zXTOpEbB7R7ueDUz8iJx3bhoXI5yjfZ9Wx9w5Ou49ynxBsfEgwMI2XEJ3wWxgSZx5HSu3mB600HuFGXC9m0gq5IxG48SJfUjAk4w2jhqSuzVL-UsMgCw=w2400)';
+                //   } else {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
+                //   }
+                // }else if(et >= currentTime){
+                //   if (eventInfo.type === 'party') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
+                //   } else if (eventInfo.type === 'networking') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/kGtGgAcoVv8zj4l6tHJribovAKnR4ug8830Ovbaz8c3IhgKiC_u2IFHFyPSN_GTLa-uRKPEdeUOateKFhnfQfUYTiCHHWccVgqwRuTH-Fvw_-YEBF3aUZK29ZKQN6aaDe1ydWUOeNA=w2400)';
+                //   } else {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
+                //   }
+                // }else{
+                //   if (eventInfo.type === 'party') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
+                //   } else if (eventInfo.type === 'networking') {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
+                //   } else {
+                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
+                //   }
+                // }
                 document.getElementById(els[i].id).style.display = "inline";
                 break;
               }
@@ -629,6 +651,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         // }
     }
 
+    //HERE: check for time to use correct
     newRenderFunc(doc){
         console.log("newRenderFunc");
         const eventInfo = doc.properties;
@@ -636,7 +659,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log(el);
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
-        //el.setAttribute('data-type', eventInfo.type);
+        el.setAttribute('data-type', eventInfo.type);
         // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
         //     el.setAttribute('data-link', 'true');
         // } else {
@@ -645,33 +668,82 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
         //     });
         // }
-        //el.setAttribute('data-time', eventInfo.startTime);
-          el.id = doc.id;
-          if (!!document.getElementById(el.id)) {
-              document.getElementById(el.id).remove();
-          }
-          console.log(el.id);
-          if (doc.geometry.type === 'party') {
-              el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
-          } else if (doc.geometry.type === 'hangout') {
-              el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
-          } else {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-          }
-          // const startTime = eventInfo.startTime.toDate();
-          // // console.log(startTime);
-          // let minutes = startTime.getMinutes() < 10 ? '0' : '';
-          // minutes += startTime.getMinutes();
+        const startTime = eventInfo.startTime.toISOString();
+        console.log(startTime);
+        let minutes = eventInfo.startTime.getMinutes() < 10 ? '0' : '';
+        console.log(minutes);
+        minutes += eventInfo.startTime.getMinutes();
 
+        el.setAttribute('data-time', eventInfo.startTime);
+        el.id = doc.id;
+        if (!!document.getElementById(el.id)) {
+            document.getElementById(el.id).remove();
+        }
+        console.log(eventInfo);
+        var check = (eventInfo.endTime - eventInfo.startTime);
+        console.log(check);
+        var currentTime = new Date();
+        console.log("start");
+        console.log(currentTime - 0.0);
+        console.log(eventInfo.startTime);
+        console.log(eventInfo.endTime)
+        console.log((eventInfo.startTime - 0.0) + check*0.25);
+        console.log(check*0.25);
+        // console.log(eventInfo.endTime - check*0.25);
+        // console.log(eventInfo.endTime - check*0.5);
+        // console.log(currentTime - (eventInfo.endTime - check*0.25));
+        // console.log(currentTime - (eventInfo.endTime - check*0.5));
+        // console.log(check*0.25);
+        if((eventInfo.startTime - 0.0) + (check)*0.25 >= currentTime){
+          if (eventInfo.type === 'party') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
+          } else if (eventInfo.type === 'networking') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
+          } else {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
+          }
+        }else if((eventInfo.startTime - 0.0) + (check)*0.5 >= currentTime){
+          if (eventInfo.type === 'party') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
+          } else if (eventInfo.type === 'networking') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/BGlAGEj3IYFj1fjwRi1p32x84V-3ZP_PpBvqoRLVtgzOeM1WdGTS3SSm8-dI5zXH8LvXKaqRTH7fDNHwobmMysgA9eUbW7CA8-EA73W87Q9hvTUAER6dTG8ZcVm41Vcdc592q5xzKQ=w2400)';
+          } else {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
+          }
+        }else if((eventInfo.startTime - 0.0) + (check)*0.75 >= currentTime){
+          if (eventInfo.type === 'party') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
+          } else if (eventInfo.type === 'networking') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ll7lT3lmwMBshUtRjzGfj_zXTOpEbB7R7ueDUz8iJx3bhoXI5yjfZ9Wx9w5Ou49ynxBsfEgwMI2XEJ3wWxgSZx5HSu3mB600HuFGXC9m0gq5IxG48SJfUjAk4w2jhqSuzVL-UsMgCw=w2400)';
+          } else {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
+          }
+        }else if((eventInfo.endTime - 0.0) >= currentTime){
+          if (eventInfo.type === 'party') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
+          } else if (eventInfo.type === 'networking') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/kGtGgAcoVv8zj4l6tHJribovAKnR4ug8830Ovbaz8c3IhgKiC_u2IFHFyPSN_GTLa-uRKPEdeUOateKFhnfQfUYTiCHHWccVgqwRuTH-Fvw_-YEBF3aUZK29ZKQN6aaDe1ydWUOeNA=w2400)';
+          } else {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
+          }
+        }else{
+          if (eventInfo.type === 'party') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
+          } else if (eventInfo.type === 'networking') {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
+          } else {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
+          }
+        }
           el.addEventListener('click', (e) => {
               this.showEventDetails = true;
               this.showUserDetails = false;
               this.showPing = false;
               this.currentEventTitle = eventInfo.name;
-              //this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
-              //this.currentEventId = el.id;
-              //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
-                //  eventInfo.position) < 0.025 && startTime < new Date();
+              this.currentEventDes = eventInfo.type + ' @ ' + eventInfo.startTime.toDateString() + ' ' + eventInfo.startTime.getHours() + ':' + minutes;
+              this.currentEventId = el.id;
+              this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
+                  eventInfo.position) < 0.025 && startTime < new Date();
           });
           console.log(el);
           //const marker = new mapboxgl.Marker(el);
