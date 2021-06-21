@@ -17,7 +17,7 @@ import {GeoPingComponent} from './markercreator/geo-ping/geo-ping.component';
         FormsModule,
         RouterModule.forChild([{path: '', component: Tab2Page}]),
     ],
-    declarations: [Tab2Page, MarkercreatorPage, QrcodePage, PhysicalmapComponent, EventcreatorComponent],
+    declarations: [Tab2Page, MarkercreatorPage, QrcodePage, PhysicalmapComponent, EventcreatorComponent, GeoPingComponent],
     entryComponents: [MarkercreatorPage, QrcodePage],
 })
 export class Tab2PageModule {
