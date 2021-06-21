@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {AngularFireAuth} from '@angular/fire/auth';
-import {AlertController, ToastController} from '@ionic/angular';
-import { Storage } from '@capacitor/storage';
+import {AlertController} from '@ionic/angular';
+import { UtilsService } from '../services/utils.service';
+import { UsersService } from '../services/users.service';
 
 // tslint:disable-next-line:import-spacing
 
@@ -10,6 +11,7 @@ import { Storage } from '@capacitor/storage';
     selector: 'app-login',
     templateUrl: './login.page.html',
     styleUrls: ['./login.page.scss'],
+    providers: []
 })
 export class LoginPage implements OnInit {
     email: string;
@@ -20,7 +22,8 @@ export class LoginPage implements OnInit {
     rePass: string;
 
     // tslint:disable-next-line:no-shadowed-variable
-    constructor(private alertController: AlertController, public router: Router, private auth: AngularFireAuth, private toastController: ToastController) {
+    constructor(private alertController: AlertController, public router: Router, private auth: AngularFireAuth, 
+        private utils: UtilsService, private us: UsersService) {
         this.loginScreen = true;
     }
 
@@ -31,22 +34,20 @@ export class LoginPage implements OnInit {
     createAccount() {
         if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
             this.auth.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
-                this.auth.auth.signInWithEmailAndPassword(this.newEmail, this.newPass).then(async (val) => {
-                    await this.setUID(val.user.uid)
-                    await this.router.navigate(['/registration']);
-                }).catch(async (error) => {
-                    const toast = await this.toastController.create({
-                        message: error.message,
-                        duration: 2000
+                this.us.createUser().subscribe(async success => {
+                    this.auth.auth.signInWithEmailAndPassword(this.newEmail, this.newPass).then(async (val) => {
+                        await this.router.navigate(['/registration']);
+                    }).catch(async (error) => {
+                        this.utils.presentToast(error.message);
+                        console.log(error.message);
                     });
-                    await toast.present();
+                }, fail => {
+                    this.utils.presentToast(fail.error);
+                    console.log(fail.error);
                 });
             }).catch(async (error) => {
-                const toast = await this.toastController.create({
-                    message: error.message,
-                    duration: 2000
-                });
-                await toast.present();
+                this.utils.presentToast(error.message);
+                console.log(error.message);
             });
         }
     }
@@ -56,14 +57,10 @@ export class LoginPage implements OnInit {
             this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then(async (value) => {
                 this.email = '';
                 this.password = '';
-                await this.setUID(value.user.uid)
                 await this.router.navigate(['/tabs']);
             }).catch(async (error) => {
-                const toast = await this.toastController.create({
-                    message: error.message,
-                    duration: 2000
-                });
-                await toast.present();
+                this.utils.presentToast(error.message);
+                console.log(error.message);
             });
         }
     }
@@ -83,11 +80,11 @@ export class LoginPage implements OnInit {
                 }, {
                     text: 'Ok',
                     handler: (alertData) => {
-                        this.auth.auth.sendPasswordResetEmail(alertData.email).then(value => {
-
-                        }).catch(e => {
+                        try {
+                            this.auth.auth.sendPasswordResetEmail(alertData.email)
+                        } catch (e) {
                             console.log(e);
-                        });
+                        }
                     }
                 }
             ],
@@ -101,12 +98,5 @@ export class LoginPage implements OnInit {
         });
 
         await alert.present();
-    }
-
-    private async setUID(uid: string) {
-        await Storage.set({
-            key: 'UID',
-            value: uid
-        })
     }
 }
