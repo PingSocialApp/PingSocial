@@ -29,10 +29,10 @@
     <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
     <ion-list>
         <ion-img *ngIf="(links | async)?.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
-        <h1 *ngIf="(links | async)?.length === 0" class="addLinkDisplay">No Sent Links Yet!</h1>
-        <ion-item *ngFor="let link of links | async | sortBy:'asc':'name'" [routerLink]="['/userprofile/', link.id]">
+        <h1 *ngIf="(links | async)?.length === 0" class="addLinkDisplay">No Links Yet!</h1>
+        <ion-item *ngFor="let link of (links | async)" [routerLink]="['/userprofile/', link.data.id]">
             <ion-avatar slot="start">
-                <ion-img src="{{link.img | async}}"></ion-img>
+                <ion-img src="{{link.profilepic | async}}"></ion-img>
             </ion-avatar>
             <ion-label>
                 <h2>{{link.name}}</h2>
@@ -40,4 +40,10 @@
             </ion-label>
         </ion-item>
     </ion-list>
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="(links | async)?.length != 0">
+        <ion-infinite-scroll-content
+          loadingSpinner="bubbles"
+          loadingText="Loading more data...">
+        </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
 </ion-content>
