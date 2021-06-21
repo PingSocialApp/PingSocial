@@ -1,23 +1,23 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {AngularFireAuth} from '@angular/fire/auth';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {AngularFireStorage} from '@angular/fire/storage';
+import {map, switchMap, tap} from 'rxjs/operators';
 import {MarkercreatorPage} from '../tab2/markercreator/markercreator.page';
 import {AlertController, ModalController} from '@ionic/angular';
 import {firestore} from 'firebase';
-import {RequestsProgramService} from '../services/requests-program.service';
+import {RequestsService} from '../services/requests.service';
 import {AngularFireFunctions} from '@angular/fire/functions';
 import {RatingPage} from '../rating/rating.page';
+import { AuthHandler } from '../services/authHandler.service';
+import { UsersService } from '../services/users.service';
 
 @Component({
     selector: 'app-tab1',
     templateUrl: 'tab1.page.html',
     styleUrls: ['tab1.page.scss'],
-    providers: [AngularFireStorage, AngularFireFunctions]
+    providers: [AngularFireFunctions]
 })
-export class Tab1Page {
+export class Tab1Page implements OnInit {
     eventName: string;
     eventDes: string;
     eventId: string;
@@ -26,48 +26,29 @@ export class Tab1Page {
     eventCreator: string;
     eventCreatorId: string;
 
-    constructor(private afs: AngularFirestore, private auth: AngularFireAuth, private storage: AngularFireStorage, private modalController: ModalController,
-                private alertController: AlertController, private requestService: RequestsProgramService, private functions: AngularFireFunctions) {
-        this.currentUserId = this.auth.auth.currentUser.uid;
-        this.afs.collection('eventProfile').doc(this.currentUserId).valueChanges().subscribe(val => {
-            // @ts-ignore
-            if(val.partyAt == null){
-                this.eventId = null;
-                return;
-            }
-            // @ts-ignore
-            this.eventId = val.partyAt.id;
-
-            this.attendees = this.afs.collection('events').doc(this.eventId).collection('attendeesPublic').snapshotChanges().pipe(map(v=> {
-                return v.map(doc => {
-                    const data = doc.payload.doc;
-                    return {
-                        id: data.id,
-                        name: data.get('name'),
-                        bio: data.get('bio'),
-                        img: this.getImage(data.get('profilepic'))
-                    }
-                })
-            }));
-            // @ts-ignore
-            val.partyAt.get().then(partyDetails => {
-                this.eventName = partyDetails.get('name');
-                this.eventCreatorId = partyDetails.get('creator').id;
-                partyDetails.get('creator').get().then(details => {
-                    this.eventCreator = details.get('name');
-                }).catch(e => console.log(e));
-            }).catch(er => console.log(er));
-        })
+    constructor(private afs: AngularFirestore, private modalController: ModalController,
+                private alertController: AlertController, private requestService: RequestsService,
+                private auth: AuthHandler, private us: UsersService) {
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
+    ngOnInit(){
+        this.currentUserId = this.auth.getUID();
+        this.eventId = null;
+        
+        // this.us.getUserBasic(this.currentUserId).pipe(tap((val:any) => this.eventId=val.data.checkedIn), switchMap((val:any) ))
+
+        //     this.attendees = this.afs.collection('events').doc(this.eventId).collection('attendeesPublic').snapshotChanges().pipe(map(v=> {
+        //         return v.map(doc => {
+        //             const data = doc.payload.doc;
+        //             return {
+        //                 id: data.id,
+        //                 name: data.name,
+        //                 bio: data.bio,
+        //                 img: data.profilepic
+        //             }
+        //         })
+        //     }));
+        // })
     }
 
     async checkOut() {
@@ -75,7 +56,6 @@ export class Tab1Page {
             component: RatingPage,
             componentProps: {
                 eventID: this.eventId,
-                currentUserId: this.currentUserId
             }
         });
         return await modal.present();
@@ -96,11 +76,7 @@ export class Tab1Page {
                     text: 'Send',
                     handler: (alertData) => {
                         if(id){
-                            const func = this.functions.httpsCallable('massMessage');
-                            func({
-                                eventId: this.eventId,
-                                message: alertData.message
-                            }).toPromise().then().catch(e => console.log(e));
+                            // TODO Mass Message All attendees
                         }else{
                             this.sendPing(alertData, id);
                         }
@@ -118,8 +94,8 @@ export class Tab1Page {
 
     private sendPing(alertData, id){
         this.afs.collection('pings').add({
-            userSent: this.afs.collection('users').doc(this.currentUserId).ref,
-            userRec: this.afs.collection('users').doc(id).ref,
+            userSent: this.currentUserId,
+            userRec: id,
             sentMessage: '',
             responseMessage: alertData.message,
             timeStamp: firestore.FieldValue.serverTimestamp()
