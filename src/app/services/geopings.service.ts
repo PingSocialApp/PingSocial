@@ -1,0 +1,24 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { first, retry } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class GeopingsService {
+
+  constructor(private http: HttpClient) { }
+
+  createGeoPing(body: object){
+    return this.http.post(environment.apiURL.geoPing, body).pipe(retry(3), first());
+  }
+
+  deleteGeoPing(id: string){
+    return this.http.delete(environment.apiURL.geoPing).pipe(retry(3),first());
+  }
+
+  shareGeoPing(id: string, uid: string[]){
+    return this.http.post(environment.apiURL.geoPing + id + '/shares', {uids: uid}).pipe(retry(3),first())
+  }
+}
