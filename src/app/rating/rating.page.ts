@@ -1,57 +1,49 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {ModalController, ToastController} from '@ionic/angular';
-import {AngularFirestore} from '@angular/fire/firestore';
-import * as firebase from 'firebase';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import { UtilsService } from '../services/utils.service';
+import { EventsService } from '../services/events.service';
+import { AuthHandler } from '../services/authHandler.service';
 
 @Component({
     selector: 'app-rating',
     templateUrl: './rating.page.html',
     styleUrls: ['./rating.page.scss'],
 })
-export class RatingPage implements OnInit {
+export class RatingPage implements OnInit, OnDestroy {
     rate: number;
     review: string;
     textAmt: number;
     @Input() eventID;
-    @Input() currentUserId;
+    checkoutSub: any;
 
-    constructor(private modalController: ModalController, private afs: AngularFirestore, private toastController: ToastController) {
+    constructor(private modalController: ModalController, private utils: UtilsService, private es: EventsService) {}
+
+    ngOnInit() {
         this.textAmt = 0;
         this.rate = 3;
         this.review = '';
     }
 
-    ngOnInit() {
-    }
-
-    async presentToast(m: string) {
-        const toast = await this.toastController.create({
-            message: m,
-            duration: 2000
-        });
-        await toast.present();
+    ngOnDestroy(){
+        this.checkoutSub.unsubscribe();
     }
 
     async checkout() {
         if(this.review.length > 1000){
-            await this.presentToast('Whoops! Your review is too long');
+            await this.utils.presentToast('Whoops! Your review is too long');
             return;
         }
 
-        const batch = this.afs.firestore.batch();
-
-        batch.update(this.afs.collection('events').doc(this.eventID).collection('attendeesPrivate').doc(this.currentUserId).ref, {
-            timeExited: firebase.firestore.FieldValue.serverTimestamp(),
-            rating: this.rate,
-            review: this.review
+        this.checkoutSub = this.es.checkout(this.eventID, this.rate, this.review).subscribe(async val => {
+            await this.modalController.dismiss({
+                isSuccesful: true
+            });
+            this.utils.presentToast('Checkout Successful!');
+        }, async err => {
+            await this.modalController.dismiss({
+                isSuccesful: false
+            });
+           this.utils.presentToast('Whoops! Checkout failed');
         });
-
-        batch.update(this.afs.collection('eventProfile').doc(this.currentUserId).ref, {
-            partyAt: null
-        });
-
-        batch.commit().then(async () => {
-            await this.modalController.dismiss();
-        }).catch(e => console.log(e));
     }
 }
