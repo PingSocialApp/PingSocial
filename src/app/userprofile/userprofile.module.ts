@@ -4,14 +4,12 @@ import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
 import {UserprofilePageRoutingModule} from './userprofile-routing.module';
 import {UserprofilePage} from './userprofile.page';
-import {AngularFireStorageModule} from '@angular/fire/storage';
 
 @NgModule({
     imports: [
         CommonModule,
         FormsModule,
         IonicModule,
-        AngularFireStorageModule,
         UserprofilePageRoutingModule
     ],
     declarations: [UserprofilePage]
