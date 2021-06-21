@@ -15,8 +15,9 @@ import {LinkSelectorPageModule} from './link-selector/link-selector.module';
         MarkercreatorPageRoutingModule,
         LinkSelectorPageModule,
     ],
-    entryComponents: [LinkSelectorPage]
-    // declarations: [MarkercreatorPage]
+    exports: [],
+    entryComponents: [LinkSelectorPage],
+    declarations: []
 })
 export class MarkercreatorPageModule {
 }

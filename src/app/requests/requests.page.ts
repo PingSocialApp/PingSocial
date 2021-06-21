@@ -1,72 +1,65 @@
 import {Component, OnInit} from '@angular/core';
-import {AngularFirestore} from '@angular/fire/firestore';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {AngularFireAuth} from '@angular/fire/auth';
 import {ModalController} from '@ionic/angular';
-import {forkJoin, Observable} from 'rxjs';
-import {mergeMap} from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { RequestsService } from '../services/requests.service';
+import { UtilsService } from '../services/utils.service';
 
 @Component({
     selector: 'app-requests',
     templateUrl: './requests.page.html',
     styleUrls: ['./requests.page.scss'],
-    providers: [AngularFireStorage]
+    providers: []
 })
 export class RequestsPage implements OnInit {
-    links: Observable<any>;
+    offset: number;
+    pendingRequestsBS: BehaviorSubject<number>;
+    links: any;
 
-    constructor(private modalCtrl: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage,
-                private auth: AngularFireAuth) {
+
+    constructor(private modalCtrl: ModalController, private rs: RequestsService, private utils: UtilsService) {
     }
 
     ngOnInit() {
-        this.links = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid)
-            .collection('links', ref => ref.where('pendingRequest', '==', true)).snapshotChanges()
-            .pipe(mergeMap(querySnap => forkJoin(
-                querySnap.map(doc => {
-                    const data = doc.payload.doc;
-                    if(data.exists){
-                        this.links = null;
-                        return;
-                    }
-                    return data.get('otherUser').get().then(userData => {
-                        return {
-                            id: data.id,
-                            img: this.getImage(userData.get('profilepic')),
-                            name: userData.get('name'),
-                            bio: userData.get('bio')
-                        };
-                    });
-                })
-            )));
+        this.offset = 0;
+        this.pendingRequestsBS = new BehaviorSubject(this.offset);
+        this.pendingRequestsBS.subscribe(() => this.getPendingRequests());
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
+    getPendingRequests() {
+        this.links = this.rs.getPendingRequests(this.offset);
     }
 
     acceptUser(linkId: string) {
-        this.firestore.collection('users').doc(
-            this.auth.auth.currentUser.uid).collection('links').doc(linkId).update({
-            pendingRequest: false
-        }).then(val => {
-            console.log('updated');
-        })
+        this.rs.acceptRequest(linkId).subscribe(val => {
+            this.utils.presentToast('Accepted!');
+        }, err => {
+            this.utils.presentToast('Whoops! Try again');
+            console.error(err);
+        });
     }
 
     deleteUser(linkId: string) {
-        this.firestore.collection('users').doc(
-            this.auth.auth.currentUser.uid).collection('links').doc(linkId).delete();
+        this.rs.deleteRequest(linkId).subscribe(val => {
+            this.utils.presentToast('Declined!');
+        }, err => {
+            this.utils.presentToast('Whoops! Try again');
+            console.error(err);
+        });
     }
 
     closeModal() {
         this.modalCtrl.dismiss();
     }
 
+    doRefresh(event) {
+        this.offset = 0;
+        this.pendingRequestsBS.next(this.offset);
+        event.target.complete();
+    }
+
+    loadData(event){
+        ++this.offset;
+        this.pendingRequestsBS.next(this.offset);
+        event.target.complete();
+    }
 }

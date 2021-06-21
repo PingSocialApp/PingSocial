@@ -1,18 +1,18 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {RequestsProgramService} from '../../services/requests-program.service';
-import {AngularFireAuth} from '@angular/fire/auth';
 import {BarcodeScanner} from '@capacitor-community/barcode-scanner';
-import {AngularFirestore} from '@angular/fire/firestore';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
 import { Share } from '@capacitor/share';
-import {first} from 'rxjs/operators';
+import { RequestsService } from 'src/app/services/requests.service';
+import { UsersService } from 'src/app/services/users.service';
+import { AuthHandler } from 'src/app/services/authHandler.service';
+import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
     selector: 'app-qrcode',
     templateUrl: './qrcode.page.html',
     styleUrls: ['./qrcode.page.scss'],
-    providers: [RequestsProgramService, AngularFireAuth]
+    providers: []
 })
 export class QrcodePage implements OnInit {
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
@@ -37,11 +37,9 @@ export class QrcodePage implements OnInit {
     displayScan: boolean;
     location = true;
 
-    constructor(private modalController: ModalController,
-    private auth: AngularFireAuth,
-                private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController,
-                public rs: RequestsProgramService) {
-        this.userId = this.auth.auth.currentUser.uid;
+    constructor(private modalController: ModalController, private utils: UtilsService,
+   private toastCtrl: ToastController, private alertController: AlertController,
+                private rs: RequestsService, private us: UsersService, private auth: AuthHandler) {
         this.updateVals();
     }
 
@@ -105,11 +103,15 @@ export class QrcodePage implements OnInit {
     }
 
     async presentAlertConfirm(dataArray: Array<string>) {
-        this.db.collection('users').doc(dataArray[0]).get().pipe(first())
-            .subscribe(async (data) => {
+        if (this.auth.getUID() === dataArray[0]) {
+            this.utils.presentToast('Whoops, this is your code!');
+            return;
+        }
+        this.us.getUserBasic(dataArray[0])
+            .subscribe(async (data:any) => {
             const alert = await this.alertController.create({
                 header: 'Confirm Request!',
-                message: 'Do you want to link with ' + data.get('name'),
+                message: 'Do you want to link with ' + data.data.name,
                 buttons: [
                     {
                         text: 'Cancel',

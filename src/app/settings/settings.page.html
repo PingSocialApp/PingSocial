@@ -50,44 +50,48 @@
             <ion-card-content>
                 <ion-item>
                     <ion-label position="stacked">Facebook</ion-label>
-                    <ion-input id="fb" value="{{(currentUserSocials | async).facebookID}}"></ion-input>
+                    <ion-input id="fb" value="{{(currentUserSocials | async)?.facebook}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Instagram</ion-label>
-                    <ion-input id="ig" value="{{(currentUserSocials | async).instagramID}}"></ion-input>
+                    <ion-input id="ig" value="{{(currentUserSocials | async)?.instagram}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Twitter</ion-label>
-                    <ion-input id="tw" value="{{(currentUserSocials | async).twitterID}}"></ion-input>
+                    <ion-input id="tw" value="{{(currentUserSocials | async)?.twitter}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">LinkedIn</ion-label>
-                    <ion-input id="li" value="{{(currentUserSocials | async).linkedinID}}"
+                    <ion-input id="li" value="{{(currentUserSocials | async)?.linkedin}}"
                                placeholder="https://www.linkedin.com/in/williamhgates/"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Personal Email</ion-label>
-                    <ion-input id="peem" value="{{(currentUserSocials | async).personalEmailID}}"></ion-input>
+                    <ion-input id="peem" value="{{(currentUserSocials | async)?.personalEmail}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Professional Email</ion-label>
-                    <ion-input id="prem" value="{{(currentUserSocials | async).professionalEmailID}}"></ion-input>
+                    <ion-input id="prem" value="{{(currentUserSocials | async)?.professionalEmail}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Snapchat</ion-label>
-                    <ion-input id="sc" value="{{(currentUserSocials | async).snapchatID}}"></ion-input>
+                    <ion-input id="sc" value="{{(currentUserSocials | async)?.snapchat}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">TikTok</ion-label>
-                    <ion-input id="tt" value="{{(currentUserSocials | async).tiktokID}}"></ion-input>
+                    <ion-input id="tt" value="{{(currentUserSocials | async)?.tiktok}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Venmo</ion-label>
-                    <ion-input id="ve" value="{{(currentUserSocials | async).venmoID}}"></ion-input>
+                    <ion-input id="ve" value="{{(currentUserSocials | async)?.venmo}}"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="stacked">Phone</ion-label>
+                    <ion-input id="ph" value="{{(currentUserSocials | async)?.phone}}"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="stacked">Website</ion-label>
-                    <ion-input id="ws" value="{{(currentUserSocials | async).websiteID}}"></ion-input>
+                    <ion-input id="ws" value="{{(currentUserSocials | async)?.website}}"></ion-input>
                 </ion-item>
             </ion-card-content>
         </ion-card>

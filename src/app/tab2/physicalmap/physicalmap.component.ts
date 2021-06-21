@@ -1,20 +1,17 @@
 import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
-import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {AngularFirestore} from '@angular/fire/firestore';
 import {Geolocation, Position} from '@capacitor/geolocation'
-import {merge, Subscription} from 'rxjs';
+import {forkJoin, Subscription} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {MarkercreatorPage} from '../markercreator/markercreator.page';
-import {firestore} from 'firebase/app';
-import {first} from 'rxjs/operators';
-import * as geofire from 'geofirex';
-import * as firebase from 'firebase';
-import {GeoFireClient} from 'geofirex';
 import {RatingPage} from '../../rating/rating.page';
+import { MarkersService } from 'src/app/services/markers.service';
+import { UsersService } from 'src/app/services/users.service';
+import { AuthHandler } from 'src/app/services/authHandler.service';
+import { EventsService } from 'src/app/services/events.service';
+import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
     selector: 'app-physicalmap',
@@ -24,12 +21,10 @@ import {RatingPage} from '../../rating/rating.page';
 })
 export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     showPing: boolean;
-    currentUserId: string;
-    currentUserRef: any;
     map: mapboxgl.Map;
     currentLocationMarker: any;
     showFilter: boolean;
-    allUserMarkers: any[] = [];
+    allUserMarkers: any;
     currentEventTitle: string;
     currentEventDes: string;
     showEventDetails: any;
@@ -43,60 +38,47 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     otherUserLocation: any;
     otherUserStatus = '';
     otherUserId: string;
-    geofirex: GeoFireClient;
 
     // puts marker on the map with user info
     pingMessage: string;
-    pingImg: any;
+    pingImg: string;
     pingAuthor: string;
     pingDate: string;
-    private geoSub: Subscription;
     private linksSub: Subscription;
-    private eventSub: Subscription;
-    private geopingSub: Subscription;
-    private cus: Subscription;
+    private markersSub: Subscription;
     showCheckIn: boolean;
-    location: number[];
-    private currentUserData: any;
+    location: any;
     checkedIn: string;
 
-    constructor(private rtdb: AngularFireDatabase, private afs: AngularFirestore, private auth: AngularFireAuth, private platform: Platform,
-                private storage: AngularFireStorage, private modalController: ModalController) {
+    constructor(private rtdb: AngularFireDatabase, private ms: MarkersService, private us: UsersService, private platform: Platform,
+                private modalController: ModalController, public auth: AuthHandler, private es: EventsService,
+                private utils: UtilsService) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        this.currentUserId = this.auth.auth.currentUser.uid;
-        this.currentUserRef = this.afs.collection('users').doc(this.currentUserId);
+    }
+
+    async ngOnInit() {
+        this.allUserMarkers = [];
+        this.location = [];
         this.showFilter = false;
         this.showEventDetails = false;
         this.showUserDetails = false;
         this.showPing = false;
-        this.geofirex = new geofire.GeoFireClient(firebase);
         this.checkedIn = null;
     }
-
-    ngOnInit() {
-        this.afs.collection('eventProfile').doc(this.currentUserId).valueChanges().subscribe(data => {
-            if(data){
-                // @ts-ignore
-                this.checkedIn = data.partyAt === null ? null : data.partyAt.id;
-            }
-        });
-
-    }
-
+    
     ngAfterViewInit() {
         Geolocation.getCurrentPosition().then((resp) => {
             this.buildMap(resp.coords);
-            // resp.coords.latitude
-            // resp.coords.longitude
+            // this.updateLocation(resp.coords);
         }).then(() => {
             this.map.on('load', () => {
                 this.presentCurrentLocation();
-                // TODO Make realtime
+                this.refreshContent(true);
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
-                },this.renderCurrent);
-                this.presentEvents();
-                this.presentGeoPing();
+                },(position, err) => {
+                    this.renderCurrent(position);
+                });
             });
         }).catch((error) => {
             console.log('Error getting location', error);
@@ -104,11 +86,20 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.geoSub.unsubscribe();
         this.linksSub.unsubscribe();
-        this.eventSub.unsubscribe();
-        this.geopingSub.unsubscribe();
-        this.cus.unsubscribe();
+        this.markersSub.unsubscribe();
+    }
+
+    refreshContent(reset = false) {
+        this.renderLinks(reset);
+
+        const coords = this.map.getCenter();
+
+        this.markersSub = forkJoin([this.ms.getRelevantEvents(coords.lat, coords.lng, this.getRadius(), reset),
+        this.ms.getRelevantGeoPings(coords.lat, coords.lng, this.getRadius(), reset)]).subscribe((markerSet:any) => {
+            const markerArr = [...markerSet[0], ...markerSet[1]];
+            // TODO render Markers
+        }, err => console.error(err));
     }
 
     renderCurrent(pos: Position) {
@@ -120,7 +111,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
             // const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
             // this.updateStatus(locationRef);
-            // this.updateLocation(locationRef);
 
             // use api to get location
             // this.renderUser(this.currentLocationMarker, lng, lat);
@@ -132,61 +122,43 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             });
     }
 
-    renderLinks() {
-        this.linksSub = this.afs.collectionGroup('links',
-            ref => ref.where('otherUser', '==', this.currentUserRef.ref)
-                .where('pendingRequest', '==', false).where('linkPermissions', '>=', 2048)).snapshotChanges().subscribe(res => {
+    getRadius(){
+        return (78271/(2**this.map.getZoom()))*256;
+    }
+
+    renderLinks(reset) {
+        const coords = this.map.getCenter();
+
+        this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
             res.forEach(doc => {
-                let otherId, otherRef, oName, oMark;
-                // @ts-ignore
-                otherId = doc.payload.doc.ref.parent.parent.id;
-                // console.log(otherId);
-                otherRef = this.rtdb.database.ref('/location/' + otherId);
-                this.afs.doc('/users/' + otherId).get().pipe(first()).subscribe(oUserDoc => {
-                    // get other user name and profile pic
-                    oName = oUserDoc.get('name');
-                    const oUrl = oUserDoc.get('profilepic');
+                // create marker and style it
+                const el = this.createMarker();
+                el.style.width = '30px';
+                el.style.height = '30px';
+                el.style.backgroundImage = 'url(' + doc.profilepic + ')';
+                // get other users longitude, latitude, and lastOnline vals
+                const longi = doc.geometry[0];
+                const latid = doc.geometry[1];
+                // const locat = vals.place;
 
-                    // create marker and style it
-                    const el = this.createMarker();
-                    el.style.width = '30px';
-                    el.style.height = '30px';
-                    if (oUrl.startsWith('h')) {
-                        el.style.backgroundImage = 'url(' + oUrl + ')';
-                    } else {
-                        this.storage.storage.refFromURL(oUrl).getDownloadURL().then(url => {
-                            el.style.backgroundImage = 'url(' + url + ')';
-                        });
-                    }
-                    otherRef.on('value', snapshot => {
-                        if (snapshot.val()) {
-                            const vals = snapshot.val();
-                            // get other users longitude, latitude, and lastOnline vals
-                            const longi = vals.longitude;
-                            const latid = vals.latitude;
-                            const locat = vals.place;
+                // const lastOn = vals.lastOnline;
+                // const oStat = vals.isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
 
-                            const lastOn = vals.lastOnline;
-                            const oStat = vals.isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
-
-                            el.id = oUserDoc.id;
-                            oMark = new mapboxgl.Marker(el);
-                            this.allUserMarkers.push(oMark);
-                            el.addEventListener('click', async (e) => {
-                                this.showUserDetails = true;
-                                this.showEventDetails = false;
-                                this.otherUserName = oName;
-                                this.otherUserStatus = oStat;
-                                this.otherUserLocation = locat;
-                                this.otherUserId = oUserDoc.id
-                            });
-                            this.renderUser(oMark, longi, latid);
-                        }
-                    });
+                el.id = doc.id;
+                const oMark = new mapboxgl.Marker(el);
+                this.allUserMarkers.push(oMark);
+                el.addEventListener('click', async (e) => {
+                    this.showUserDetails = true;
+                    this.showEventDetails = false;
+                    this.otherUserName = doc.properties.name;
+                    // this.otherUserStatus = oStat;
+                    // this.otherUserLocation = locat;
+                    this.otherUserId = doc.id
                 });
+                this.renderUser(oMark, longi, latid);
             });
         });
     }
@@ -218,92 +190,29 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    updateLocation(lRef) {
-        let locat = 'Loading...';
-        const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + this.location[0] + ',' + this.location[1] + '.json?access_token=' +
-            mapboxgl.accessToken;
-
-        // get info from api
-        fetch(reqStr).then(response => response.json())
-            .then(data => {
-                let i = 0;
-                let found = false;
-                while (i < data.features.length && !found) {
-                    const feat = data.features[i];
-                    if (feat.place_type[0] === 'poi') {
-                        // get just the name of the place, no address
-                        locat = feat.text;
-                        found = true;
-                    } else if (feat.place_type[0] === 'address') {
-                        locat = feat.place_name;
-                        found = true;
-                    }
-                    i++;
-                }
-            }).then(() => {
-            // update in database
-            lRef.update({
-                longitude: this.location[0],
-                latitude: this.location[1],
-                place: locat
-            });
-        });
-    }
-
-    updateStatus(lRef) {
-        const offline = {
-            isOnline: false,
-            lastOnline: Date.now(),
-        };
-        const online = {
-            isOnline: true,
-            lastOnline: Date.now(),
-        };
-
-        // checks connection and sets values accordingly
-        this.rtdb.database.ref('.info/connected').on('value', (snapshot) => {
-            if (snapshot.val()) {
-                lRef.onDisconnect().update(offline).then(() => {
-                    lRef.update(online);
-                });
-            }
-        });
+    updateLocation(coords) {
+        this.us.setUserLocation({
+            longitude: coords.longitude,
+            latitude: coords.latitude,
+        }).subscribe((val: any) => console.log(val) ,(err: any) => console.error(err));
     }
 
     presentEvents() {
-        // const nowString = firestore.Timestamp.now();
-
-        // const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
-        //     .where('endTime', '>=', nowString));
-        // const query2 = this.afs.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
-        //     .where('endTime', '>=', nowString));
-        // const query3 = this.afs.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-        //     .where('endTime', '>=', nowString));
-
-        // const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
-
-        // this.eventSub = events.subscribe(eventData => {
-        //     eventData.forEach((event) => {
-        //         this.renderEvent(event.payload.doc);
-        //     });
-        // });
-
         const data = [
             {
                 type: "Feature",
                 geometry: {
                     type: "Point",
-                    coordinates: [-95.6618, 32.349]
+                    coordinates: [12.602, 55.6618]
                 },
                 properties: {
                     name: "Event 1",
                     isPrivate: false,
                     rating: 3,
-                    startTime: new Date('21 June 2021 20:48 UTC'),
-                    endTime: new Date('22 June 2021 20:48 UTC'),
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
-                    type: "hangout"
                 },
                 id: "1"
             },
@@ -311,17 +220,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 type: "Feature",
                 geometry: {
                     type: "Point",
-                    coordinates: [-95.6628, 32.61]
+                    coordinates: [12.61, 55.6628]
                 },
                 properties: {
                     name: "Event 2",
                     isPrivate: false,
                     rating: 3,
-                    startTime: new Date('21 June 2021 20:48 UTC'),
-                    endTime: new Date('22 June 2021 20:48 UTC'),
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
-                    type: "party"
                 },
                 id: "2"
             },
@@ -335,11 +243,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     name: "Event 3",
                     isPrivate: false,
                     rating: 3,
-                    startTime: new Date('19 June 2021 14:48 UTC'),
-                    endTime: new Date('20 June 2021 14:48 UTC'),
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
-                    type: "networking"
                 },
                 id: "3"
             },
@@ -353,11 +260,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     name: "Event 4",
                     isPrivate: false,
                     rating: 3,
-                    startTime: new Date('21 June 2021 16:00 UTC'),
-                    endTime: new Date('21 June 2021 17:00 UTC'),
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
-                    type: "hangout"
                 },
                 id: "4"
             },
@@ -371,15 +277,18 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     name: "Event 5",
                     isPrivate: false,
                     rating: 3,
-                    startTime: new Date('21 June 2021 14:48 UTC'),
-                    endTime: new Date('21 June 2021 16:48 UTC'),
+                    //startTime: "TIME_STRING",
+                    //endTime: "TME_STRIG",
                     hostName: "Billy",
                     profilePic: "LINKTOPROFILEPIC",
-                    type: "hangout"
                 },
                 id: "5"
             }
         ]
+
+        // data.forEach(event => {
+        //     this.renderEvent(event);
+        // })
 
         this.map.addSource('events', {
             type: 'geojson',
@@ -394,7 +303,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
             clusterProperties: {
               coordinates: ['max', ['get', 'coordinates']]
-            }
+            },
+            //id: 100
         });
 
         this.map.addLayer({
@@ -403,6 +313,29 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             source: 'events',
             filter: ['has', 'point_count'],
             paint: {
+                // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+                // with three steps to implement three types of circles:
+                //   * Blue, 20px circles when point count is less than 100
+                //   * Yellow, 30px circles when point count is between 100 and 750
+                //   * Pink, 40px circles when point count is greater than or equal to 750
+                'circle-color': [
+                    'step',
+                    ['get', 'point_count'],
+                    '#51bbd6',
+                    100,
+                    '#f1f075',
+                    750,
+                    '#f28cb1'
+                ],
+                'circle-radius': [
+                    'step',
+                    ['get', 'point_count'],
+                    20,
+                    100,
+                    30,
+                    750,
+                    40
+                ],
                 'circle-opacity': 0.0
             },
             includeGeometry: true
@@ -424,6 +357,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             try {
                 const marker = new mapboxgl.Marker(el);
                 marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
+                //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
                 console.log(marker);
             } catch (e) {
                 console.log(e.message);
@@ -445,59 +379,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
           for(var i = 0; i < els.length; i++){
+            console.log("hidden", els[i].id);
             document.getElementById(els[i].id).style.display = "none";
           }
           for(var m = 0; m < points.length; m++){
             for(var i = 0; i < els.length; i++){
               if(parseInt(els[i].id) === points[m].id){
-                // var el = document.getElementById(els[i].id);
-                // var currentTime = new Date();
-                // var eventInfo = points[m].properties;
-                // var st = new Date(eventInfo.startTime);
-                // var et = new Date(eventInfo.endTime);
-                // var check = et - st;
-                // console.log(check);
-                // if(st + (check)*0.25 >= currentTime){
-                //   if (eventInfo.type === 'party') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
-                //   } else if (eventInfo.type === 'networking') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
-                //   } else {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
-                //   }
-                // }else if(st + (check)*0.5 >= currentTime){
-                //   if (eventInfo.type === 'party') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
-                //   } else if (eventInfo.type === 'networking') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/BGlAGEj3IYFj1fjwRi1p32x84V-3ZP_PpBvqoRLVtgzOeM1WdGTS3SSm8-dI5zXH8LvXKaqRTH7fDNHwobmMysgA9eUbW7CA8-EA73W87Q9hvTUAER6dTG8ZcVm41Vcdc592q5xzKQ=w2400)';
-                //   } else {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
-                //   }
-                // }else if(st + (check)*0.75 >= currentTime){
-                //   if (eventInfo.type === 'party') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
-                //   } else if (eventInfo.type === 'networking') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ll7lT3lmwMBshUtRjzGfj_zXTOpEbB7R7ueDUz8iJx3bhoXI5yjfZ9Wx9w5Ou49ynxBsfEgwMI2XEJ3wWxgSZx5HSu3mB600HuFGXC9m0gq5IxG48SJfUjAk4w2jhqSuzVL-UsMgCw=w2400)';
-                //   } else {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
-                //   }
-                // }else if(et >= currentTime){
-                //   if (eventInfo.type === 'party') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
-                //   } else if (eventInfo.type === 'networking') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/kGtGgAcoVv8zj4l6tHJribovAKnR4ug8830Ovbaz8c3IhgKiC_u2IFHFyPSN_GTLa-uRKPEdeUOateKFhnfQfUYTiCHHWccVgqwRuTH-Fvw_-YEBF3aUZK29ZKQN6aaDe1ydWUOeNA=w2400)';
-                //   } else {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
-                //   }
-                // }else{
-                //   if (eventInfo.type === 'party') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
-                //   } else if (eventInfo.type === 'networking') {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
-                //   } else {
-                //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
-                //   }
-                // }
+                console.log("showing", els[i].id);
                 document.getElementById(els[i].id).style.display = "inline";
                 break;
               }
@@ -513,27 +401,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     presentGeoPing() {
-        // const nowString = firestore.Timestamp.now();
-
-        // const query1 = this.afs.collection('geoping', ref => ref.where('isPrivate', '==', false)
-        //     .where('timeExpire', '>=', nowString));
-        // const query2 = this.afs.collection('geoping', ref => ref.where('userSent', '==', this.currentUserRef.ref)
-        //     .where('timeExpire', '>=', nowString));
-        // const query3 = this.afs.collection('geoping', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-        //     .where('timeExpire', '>=', nowString));
-
-
-        // const pings = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
-
-
-        // this.geopingSub = pings.subscribe(eventData => {
-        //     eventData.map((event) => {
-        //         // TODO Remove Deleted event
-        //         console.log(event);
-        //         this.renderPings(event.payload.doc);
-        //     });
-        // });
-
         const data = [
             {
                 type: "Feature",
@@ -560,7 +427,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderPings(doc) {
-        const pingInfo = doc.data();
+        const pingInfo = doc;
         const el = this.createMarker();
 
         el.id = doc.id;
@@ -568,24 +435,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             document.getElementById(el.id).remove();
         }
 
-        pingInfo.userSent.get().then(val => {
-            el.addEventListener('click', (e) => {
-                this.showEventDetails = false;
-                this.showUserDetails = false;
-                this.showPing = true;
-                this.pingMessage = pingInfo.message;
-                this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
-
-                if (val.get('profilepic').startsWith('h')) {
-                    this.pingImg = val.get('profilepic');
-                } else {
-                    this.storage.storage.refFromURL(val.get('profilepic')).getDownloadURL().then(url => {
-                        this.pingImg = url;
-                    });
-                }
-
-                this.pingAuthor = val.get('name');
-            });
+        el.addEventListener('click', (e) => {
+            this.showEventDetails = false;
+            this.showUserDetails = false;
+            this.showPing = true;
+            this.pingMessage = pingInfo.message;
+            // this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
+            this.pingImg = pingInfo.creator.profilepic;
+            this.pingAuthor = pingInfo.creator.name;
         });
 
         el.style.backgroundImage = 'url(\'../assets/chatbubble.svg\')';
@@ -593,9 +450,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const marker = new mapboxgl.Marker(el);
         try {
-            marker.setLngLat([pingInfo.position.geopoint.longitude, pingInfo.position.geopoint.latitude]).addTo(this.map);
+            marker.setLngLat([pingInfo.position.longitude, pingInfo.position.latitude]).addTo(this.map);
         } catch (e) {
-            console.log(e.message);
+            console.error(e.message);
         }
     }
 
@@ -651,99 +508,41 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         // }
     }
 
-    //HERE: check for time to use correct
     newRenderFunc(doc){
         console.log("newRenderFunc");
-        const eventInfo = doc.properties;
+        const eventInfo = doc;
         const el = this.createMarker();
         console.log(el);
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
-        // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
-        //     el.setAttribute('data-link', 'true');
-        // } else {
-        //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-        //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
-        //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
-        //     });
-        // }
-        const startTime = eventInfo.startTime.toISOString();
-        console.log(startTime);
-        let minutes = eventInfo.startTime.getMinutes() < 10 ? '0' : '';
-        console.log(minutes);
-        minutes += eventInfo.startTime.getMinutes();
+        //el.setAttribute('data-time', eventInfo.startTime);
+          el.id = doc.id;
+          if (!!document.getElementById(el.id)) {
+              document.getElementById(el.id).remove();
+          }
+          console.log(el.id);
+          if (doc.geometry.type === 'party') {
+              el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
+          } else if (doc.geometry.type === 'hangout') {
+              el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
+          } else {
+              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
+          }
+          // const startTime = eventInfo.startTime.toDate();
+          // // console.log(startTime);
+          // let minutes = startTime.getMinutes() < 10 ? '0' : '';
+          // minutes += startTime.getMinutes();
 
-        el.setAttribute('data-time', eventInfo.startTime);
-        el.id = doc.id;
-        if (!!document.getElementById(el.id)) {
-            document.getElementById(el.id).remove();
-        }
-        console.log(eventInfo);
-        var check = (eventInfo.endTime - eventInfo.startTime);
-        console.log(check);
-        var currentTime = new Date();
-        console.log("start");
-        console.log(currentTime - 0.0);
-        console.log(eventInfo.startTime);
-        console.log(eventInfo.endTime)
-        console.log((eventInfo.startTime - 0.0) + check*0.25);
-        console.log(check*0.25);
-        // console.log(eventInfo.endTime - check*0.25);
-        // console.log(eventInfo.endTime - check*0.5);
-        // console.log(currentTime - (eventInfo.endTime - check*0.25));
-        // console.log(currentTime - (eventInfo.endTime - check*0.5));
-        // console.log(check*0.25);
-        if((eventInfo.startTime - 0.0) + (check)*0.25 >= currentTime){
-          if (eventInfo.type === 'party') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
-          } else if (eventInfo.type === 'networking') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
-          } else {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
-          }
-        }else if((eventInfo.startTime - 0.0) + (check)*0.5 >= currentTime){
-          if (eventInfo.type === 'party') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
-          } else if (eventInfo.type === 'networking') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/BGlAGEj3IYFj1fjwRi1p32x84V-3ZP_PpBvqoRLVtgzOeM1WdGTS3SSm8-dI5zXH8LvXKaqRTH7fDNHwobmMysgA9eUbW7CA8-EA73W87Q9hvTUAER6dTG8ZcVm41Vcdc592q5xzKQ=w2400)';
-          } else {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
-          }
-        }else if((eventInfo.startTime - 0.0) + (check)*0.75 >= currentTime){
-          if (eventInfo.type === 'party') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
-          } else if (eventInfo.type === 'networking') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ll7lT3lmwMBshUtRjzGfj_zXTOpEbB7R7ueDUz8iJx3bhoXI5yjfZ9Wx9w5Ou49ynxBsfEgwMI2XEJ3wWxgSZx5HSu3mB600HuFGXC9m0gq5IxG48SJfUjAk4w2jhqSuzVL-UsMgCw=w2400)';
-          } else {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
-          }
-        }else if((eventInfo.endTime - 0.0) >= currentTime){
-          if (eventInfo.type === 'party') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
-          } else if (eventInfo.type === 'networking') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/kGtGgAcoVv8zj4l6tHJribovAKnR4ug8830Ovbaz8c3IhgKiC_u2IFHFyPSN_GTLa-uRKPEdeUOateKFhnfQfUYTiCHHWccVgqwRuTH-Fvw_-YEBF3aUZK29ZKQN6aaDe1ydWUOeNA=w2400)';
-          } else {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
-          }
-        }else{
-          if (eventInfo.type === 'party') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
-          } else if (eventInfo.type === 'networking') {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
-          } else {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
-          }
-        }
           el.addEventListener('click', (e) => {
               this.showEventDetails = true;
               this.showUserDetails = false;
               this.showPing = false;
               this.currentEventTitle = eventInfo.name;
-              this.currentEventDes = eventInfo.type + ' @ ' + eventInfo.startTime.toDateString() + ' ' + eventInfo.startTime.getHours() + ':' + minutes;
-              this.currentEventId = el.id;
-              this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
-                  eventInfo.position) < 0.025 && startTime < new Date();
+              //this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+              //this.currentEventId = el.id;
+              //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
+                //  eventInfo.position) < 0.025 && startTime < new Date();
           });
           console.log(el);
           //const marker = new mapboxgl.Marker(el);
@@ -758,6 +557,43 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
               console.log(e.message);
               console.log('it');
           }
+        el.setAttribute('data-time', eventInfo.startTime);
+        el.id = doc.id;
+        if (!!document.getElementById(el.id)) {
+            document.getElementById(el.id).remove();
+        }
+        // @ts-ignore
+        if (eventInfo.type === 'party') {
+            el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
+        } else if (eventInfo.type === 'hangout') {
+            el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
+        } else {
+            el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
+        }
+        const startTime = eventInfo.startTime.toDate();
+        let minutes = startTime.getMinutes() < 10 ? '0' : '';
+        minutes += startTime.getMinutes();
+
+        el.addEventListener('click', (e) => {
+            this.showEventDetails = true;
+            this.showUserDetails = false;
+            this.showPing = false;
+            this.currentEventTitle = eventInfo.name;
+            this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+            this.currentEventId = el.id;
+            this.showCheckIn = this.getDistance(
+                eventInfo.position.latitude,
+                eventInfo.position.longitude,
+                this.location[1],
+                this.location[0],
+            ) < 0.025 && startTime < new Date();
+        });
+        const marker = new mapboxgl.Marker(el);
+        try {
+            marker.setLngLat([eventInfo.position.geopoint.longitude, eventInfo.position.geopoint.latitude]).addTo(this.map);
+        } catch (e) {
+            console.error(e.message);
+        }
     }
 
     createMarker() {
@@ -771,30 +607,22 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         const el = this.createMarker();
         el.style.width = '30px';
         el.style.height = '30px';
-        this.cus = this.currentUserRef.valueChanges().subscribe(ref => {
-            this.currentUserData = ref;
 
-            if (ref !== null) {
-                if (ref.profilepic.startsWith('h')) {
-                    el.style.backgroundImage = 'url(' + ref.profilepic + ')';
-                } else {
-                    this.storage.storage.refFromURL(ref.profilepic).getDownloadURL().then(url => {
-                        el.style.backgroundImage = 'url(' + url + ')';
-                    });
-                }
-                el.addEventListener('click', (e) => {
-                    this.showUserDetails = true;
-                    this.showEventDetails = false;
-                    this.showPing = false;
-                    this.otherUserName = ref.name;
-                    this.otherUserStatus = 'Online';
-                    this.otherUserId = 'currentLocation';
-                    this.otherUserLocation = 'Here';
-                });
-            }
-        });
-        el.id = 'currentLocation';
-        this.currentLocationMarker = new mapboxgl.Marker(el);
+        this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
+            el.style.backgroundImage = 'url(' + val.data.profilepic + ')';
+            el.addEventListener('click', (e) => {
+                this.showUserDetails = true;
+                this.showEventDetails = false;
+                this.showPing = false;
+                this.otherUserName = val.data.name;
+                this.otherUserStatus = 'Online';
+                this.otherUserId = 'currentLocation';
+                this.otherUserLocation = 'Here';
+                this.checkedIn = val.data.checkedIn;
+            });
+            el.id = 'currentLocation';
+            this.currentLocationMarker = new mapboxgl.Marker(el);
+        })
     }
 
     buildMap(coords: any) {
@@ -808,6 +636,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.showEventDetails = false;
             this.showUserDetails = false;
             this.showPing = false;
+        });
+        this.map.on('dragend', () => {
+            this.refreshContent();
         });
     }
 
@@ -859,7 +690,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
             (document.getElementById('searchbar') as unknown as IonSearchbar).getInputElement().then((input) => {
                 const shouldShow = elements[i].getAttribute('data-name').toLowerCase().indexOf(input.value.toLowerCase()) > -1;
-                !shouldShow ? (elements[i] as HTMLElement).style.display = 'none' : null;
+                (elements[i] as HTMLElement).style.display = !shouldShow ? 'none' : (elements[i] as HTMLElement).style.display;
             });
         }
     }
@@ -871,37 +702,18 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 eventID: data
             }
         });
+        // TODO Auto Refresh on Create Marker
         return await modal.present();
     }
 
     async checkIn() {
         if (this.checkedIn) {
-            await this.checkOut();
+            if((await this.checkOut()).data.isSuccesful){
+                this.es.checkin(this.currentEventId).subscribe((val) => {
+                    this.utils.presentToast('Welcome to ' + this.currentEventTitle);
+                }, (err) => console.error(err));
+            }
         }
-
-        const batch = this.afs.firestore.batch();
-        const eventRef = this.afs.collection('events').doc(this.currentEventId);
-
-        batch.set(eventRef.collection('attendeesPrivate').doc(this.currentUserId).ref, {
-            rating: null,
-            review: '',
-            timeAttended: firebase.firestore.FieldValue.serverTimestamp(),
-            timeExited: null
-        });
-
-        batch.set(eventRef.collection('attendeesPublic').doc(this.currentUserId).ref, {
-            profilepic: this.currentUserData.profilepic,
-            name: this.currentUserData.name,
-            bio: this.currentUserData.bio
-        });
-
-        batch.update(this.afs.collection('eventProfile').doc(this.currentUserId).ref, {
-            partyAt: this.afs.collection('events').doc(this.currentEventId).ref
-        });
-
-        batch.commit().then(() => {
-            this.checkedIn = this.currentEventId;
-        }).catch(e => console.log(e));
     }
 
     async checkOut() {
@@ -909,10 +721,29 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             component: RatingPage,
             componentProps: {
                 eventID: this.currentEventId,
-                currentUserId: this.currentUserId
             }
         });
         await modal.present();
+        this.utils.presentToast('Goodbye from ' + this.currentEventTitle);
         return modal.onDidDismiss();
+    }
+
+    getDistance(lat1, lon1, lat2, lon2) {
+        const earthRadiusKm = 6371;
+
+        const dLat = this.degreesToRadians(lat2-lat1);
+        const dLon = this.degreesToRadians(lon2-lon1);
+
+        lat1 = this.degreesToRadians(lat1);
+        lat2 = this.degreesToRadians(lat2);
+
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return earthRadiusKm * c;
+    }
+
+    degreesToRadians(degrees) {
+        return degrees * Math.PI / 180;
     }
 }

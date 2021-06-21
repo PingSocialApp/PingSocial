@@ -17,6 +17,15 @@ export const environment = {
         },
     mapbox: {
         accessToken: 'pk.eyJ1Ijoic3JlZWdyYW5kaGUiLCJhIjoiY2thanhpaDByMDBxZDJybGdxMnQ5ZnNxaiJ9.mkcuMoDmiPapnplpJ_lgaQ'
+    },
+    apiURL: {
+        default: 'http://localhost:8080/',
+        events: 'http://localhost:8080/events/',
+        users:'http://localhost:8080/users/',
+        geoPing:'http://localhost:8080/geoping/',
+        links:'http://localhost:8080/links/',
+        requests:'http://localhost:8080/requests/',
+        markers: 'http://localhost:8080/markers/'
     }
 };
 

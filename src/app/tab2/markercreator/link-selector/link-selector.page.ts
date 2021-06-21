@@ -1,54 +1,52 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {map, mergeMap} from 'rxjs/operators';
-import {forkJoin} from 'rxjs';
-import {AngularFireAuth} from '@angular/fire/auth';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {AngularFireStorage} from '@angular/fire/storage';
+import {BehaviorSubject, forkJoin} from 'rxjs';
 import {ModalController} from '@ionic/angular';
+import { LinksService } from 'src/app/services/links.service';
 
 @Component({
     selector: 'app-link-selector',
     templateUrl: './link-selector.page.html',
     styleUrls: ['./link-selector.page.scss'],
-    providers: [AngularFireStorage]
+    providers: []
 })
-export class LinkSelectorPage implements OnInit {
+export class LinkSelectorPage implements OnInit, OnDestroy {
     links: any;
-    private currentUserRef: AngularFirestoreDocument;
     userArray: Array<string>;
+    offset: number;
+    linksBS: BehaviorSubject<number>;
     @Input() ids: Array<string>;
 
-    constructor(private modalController: ModalController,
-                private auth: AngularFireAuth, private afs: AngularFirestore, private storage: AngularFireStorage) {
-        this.currentUserRef = this.afs.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.userArray = [];
+    constructor(private modalController: ModalController, private ls: LinksService) {
     }
 
     ngOnInit() {
-        this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-            .pipe(mergeMap(querySnap => forkJoin(
-                querySnap.docs.map(doc => doc.get('otherUser').get())
-            )), map((val: any) => {
-                return val.map(userData => {
-                    return {
-                        id: userData.id,
-                        img: this.getImage(userData.get('profilepic')),
-                        name: userData.get('name'),
-                        bio: userData.get('bio'),
-                        checked: this.ids.includes(userData.id)
-                    };
-                });
-            }));
+        this.offset = 0;
+        this.linksBS = new BehaviorSubject(this.offset);
+        this.linksBS.subscribe(() => this.getLinks());
+
+        // this.userArray = [];
+        // this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
+        //     .pipe(mergeMap(querySnap => forkJoin(
+        //         querySnap.docs.map(doc => doc.get('otherUser').get())
+        //     )), map((val: any) => {
+        //         return val.map(userData => {
+        //             return {
+        //                 id: userData.id,
+        //                 img: this.getImage(userData.get('profilepic')),
+        //                 name: userData.get('name'),
+        //                 bio: userData.get('bio'),
+        //                 checked: this.ids.includes(userData.id)
+        //             };
+        //         });
+        //     }));
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
+    ngOnDestroy() {
+        this.links.unsubscribe()
+    }
+
+    getLinks() {
+        this.links = this.ls.getAllLinks(this.offset);
     }
 
     handleInput(event) {
@@ -73,7 +71,15 @@ export class LinkSelectorPage implements OnInit {
         }
     }
 
-    loadData($event: any) {
+    doRefresh(event) {
+        this.offset = 0;
+        this.linksBS.next(this.offset);
+        event.target.complete();
+    }
 
+    loadData(event){
+        ++this.offset;
+        this.linksBS.next(this.offset);
+        event.target.complete();
     }
 }

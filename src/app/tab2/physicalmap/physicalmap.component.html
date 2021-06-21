@@ -3,8 +3,11 @@
         <ion-fab-button (click)="presentFilter()" class="filterButton">
             <ion-icon name="funnel"></ion-icon>
         </ion-fab-button>
-        <ion-fab-button [routerLink]="['/eventmanager/', currentUserId]" class="filterButton" style="margin-top: 20%">
+        <ion-fab-button [routerLink]="['/eventmanager/', this.auth.getUID()]" class="filterButton" style="margin-top: 20%">
             <ion-icon name="calendar-outline"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button (click)="refreshContent(true)" class="filterButton" style="margin-top: 20%">
+            <ion-icon name="refresh"></ion-icon>
         </ion-fab-button>
     </ion-fab>
     <ion-card *ngIf="showFilter" id="filterList">

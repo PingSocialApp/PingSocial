@@ -1,67 +1,59 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {AlertController, ModalController, PopoverController, ToastController} from '@ionic/angular';
+import {AlertController, ModalController, PopoverController} from '@ionic/angular';
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {AngularFireAuth} from '@angular/fire/auth';
 import {NewPingPage} from './new-ping/new-ping.page';
 import {forkJoin, Observable} from 'rxjs';
-import {mergeMap} from 'rxjs/operators';
-
-export interface Ping {
-    id: any;
-    userSentImg: string;
-    userSentId: string;
-    userSent: string;
-    sentMessage: string;
-    recMessage: string;
-}
+import {concatMap} from 'rxjs/operators';
+import { UtilsService } from '../services/utils.service';
+import { AuthHandler } from '../services/authHandler.service';
+import { UsersService } from '../services/users.service';
 
 @Component({
     selector: 'app-circledash',
     templateUrl: './circledash.page.html',
     styleUrls: ['./circledash.page.scss'],
-    providers: [AngularFireStorage, AngularFireAuth]
+    providers: []
 })
 
 
-export class CircledashPage implements OnInit {
+export class CircledashPage implements OnInit, OnDestroy {
     currentUser: AngularFirestoreDocument;
     pingArray: Observable<any>;
 
 
     // tslint:disable-next-line:max-line-length
     constructor(private alertController: AlertController, private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController,
-                private toastController: ToastController, private storage: AngularFireStorage, private auth: AngularFireAuth) {
+                private utils: UtilsService, private auth: AuthHandler, private us: UsersService) {
     }
 
     ngOnInit() {
+        // TODO Paginate
         this.pingArray = this.firestore.collection('pings', ref => ref.where('userRec', '==',
-            this.firestore.doc('/users/' + this.auth.auth.currentUser.uid).ref).orderBy('timeStamp','desc'))
-            .snapshotChanges().pipe(mergeMap(querySnap =>
+            this.auth.getUID()).orderBy('timeStamp','desc'))
+            .snapshotChanges().pipe(concatMap(querySnap =>
                 forkJoin(querySnap.map(doc => {
                     const data = doc.payload.doc;
-                    return data.get('userSent').get().then(val => {
+                    // @ts-ignore
+                    return this.us.getUserBasic(this.auth.getUID()).toPromise().then((val:any) => {
                         return {
+                            // @ts-ignore
                             id: data.id,
+                            // @ts-ignore
                             sentMessage: data.get('sentMessage'),
+                            // @ts-ignore
                             recMessage: data.get('responseMessage'),
+                            // @ts-ignore
                             userSentId: data.get('userSent').id,
-                            userSentImg: this.getImage(val.get('profilepic')),
-                            userSent: val.get('name'),
+                            userSentImg: val.data.profilepic,
+                            userSent: val.data.name,
                         };
                     });
                 }))));
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
+    ngOnDestroy(){
+        this.pingArray = null;
     }
 
     async presentAlert(message: string, header: string) {
@@ -101,18 +93,10 @@ export class CircledashPage implements OnInit {
 
     deletePing(id: any) {
         this.firestore.collection('pings').doc(id).delete().then(() => {
-            this.presentToast('Ping Successfully Deleted!');
+            this.utils.presentToast('Ping Successfully Deleted!');
         }).catch((error) => {
             console.error('Error removing document: ', error);
         });
-    }
-
-    async presentToast(m: string) {
-        const toast = await this.toastController.create({
-            message: m,
-            duration: 2000
-        });
-        await toast.present();
     }
 
     async presentNewPingModal() {

@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
-import { UpdateProfileService } from './update-profile.service';
+import { AuthHandler } from './authHandler.service';
 
-describe('UpdateProfileService', () => {
+describe('RestServiceService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: UpdateProfileService = TestBed.get(UpdateProfileService);
+    const service: AuthHandler = TestBed.get(AuthHandler);
     expect(service).toBeTruthy();
   });
 });

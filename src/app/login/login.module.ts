@@ -5,8 +5,8 @@ import {IonicModule} from '@ionic/angular';
 import {LoginPageRoutingModule} from './login-routing.module';
 import {LoginPage} from './login.page';
 // tslint:disable-next-line:import-spacing
-import {AngularFireAuthModule} from '@angular/fire/auth';
 import {RouterModule} from '@angular/router';
+import { AngularFireStorage } from '@angular/fire/storage';
 
 @NgModule({
     imports: [
@@ -15,10 +15,10 @@ import {RouterModule} from '@angular/router';
         IonicModule,
         LoginPageRoutingModule,
         RouterModule,
-        AngularFireAuthModule,
     ],
     declarations: [LoginPage],
-    bootstrap: [LoginPage]
+    bootstrap: [LoginPage],
+    providers: [AngularFireStorage]
 })
 export class LoginPageModule {
 }
