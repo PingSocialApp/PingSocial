@@ -1,17 +1,14 @@
 import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
 import {Calendar} from '@ionic-native/calendar/ngx';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {AngularFireAuth} from '@angular/fire/auth';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {GeoFireClient} from 'geofirex';
+import {AlertController, ModalController} from '@ionic/angular';
 import {environment} from '../../../../environments/environment';
-import * as geofirex from 'geofirex';
-import * as firebase from 'firebase';
 import * as mapboxgl from 'mapbox-gl';
-import {firestore} from 'firebase';
-import {first, map, mergeMap} from 'rxjs/operators';
-import {forkJoin, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
+import { UsersService } from 'src/app/services/users.service';
+import { AuthHandler } from 'src/app/services/authHandler.service';
+import { UtilsService } from 'src/app/services/utils.service';
+import { EventsService } from 'src/app/services/events.service';
+import { LinkSelectorPage } from '../link-selector/link-selector.page';
 
 @Component({
     selector: 'app-eventcreator',
@@ -21,7 +18,6 @@ import {forkJoin, Observable} from 'rxjs';
 })
 export class EventcreatorComponent implements OnInit, AfterViewInit {
     map: mapboxgl.Map;
-    currentUserRef: AngularFirestoreDocument;
     currentUser: any;
     geocoder: any;
     eventName: string;
@@ -30,20 +26,17 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
     links: Observable<any>;
     eventDes: string;
     eventType: string;
-    private members: Array<any> = [];
     @Input() eventID: string;
     editMode: boolean;
     isCreator: boolean;
     eventCreator: any;
     eventCreatorName: string;
-    geo: GeoFireClient;
 
-    constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController, private toastController: ToastController,
-                private afs: AngularFirestore, private auth: AngularFireAuth, private storage: AngularFireStorage) {
+    constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController, 
+        private utils: UtilsService,
+                private us: UsersService, private auth: AuthHandler, private es: EventsService) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        this.currentUserRef = this.afs.collection('users').doc(this.auth.auth.currentUser.uid);
         this.isPublic = false;
-        this.geo = geofirex.init(firebase);
     }
 
 
@@ -60,66 +53,35 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
 
     renderNewMode(){
         this.isCreator = true;
-        this.currentUserRef.ref.get().then((userRef) => {
-            this.eventCreatorName = userRef.get('name');
+        this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
+            this.eventCreatorName = userRef.data.name;
         });
-        this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-            .pipe(mergeMap(querySnap => forkJoin(
-                querySnap.docs.map(doc => doc.get('otherUser').get())
-            )), map((val: any) => {
-                return val.map(userData => {
-                    return {
-                        id: userData.id,
-                        img: this.getImage(userData.get('profilepic')),
-                        name: userData.get('name'),
-                        bio: userData.get('bio'),
-                        checked: false
-                    };
-                });
-            }));
     }
 
     renderEditMode(){
-           this.afs.collection('events').doc(this.eventID).get().pipe(first()).subscribe((ref) => {
-            const data = ref.data();
-            (document.getElementById('startTime') as HTMLInputElement).value = data.startTime.toDate().toISOString();
-            (document.getElementById('endTime') as HTMLInputElement).value = data.endTime.toDate().toISOString();
+           this.es.getEventDetails(this.eventID).subscribe((ref:any) => {
+            const data = ref.data;
+            (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
+            (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
             this.eventName = data.name;
             this.eventCreator = data.creator.id;
-            data.creator.get().then((userRef) => {
-                this.eventCreatorName = userRef.get('name');
-            });
+            this.eventCreatorName = data.creator.name;
             this.eventDes = data.description;
             this.isPublic = data.isPrivate;
             this.eventType = data.type;
-            this.location = [data.position.geopoint.longitude, data.position.geopoint.latitude];
+            this.location = [data.position.latitude,data.position.longitude];
             this.map.flyTo({
                 center: this.location,
                 essential: true
             });
-            if (this.isPublic) {
-                this.members = data.members;
-            }
-            this.isCreator = data.creator.id === this.currentUserRef.ref.id;
+            // if (this.isPublic) {
+            //     this.members = data.members;
+            // }
+            this.isCreator = data.creator.id === this.auth.getUID();
             new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
         }, () => {
 
         }, () => {
-            // tslint:disable-next-line:max-line-length
-            this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-                .pipe(mergeMap(querySnap => forkJoin(
-                    querySnap.docs.map(doc => doc.get('otherUser').get())
-                )), map((val: any) => {
-                    return val.map(userData => {
-                        return {
-                            id: userData.id,
-                            img: this.getImage(userData.get('profilepic')),
-                            name: userData.get('name'),
-                            bio: userData.get('bio'),
-                            checked: this.isChecked(userData.id)
-                        };
-                    });
-                }));
         });
     }
 
@@ -155,102 +117,97 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
         });
     }
 
-    isChecked(id: string){
-        for(const member of this.members) {
-            if(member.id === id) {
-                return true;
-            }
+    async showLinks() {
+        if (!this.isPublic) {
+            const modal = await this.modalController.create({
+                component: LinkSelectorPage,
+                componentProps: {
+                    ids: this.links
+                }
+            });
+
+            modal.onDidDismiss().then(data => {
+                this.links = data.data;
+            });
+
+            return await modal.present();
         }
-        return false;
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
-    }
+    // isChecked(id: string){
+    //     for(const member of this.members) {
+    //         if(member.id === id) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     async manageEvent() {
         const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
         if (this.eventName === '' || (document.getElementById('startTime') as HTMLInputElement).value === '' || (document.getElementById('endTime') as HTMLInputElement).value === '' || this.eventDes === '' || this.eventType === ''
             || typeof this.location === 'undefined') {
-            this.presentToast('Whoops! You have an empty entry');
+            this.utils.presentToast('Whoops! You have an empty entry');
         } else if (new Date((document.getElementById('startTime') as HTMLInputElement).value) > new Date((document.getElementById('startTime') as HTMLInputElement).value)) {
-            this.presentToast('Whoops! Your event ended before it started');
+            this.utils.presentToast('Whoops! Your event ended before it started');
         } else {
-            const position = this.geo.point(this.location[1], this.location[0]);
 
             // TODO propogate changes
             const data = {
                 name: this.eventName,
-                position,
-                creator: {
-                    ref: this.currentUserRef.ref,
-                    profilepic: null,
-                    name: null
+                creator: this.auth.getUID(),
+                location: {
+                    latitude: this.location[1],
+                    longitude: this.location[0]
                 },
                 // tslint:disable-next-line:max-line-length
-                startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
+                startTime: (document.getElementById('startTime') as HTMLInputElement).value,
                 // tslint:disable-next-line:max-line-length
-                endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
+                endTime: (document.getElementById('endTime') as HTMLInputElement).value,
                 description: this.eventDes,
                 type: this.eventType,
                 isPrivate: this.isPublic
             };
 
-            // TODO get from cache
-            this.currentUserRef.get().toPromise().then(val => {
-                data.creator.name = val.get('name');
-                data.creator.profilepic = val.get('profilepic');
-            }).catch(ero => console.log(ero));
+            // const userArray = [];
+            // if (this.isPublic) {
+            //     for (const element of toggle) {
+            //         if (element.checked) {
+            //             userArray.push(element.id);
+            //         }
+            //         if (userArray.length > 15) {
+            //             this.utils.presentToast('Whoops! You have more than 15 people');
+            //             return;
+            //         }
+            //     }
 
-            const userArray = [];
-            if (this.isPublic) {
-                for (const element of toggle) {
-                    if (element.checked) {
-                        userArray.push(this.afs.collection('users').doc(element.id).ref);
-                    }
-                    if (userArray.length > 15) {
-                        this.presentToast('Whoops! You have more than 15 people');
-                        return;
-                    }
-                }
+            //     // @ts-ignore
+            //     data.members = userArray;
+            // } else if (this.editMode) {
+            //     // @ts-ignore
+            //     data.members = firebase.firestore.FieldValue.delete();
+            // }
 
-                // @ts-ignore
-                data.members = userArray;
-            } else if (this.editMode) {
-                // @ts-ignore
-                data.members = firebase.firestore.FieldValue.delete();
-            }
+            // TODO Share
 
             if (!this.editMode) {
-                this.afs.collection('events').add(data).then(newEvent => {
-                    this.afs.collection('eventDetails').doc(newEvent.id).set({
-                        numAttendees: 0
-                    }).then(() => {
-                        this.presentToast('Event Created!');
-                        this.closeModal();
-                    }).catch(er => console.log(er));
-                }).catch(e => console.log(e));
-            } else {
-                this.afs.collection('events').doc(this.eventID).update(data).then(newEvent => {
-                    this.presentToast('Event Updated!');
+                this.es.createEvent(data).subscribe(val => {
+                    this.utils.presentToast('Event Created!');
                     this.closeModal();
-                }).catch(e => console.log(e));
+                }, err => {
+                    console.error(err);
+                    this.utils.presentToast('Whoops! Problem making event');
+                });
+            } else {
+                this.es.editEvent(this.eventID, data).subscribe(val => {
+                    this.utils.presentToast('Event Created!');
+                    this.closeModal();
+                }, err => {
+                    console.error(err);
+                    this.utils.presentToast('Whoops! Problem making event');
+                });
             }
         }
-    }
-
-    async presentToast(m: string) {
-        const toast = await this.toastController.create({
-            message: m,
-            duration: 2000
-        });
-        await toast.present();
     }
 
     handleInput(event) {
@@ -273,8 +230,12 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                 }, {
                     text: 'Delete',
                     handler: () => {
-                        this.afs.collection('events').doc(this.eventID).delete();
-                        this.modalController.dismiss();
+                        this.es.deleteEvent(this.eventID).subscribe(() => {
+                            this.modalController.dismiss();
+                        }, (err) => {
+                            console.error(err);
+                            this.utils.presentToast('Whoops! Event Delete Failed');
+                        })
                     }
                 }
             ]
@@ -293,7 +254,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                 this.cal.createEventInteractively(this.eventName, data.features[0].place_name, this.eventDes,
                     new Date((document.getElementById('startTime') as HTMLInputElement).value),
                     new Date((document.getElementById('endTime') as HTMLInputElement).value)).then(r => {
-                    this.presentToast('Event Downloaded!');
+                    this.utils.presentToast('Event Downloaded!');
                 });
             });
     }
