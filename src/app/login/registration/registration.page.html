@@ -57,7 +57,7 @@
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">Personal Email</ion-label>
-                            <ion-input id="peem" [value]="this.auth.auth.currentUser.email"></ion-input>
+                            <ion-input id="peem" [value]="this.auth.auth.currentUser.email" type="email"></ion-input>
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">Snapchat</ion-label>
@@ -73,7 +73,7 @@
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">Professional Email</ion-label>
-                            <ion-input id="prem"></ion-input>
+                            <ion-input id="prem" type="email"></ion-input>
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">LinkedIn</ion-label>
@@ -81,7 +81,11 @@
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">Website</ion-label>
-                            <ion-input id="ws"></ion-input>
+                            <ion-input id="ws" type="url"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Phone</ion-label>
+                            <ion-input id="ph" type="number"></ion-input>
                         </ion-item>
                     </ion-list>
                 </ion-card-content>
