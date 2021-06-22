@@ -29,7 +29,7 @@ export class RegistrationPage implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.currentProgress = 0.25;
+        this.currentProgress = 1/3;
     }
 
     ngOnDestroy(){
@@ -38,7 +38,8 @@ export class RegistrationPage implements OnInit, OnDestroy {
 
     slideChanged(){
         this.slides.getActiveIndex().then(index => {
-            this.currentProgress = (index + 1) * 0.33;
+            this.currentProgress = (index + 1) * 1/3;
+            console.log(this.currentProgress);
         });
     }
 
@@ -77,7 +78,7 @@ export class RegistrationPage implements OnInit, OnDestroy {
                 message: 'Whoops! Something happened. Try again!',
                 duration: 2000
             });
-            console.log(err);
+            console.error(err);
             errorToast.present();
         });
     }

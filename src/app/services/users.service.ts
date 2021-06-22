@@ -58,7 +58,7 @@ export class UsersService {
           profilepic: ''
       };
 
-      return this.http.post(environment.apiURL.users + uid, userObject).pipe(retry(3));
+      return this.http.post(environment.apiURL.users, userObject).pipe(retry(3));
   }
 
   setNotifToken(notifToken){
