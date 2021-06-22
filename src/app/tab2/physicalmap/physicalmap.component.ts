@@ -65,7 +65,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showPing = false;
         this.checkedIn = null;
     }
-    
+
     ngAfterViewInit() {
         Geolocation.getCurrentPosition().then((resp) => {
             this.buildMap(resp.coords);
@@ -78,6 +78,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     enableHighAccuracy: true,
                 },(position, err) => {
                     this.renderCurrent(position);
+                    this.presentEvents()
                 });
             });
         }).catch((error) => {
@@ -198,207 +199,246 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     presentEvents() {
-        const data = [
-            {
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [12.602, 55.6618]
-                },
-                properties: {
-                    name: "Event 1",
-                    isPrivate: false,
-                    rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
-                    hostName: "Billy",
-                    profilePic: "LINKTOPROFILEPIC",
-                },
-                id: "1"
-            },
-            {
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [12.61, 55.6628]
-                },
-                properties: {
-                    name: "Event 2",
-                    isPrivate: false,
-                    rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
-                    hostName: "Billy",
-                    profilePic: "LINKTOPROFILEPIC",
-                },
-                id: "2"
-            },
-            {
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [12.64, 55.68]
-                },
-                properties: {
-                    name: "Event 3",
-                    isPrivate: false,
-                    rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
-                    hostName: "Billy",
-                    profilePic: "LINKTOPROFILEPIC",
-                },
-                id: "3"
-            },
-            {
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [11.61, 54.6628]
-                },
-                properties: {
-                    name: "Event 4",
-                    isPrivate: false,
-                    rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
-                    hostName: "Billy",
-                    profilePic: "LINKTOPROFILEPIC",
-                },
-                id: "4"
-            },
-            {
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [11.00, 54.6628]
-                },
-                properties: {
-                    name: "Event 5",
-                    isPrivate: false,
-                    rating: 3,
-                    //startTime: "TIME_STRING",
-                    //endTime: "TME_STRIG",
-                    hostName: "Billy",
-                    profilePic: "LINKTOPROFILEPIC",
-                },
-                id: "5"
-            }
-        ]
+            // const nowString = firestore.Timestamp.now();
 
-        // data.forEach(event => {
-        //     this.renderEvent(event);
-        // })
+            // const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
+            //     .where('endTime', '>=', nowString));
+            // const query2 = this.afs.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
+            //     .where('endTime', '>=', nowString));
+            // const query3 = this.afs.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
+            //     .where('endTime', '>=', nowString));
 
-        this.map.addSource('events', {
-            type: 'geojson',
-            // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-            // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-            data: {
-							"type": "FeatureCollection",
-							"features": data
-						},
-            cluster: true,
-            clusterMaxZoom: 14, // Max zoom to cluster points on
-            clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
-            clusterProperties: {
-              coordinates: ['max', ['get', 'coordinates']]
-            },
-            //id: 100
-        });
+            // const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
 
-        this.map.addLayer({
-            id: 'clusters',
-            type: 'circle',
-            source: 'events',
-            filter: ['has', 'point_count'],
-            paint: {
-                // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
-                // with three steps to implement three types of circles:
-                //   * Blue, 20px circles when point count is less than 100
-                //   * Yellow, 30px circles when point count is between 100 and 750
-                //   * Pink, 40px circles when point count is greater than or equal to 750
-                'circle-color': [
-                    'step',
-                    ['get', 'point_count'],
-                    '#51bbd6',
-                    100,
-                    '#f1f075',
-                    750,
-                    '#f28cb1'
-                ],
-                'circle-radius': [
-                    'step',
-                    ['get', 'point_count'],
-                    20,
-                    100,
-                    30,
-                    750,
-                    40
-                ],
-                'circle-opacity': 0.0
-            },
-            includeGeometry: true
-        });
+            // this.eventSub = events.subscribe(eventData => {
+            //     eventData.forEach((event) => {
+            //         this.renderEvent(event.payload.doc);
+            //     });
+            // });
 
-        data.forEach(event => {
-            this.renderEvent(event);
-        })
+            const data = [
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.6618, 32.349]
+                    },
+                    properties: {
+                        name: "Event 1",
+                        isPrivate: false,
+                        rating: 3,
+                        startTime: new Date('21 June 2021 20:48 UTC'),
+                        endTime: new Date('22 June 2021 20:48 UTC'),
+                        hostName: "Billy",
+                        profilePic: "LINKTOPROFILEPIC",
+                        type: "hangout"
+                    },
+                    id: "1"
+                },
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.6628, 32.61]
+                    },
+                    properties: {
+                        name: "Event 2",
+                        isPrivate: false,
+                        rating: 3,
+                        startTime: new Date('21 June 2021 20:48 UTC'),
+                        endTime: new Date('22 June 2021 20:48 UTC'),
+                        hostName: "Billy",
+                        profilePic: "LINKTOPROFILEPIC",
+                        type: "party"
+                    },
+                    id: "2"
+                },
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [12.64, 55.68]
+                    },
+                    properties: {
+                        name: "Event 3",
+                        isPrivate: false,
+                        rating: 3,
+                        startTime: new Date('19 June 2021 14:48 UTC'),
+                        endTime: new Date('20 June 2021 14:48 UTC'),
+                        hostName: "Billy",
+                        profilePic: "LINKTOPROFILEPIC",
+                        type: "networking"
+                    },
+                    id: "3"
+                },
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [11.61, 54.6628]
+                    },
+                    properties: {
+                        name: "Event 4",
+                        isPrivate: false,
+                        rating: 3,
+                        startTime: new Date('21 June 2021 16:00 UTC'),
+                        endTime: new Date('21 June 2021 17:00 UTC'),
+                        hostName: "Billy",
+                        profilePic: "LINKTOPROFILEPIC",
+                        type: "hangout"
+                    },
+                    id: "4"
+                },
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [11.00, 54.6628]
+                    },
+                    properties: {
+                        name: "Event 5",
+                        isPrivate: false,
+                        rating: 3,
+                        startTime: new Date('21 June 2021 14:48 UTC'),
+                        endTime: new Date('21 June 2021 16:48 UTC'),
+                        hostName: "Billy",
+                        profilePic: "LINKTOPROFILEPIC",
+                        type: "hangout"
+                    },
+                    id: "5"
+                }
+            ]
 
-        this.map.on('moveend', function(e){
-          //var points = this.querySourceFeatures('events');
-          var points = this.querySourceFeatures('events');
-          var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
-          for(var i = 0; i < feat.length; i++){
-            const el = document.createElement('div');
-            el.className = 'marker-style';
-            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-            el.id = feat[i].id;
-            try {
-                const marker = new mapboxgl.Marker(el);
-                marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
-                //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
-                console.log(marker);
-            } catch (e) {
-                console.log(e.message);
-            }
-          }
-          console.log(points);
-          console.log(feat);
+            this.map.addSource('events', {
+                type: 'geojson',
+                // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+                // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+                data: {
+    							"type": "FeatureCollection",
+    							"features": data
+    						},
+                cluster: true,
+                clusterMaxZoom: 14, // Max zoom to cluster points on
+                clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+                clusterProperties: {
+                  coordinates: ['max', ['get', 'coordinates']]
+                }
+            });
 
-          var cc = this.getContainer();
-          var els = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
-          console.log(els);
-          for(var i = 0; i < els.length; i++){
-            for(var j = 0; j < els.length; j++){
-              if((els[i].id === els[j].id)){
-                if(i !== j){
-                  document.getElementById(els[i].id).remove();
+            this.map.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'events',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-opacity': 0.0
+                },
+                includeGeometry: true
+            });
+
+            data.forEach(event => {
+                this.renderEvent(event);
+            })
+
+            this.map.on('moveend', function(e){
+              //var points = this.querySourceFeatures('events');
+              var points = this.querySourceFeatures('events');
+              var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
+              for(var i = 0; i < feat.length; i++){
+                const el = document.createElement('div');
+                el.className = 'marker-style';
+                el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
+                el.id = feat[i].id;
+                try {
+                    const marker = new mapboxgl.Marker(el);
+                    marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
+                    console.log(marker);
+                } catch (e) {
+                    console.log(e.message);
                 }
               }
-            }
-          }
-          for(var i = 0; i < els.length; i++){
-            console.log("hidden", els[i].id);
-            document.getElementById(els[i].id).style.display = "none";
-          }
-          for(var m = 0; m < points.length; m++){
-            for(var i = 0; i < els.length; i++){
-              if(parseInt(els[i].id) === points[m].id){
-                console.log("showing", els[i].id);
-                document.getElementById(els[i].id).style.display = "inline";
-                break;
+              console.log(points);
+              console.log(feat);
+
+              var cc = this.getContainer();
+              var els = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+              console.log(els);
+              for(var i = 0; i < els.length; i++){
+                for(var j = 0; j < els.length; j++){
+                  if((els[i].id === els[j].id)){
+                    if(i !== j){
+                      document.getElementById(els[i].id).remove();
+                    }
+                  }
+                }
               }
-            }
-          }
-        });
+              for(var i = 0; i < els.length; i++){
+                document.getElementById(els[i].id).style.display = "none";
+              }
+              for(var m = 0; m < points.length; m++){
+                for(var i = 0; i < els.length; i++){
+                  if(parseInt(els[i].id) === points[m].id){
+                    // var el = document.getElementById(els[i].id);
+                    // var currentTime = new Date();
+                    // var eventInfo = points[m].properties;
+                    // var st = new Date(eventInfo.startTime);
+                    // var et = new Date(eventInfo.endTime);
+                    // var check = et - st;
+                    // console.log(check);
+                    // if(st + (check)*0.25 >= currentTime){
+                    //   if (eventInfo.type === 'party') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
+                    //   } else if (eventInfo.type === 'networking') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
+                    //   } else {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
+                    //   }
+                    // }else if(st + (check)*0.5 >= currentTime){
+                    //   if (eventInfo.type === 'party') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
+                    //   } else if (eventInfo.type === 'networking') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/BGlAGEj3IYFj1fjwRi1p32x84V-3ZP_PpBvqoRLVtgzOeM1WdGTS3SSm8-dI5zXH8LvXKaqRTH7fDNHwobmMysgA9eUbW7CA8-EA73W87Q9hvTUAER6dTG8ZcVm41Vcdc592q5xzKQ=w2400)';
+                    //   } else {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
+                    //   }
+                    // }else if(st + (check)*0.75 >= currentTime){
+                    //   if (eventInfo.type === 'party') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
+                    //   } else if (eventInfo.type === 'networking') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ll7lT3lmwMBshUtRjzGfj_zXTOpEbB7R7ueDUz8iJx3bhoXI5yjfZ9Wx9w5Ou49ynxBsfEgwMI2XEJ3wWxgSZx5HSu3mB600HuFGXC9m0gq5IxG48SJfUjAk4w2jhqSuzVL-UsMgCw=w2400)';
+                    //   } else {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
+                    //   }
+                    // }else if(et >= currentTime){
+                    //   if (eventInfo.type === 'party') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
+                    //   } else if (eventInfo.type === 'networking') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/kGtGgAcoVv8zj4l6tHJribovAKnR4ug8830Ovbaz8c3IhgKiC_u2IFHFyPSN_GTLa-uRKPEdeUOateKFhnfQfUYTiCHHWccVgqwRuTH-Fvw_-YEBF3aUZK29ZKQN6aaDe1ydWUOeNA=w2400)';
+                    //   } else {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
+                    //   }
+                    // }else{
+                    //   if (eventInfo.type === 'party') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
+                    //   } else if (eventInfo.type === 'networking') {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
+                    //   } else {
+                    //       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
+                    //   }
+                    // }
+                    document.getElementById(els[i].id).style.display = "inline";
+                    break;
+                  }
+                }
+              }
+            });
 
-        // this.map.on('click', 'unclustered-point', function (doc) {
-        //
-        // });
+            // this.map.on('click', 'unclustered-point', function (doc) {
+            //
+            // });
 
 
-    }
+        }
 
     presentGeoPing() {
         const data = [
@@ -509,92 +549,112 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     newRenderFunc(doc){
-        console.log("newRenderFunc");
-        const eventInfo = doc;
-        const el = this.createMarker();
-        console.log(el);
-        el.setAttribute('data-name', eventInfo.name);
-        el.setAttribute('data-private', eventInfo.isPrivate);
-        el.setAttribute('data-type', eventInfo.type);
-        //el.setAttribute('data-time', eventInfo.startTime);
-          el.id = doc.id;
-          if (!!document.getElementById(el.id)) {
-              document.getElementById(el.id).remove();
-          }
-          console.log(el.id);
-          if (doc.geometry.type === 'party') {
-              el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
-          } else if (doc.geometry.type === 'hangout') {
-              el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
-          } else {
-              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-          }
-          // const startTime = eventInfo.startTime.toDate();
-          // // console.log(startTime);
-          // let minutes = startTime.getMinutes() < 10 ? '0' : '';
-          // minutes += startTime.getMinutes();
+      console.log("newRenderFunc");
+      const eventInfo = doc.properties;
+      const el = this.createMarker();
+      console.log(el);
+      el.setAttribute('data-name', eventInfo.name);
+      el.setAttribute('data-private', eventInfo.isPrivate);
+      el.setAttribute('data-type', eventInfo.type);
+      // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
+      //     el.setAttribute('data-link', 'true');
+      // } else {
+      //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
+      //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
+      //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
+      //     });
+      // }
+      const startTime = eventInfo.startTime.toISOString();
+      console.log(startTime);
+      let minutes = eventInfo.startTime.getMinutes() < 10 ? '0' : '';
+      console.log(minutes);
+      minutes += eventInfo.startTime.getMinutes();
 
-          el.addEventListener('click', (e) => {
-              this.showEventDetails = true;
-              this.showUserDetails = false;
-              this.showPing = false;
-              this.currentEventTitle = eventInfo.name;
-              //this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
-              //this.currentEventId = el.id;
-              //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
-                //  eventInfo.position) < 0.025 && startTime < new Date();
-          });
-          console.log(el);
-          //const marker = new mapboxgl.Marker(el);
-          try {
-              console.log('made');
-              const marker = new mapboxgl.Marker(el);
-              marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
-            //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
-
-              console.log(marker);
-          } catch (e) {
-              console.log(e.message);
-              console.log('it');
-          }
-        el.setAttribute('data-time', eventInfo.startTime);
-        el.id = doc.id;
-        if (!!document.getElementById(el.id)) {
-            document.getElementById(el.id).remove();
-        }
-        // @ts-ignore
+      el.setAttribute('data-time', eventInfo.startTime);
+      el.id = doc.id;
+      if (!!document.getElementById(el.id)) {
+          document.getElementById(el.id).remove();
+      }
+      console.log(eventInfo);
+      var check = (eventInfo.endTime - eventInfo.startTime);
+      console.log(check);
+      var currentTime = new Date();
+      console.log("start");
+      console.log(currentTime - 0.0);
+      console.log(eventInfo.startTime);
+      console.log(eventInfo.endTime)
+      console.log((eventInfo.startTime - 0.0) + check*0.25);
+      console.log(check*0.25);
+      // console.log(eventInfo.endTime - check*0.25);
+      // console.log(eventInfo.endTime - check*0.5);
+      // console.log(currentTime - (eventInfo.endTime - check*0.25));
+      // console.log(currentTime - (eventInfo.endTime - check*0.5));
+      // console.log(check*0.25);
+      if((eventInfo.startTime - 0.0) + (check)*0.25 >= currentTime){
         if (eventInfo.type === 'party') {
-            el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
-        } else if (eventInfo.type === 'hangout') {
-            el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
+        } else if (eventInfo.type === 'networking') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
         } else {
-            el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
         }
-        const startTime = eventInfo.startTime.toDate();
-        let minutes = startTime.getMinutes() < 10 ? '0' : '';
-        minutes += startTime.getMinutes();
-
+      }else if((eventInfo.startTime - 0.0) + (check)*0.5 >= currentTime){
+        if (eventInfo.type === 'party') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
+        } else if (eventInfo.type === 'networking') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/BGlAGEj3IYFj1fjwRi1p32x84V-3ZP_PpBvqoRLVtgzOeM1WdGTS3SSm8-dI5zXH8LvXKaqRTH7fDNHwobmMysgA9eUbW7CA8-EA73W87Q9hvTUAER6dTG8ZcVm41Vcdc592q5xzKQ=w2400)';
+        } else {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
+        }
+      }else if((eventInfo.startTime - 0.0) + (check)*0.75 >= currentTime){
+        if (eventInfo.type === 'party') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
+        } else if (eventInfo.type === 'networking') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ll7lT3lmwMBshUtRjzGfj_zXTOpEbB7R7ueDUz8iJx3bhoXI5yjfZ9Wx9w5Ou49ynxBsfEgwMI2XEJ3wWxgSZx5HSu3mB600HuFGXC9m0gq5IxG48SJfUjAk4w2jhqSuzVL-UsMgCw=w2400)';
+        } else {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
+        }
+      }else if((eventInfo.endTime - 0.0) >= currentTime){
+        if (eventInfo.type === 'party') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
+        } else if (eventInfo.type === 'networking') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/kGtGgAcoVv8zj4l6tHJribovAKnR4ug8830Ovbaz8c3IhgKiC_u2IFHFyPSN_GTLa-uRKPEdeUOateKFhnfQfUYTiCHHWccVgqwRuTH-Fvw_-YEBF3aUZK29ZKQN6aaDe1ydWUOeNA=w2400)';
+        } else {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
+        }
+      }else{
+        if (eventInfo.type === 'party') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
+        } else if (eventInfo.type === 'networking') {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
+        } else {
+            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
+        }
+      }
         el.addEventListener('click', (e) => {
             this.showEventDetails = true;
             this.showUserDetails = false;
             this.showPing = false;
             this.currentEventTitle = eventInfo.name;
-            this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
+            this.currentEventDes = eventInfo.type + ' @ ' + eventInfo.startTime.toDateString() + ' ' + eventInfo.startTime.getHours() + ':' + minutes;
             this.currentEventId = el.id;
-            this.showCheckIn = this.getDistance(
-                eventInfo.position.latitude,
-                eventInfo.position.longitude,
-                this.location[1],
-                this.location[0],
-            ) < 0.025 && startTime < new Date();
+            this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
+                eventInfo.position) < 0.025 && startTime < new Date();
         });
-        const marker = new mapboxgl.Marker(el);
+        console.log(el);
+        //const marker = new mapboxgl.Marker(el);
         try {
-            marker.setLngLat([eventInfo.position.geopoint.longitude, eventInfo.position.geopoint.latitude]).addTo(this.map);
+            console.log('made');
+            const marker = new mapboxgl.Marker(el);
+            marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
+          //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
+
+            console.log(marker);
         } catch (e) {
-            console.error(e.message);
+            console.log(e.message);
+            console.log('it');
         }
-    }
+  }
 
     createMarker() {
       console.log("createMarker");
