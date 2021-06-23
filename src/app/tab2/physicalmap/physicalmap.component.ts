@@ -392,7 +392,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 el.title = "null";
                 el.style.background = null;
                 el.id = feat[i].id;
+                console.log("HERE");
                 console.log(el);
+                console.log(el.style.width, el.style.height);
                 try {
                     const marker = new mapboxgl.Marker(el);
                     marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
