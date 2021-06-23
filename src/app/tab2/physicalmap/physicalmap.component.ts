@@ -231,7 +231,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         endTime: new Date('22 June 2021 20:48 UTC'),
                         hostName: "Billy",
                         profilePic: "LINKTOPROFILEPIC",
-                        type: "hangout"
+                        type: "networking"
                     },
                     id: "1"
                 },
@@ -249,7 +249,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         endTime: new Date('22 June 2021 20:48 UTC'),
                         hostName: "Billy",
                         profilePic: "LINKTOPROFILEPIC",
-                        type: "networking"
+                        type: "party"
                     },
                     id: "2"
                 },
@@ -500,7 +500,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     el.title = "all";
                   }
                 }
-                  }
+                if(el.title === "all"){
+                  el.style.backgroundPosition = "45% 50%";
+                }
+              }
             }
           }
           });
