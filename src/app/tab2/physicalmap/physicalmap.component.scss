@@ -26,10 +26,18 @@
 
 
 :host ::ng-deep .ping-marker{
-  background-size: 30px !important;
+  // background-size: 30px !important;
+  // background-repeat: no-repeat;
+  // background-position: center;
+  // background-color: white;
+  width: 60px;
+  height: 60px;
   background-repeat: no-repeat;
+  background-size: 115px 115px;
+  border-radius: 50%;
   background-position: center;
-  background-color: white;
+  //border: solid 3px var(--ion-color-primary);
+  box-shadow: 0px 0px 15px #000000;
 }
 
 .overlaycontainer {

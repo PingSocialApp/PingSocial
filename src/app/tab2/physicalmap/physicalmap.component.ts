@@ -78,7 +78,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     enableHighAccuracy: true,
                 },(position, err) => {
                     this.renderCurrent(position);
-                    this.presentEvents();
+                    this.present();
                 });
             });
         }).catch((error) => {
@@ -198,7 +198,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }).subscribe((val: any) => console.log(val) ,(err: any) => console.error(err));
     }
 
-    presentEvents() {
+    present() {
             // const nowString = firestore.Timestamp.now();
 
             // const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
@@ -233,7 +233,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         profilePic: "LINKTOPROFILEPIC",
                         type: "networking"
                     },
-                    id: "1"
+                    id: "1",
+                    isEvent: true
                 },
                 {
                     type: "Feature",
@@ -251,7 +252,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         profilePic: "LINKTOPROFILEPIC",
                         type: "party"
                     },
-                    id: "2"
+                    id: "2",
+                    isEvent: true
                 },
                 {
                     type: "Feature",
@@ -269,7 +271,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         profilePic: "LINKTOPROFILEPIC",
                         type: "hangout"
                     },
-                    id: "3"
+                    id: "3",
+                    isEvent: true
                 },
                 {
                     type: "Feature",
@@ -287,7 +290,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         profilePic: "LINKTOPROFILEPIC",
                         type: "hangout"
                     },
-                    id: "4"
+                    id: "4",
+                    isEvent: true
                 },
                 {
                     type: "Feature",
@@ -305,7 +309,25 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         profilePic: "LINKTOPROFILEPIC",
                         type: "party"
                     },
-                    id: "5"
+                    id: "5",
+                    isEvent: true
+                },
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-94.6618, 31.347]
+                    },
+                    properties: {
+                        sentMessage: "Dinagat Islands",
+                        isPrivate: true,
+                        timeCreate: new Date('21 June 2021 16:48 UTC'),
+                        pingId: "UNIQUE_ID",
+                        creatorName: "John",
+                        creatorPRofilePIc: "LINKTOPROFILEPIC"
+                    },
+                    id: "100",
+                    isEvent: false
                 }
             ]
 
@@ -337,48 +359,32 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             });
 
             data.forEach(event => {
-                this.renderEvent(event);
+                if(event.isEvent){
+                  this.renderEvent(event);
+                }else{
+                  this.renderPings(event);
+                }
             })
 
             this.map.on('moveend', function(e){
               var points = this.querySourceFeatures('events');
               var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
               var cc = this.getContainer();
-              var els = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
-            //  const el = document.createElement('div');
-              console.log("beginning of mov");
-              for(var i = 0; i < feat.length; i++){
-                // console.log(feat[i]);
-                // console.log(feat[i].id);
-                // const el = document.createElement('div');
-                // el.className = 'marker-style';
-                // el.title = "null";
-                // el.style.background = null;
-                // el.id = feat[i].id;
-                // console.log(el);
-                // try {
-                //     const marker = new mapboxgl.Marker(el);
-                //     marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
-                //     console.log(marker);
-                //     el.title = "null";
-                // } catch (e) {
-                //     console.log(e.message);
-                // }
-              }
-              for(var i = 0; i < els.length; i++){
-                for(var j = 0; j < els.length; j++){
-                  if((els[i].id === els[j].id) && (i !== j)){
-                    document.getElementById(els[i].id).remove();
+              var eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+              for(var i = 0; i < eventH.length; i++){
+                for(var j = 0; j < eventH.length; j++){
+                  if((eventH[i].id === eventH[j].id) && (i !== j)){
+                    document.getElementById(eventH[i].id).remove();
                   }
                 }
               }
-              for(var i = 0; i < els.length; i++){
-                document.getElementById(els[i].id).style.display = "none";
+              for(var i = 0; i < eventH.length; i++){
+                document.getElementById(eventH[i].id).style.display = "none";
               }
-              for(var m = 0; m < els.length; m++){
+              for(var m = 0; m < eventH.length; m++){
                 for(var i = 0; i < points.length; i++){
-                  if(parseInt(els[m].id) === points[i].id){
-                    document.getElementById(els[m].id).style.display = "inline";
+                  if(parseInt(eventH[m].id) === points[i].id){
+                    document.getElementById(eventH[m].id).style.display = "inline";
                     break;
                   }
                 }
@@ -406,9 +412,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 var distArr = new Array(data.length);
                 var pointArr = new Array(data.length);
                 var x = 0;
-                for(var k = 0; k < els.length; k++){
+                for(var k = 0; k < eventH.length; k++){
                   for(var j = 0; j < data.length; j++){
-                    if((document.getElementById(els[k].id).style.display === "none") && (els[k].id === data[j].id)){
+                    if((document.getElementById(eventH[k].id).style.display === "none") && (eventH[k].id === data[j].id)){
                       currentPoint = data[j].geometry;
                       var squareDistX = (feat[i].geometry.coordinates[0] - currentPoint.coordinates[0])*(feat[i].geometry.coordinates[0] - currentPoint.coordinates[0]);
                       var squareDistY = (feat[i].geometry.coordinates[1] - currentPoint.coordinates[1])*(feat[i].geometry.coordinates[1] - currentPoint.coordinates[1]);
@@ -434,14 +440,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                   }
                 }
-                console.log(feat[i].properties.point_count);
                 for(var j = 0; j < feat[i].properties.point_count; j++){
-                  console.log(pointArr[j].properties.type);
-                  console.log(feat[i].id);
-                  console.log(feat[i]);
-                  console.log(feat[i].id);
-                  console.log(el);
                   if(el !== null){
+                    //if(!)
                     if(document.getElementById(pointArr[j].id).getAttribute('data-type') === 'party'){
                       console.log("found party", pointArr[j].id);
               //set marker
@@ -472,32 +473,32 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
                       el.title = "partynetworking"
               //marker set to hangout
-            }else if(el.title === "hangout"){
+                    }else if(el.title === "hangout"){
                       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
                       el.title = "networkinghangout";
               //cluster of all 3
-            }else if(el.title === "partyhangout"){
+                    }else if(el.title === "partyhangout"){
                       el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
                       el.title = "all";
                     }
-                }else if(document.getElementById(pointArr[j].id).getAttribute('data-type') === 'hangout'){
-                  console.log("found hangout", pointArr[j].id);
+                  }else if(document.getElementById(pointArr[j].id).getAttribute('data-type') === 'hangout'){
+                      console.log("found hangout", pointArr[j].id);
             //set marker
-                  if(el.title === "null"){
-                    el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
-                    el.title = "hangout";
+                        if(el.title === "null"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
+                            el.title = "hangout";
               //marker set to networking
-                  }else if(el.title === "networking"){
-                    el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-                    el.title = "networkinghangout";
+                        }else if(el.title === "networking"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
+                            el.title = "networkinghangout";
             //marker set to party
-                  }else if(el.title === "party"){
-                    el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
-                    el.title = "partyhangout";
+                        }else if(el.title === "party"){
+                          el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
+                          el.title = "partyhangout";
             //cluster of all 3
-                  }else if(el.title === "partynetworking"){
-                    el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-                    el.title = "all";
+                    }else if(el.title === "partynetworking"){
+                      el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
+                      el.title = "all";
                   }
                 }
                 if(el.title === "all"){
@@ -506,7 +507,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
               }
             }
           }
-          });
+        });
         }
 
     presentGeoPing() {
@@ -523,7 +524,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     timeCreate: "TIMESTRIGN",
                     pingId: "UNIQUE_ID",
                     creatorName: "John",
-                    creatorPRofilePIc: "LINKTOPROFILEPIC"
+                    creatorProfilePic: "LINKTOPROFILEPIC"
                 }
             }
         ]
@@ -536,9 +537,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderPings(doc) {
-        const pingInfo = doc;
+        const pingInfo = doc.properties;
         const el = this.createMarker();
-
+        console.log("ping", doc);
         el.id = doc.id;
         if (!!document.getElementById(el.id)) {
             document.getElementById(el.id).remove();
@@ -548,76 +549,26 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.showEventDetails = false;
             this.showUserDetails = false;
             this.showPing = true;
-            this.pingMessage = pingInfo.message;
+            this.pingMessage = pingInfo.sentMessage;
             // this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
-            this.pingImg = pingInfo.creator.profilepic;
-            this.pingAuthor = pingInfo.creator.name;
+            this.pingImg = pingInfo.creatorProfilePic;
+            this.pingAuthor = pingInfo.creatorName;
         });
 
-        el.style.backgroundImage = 'url(\'../assets/chatbubble.svg\')';
+        el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
         el.className += ' ping-marker';
-
-        const marker = new mapboxgl.Marker(el);
+        el.style.display = "inline";
+        el.setAttribute('is-event', doc.isEvent);
+        console.log(el);
         try {
-            marker.setLngLat([pingInfo.position.longitude, pingInfo.position.latitude]).addTo(this.map);
+            const marker = new mapboxgl.Marker(el);
+            marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
         } catch (e) {
             console.error(e.message);
         }
     }
 
-    renderEvent(doc) {
-      console.log("render func");
-      this.newRenderFunc(doc);
-        // const eventInfo = doc.data();
-        // const el = this.createMarker();
-        // el.setAttribute('data-name', eventInfo.name);
-        // el.setAttribute('data-private', eventInfo.isPrivate);
-        // el.setAttribute('data-type', eventInfo.type);
-        // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
-        //     el.setAttribute('data-link', 'true');
-        // } else {
-        //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-        //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
-        //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
-        //     });
-        // }
-        // el.setAttribute('data-time', eventInfo.startTime);
-        // el.id = doc.id;
-        // if (!!document.getElementById(el.id)) {
-        //     document.getElementById(el.id).remove();
-        // }
-        // // @ts-ignore
-        // if (eventInfo.type === 'party') {
-        //     el.style.backgroundImage = 'url(\'../assets/undraw_having_fun_iais.svg\')';
-        // } else if (eventInfo.type === 'hangout') {
-        //     el.style.backgroundImage = 'url(\'../assets/undraw_hang_out_h9ud.svg\')';
-        // } else {
-        //     el.style.backgroundImage = 'url(\'../assets/undraw_business_deal_cpi9.svg\')';
-        // }
-        // const startTime = eventInfo.startTime.toDate();
-        // // console.log(startTime);
-        // let minutes = startTime.getMinutes() < 10 ? '0' : '';
-        // minutes += startTime.getMinutes();
-        //
-        // el.addEventListener('click', (e) => {
-        //     this.showEventDetails = true;
-        //     this.showUserDetails = false;
-        //     this.showPing = false;
-        //     this.currentEventTitle = eventInfo.name;
-        //     this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + minutes;
-        //     this.currentEventId = el.id;
-        //     this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
-        //         eventInfo.position) < 0.025 && startTime < new Date();
-        // });
-        // const marker = new mapboxgl.Marker(el);
-        // try {
-        //     marker.setLngLat([eventInfo.position.geopoint.longitude, eventInfo.position.geopoint.latitude]).addTo(this.map);
-        // } catch (e) {
-        //     console.log(e.message);
-        // }
-    }
-
-    newRenderFunc(doc){
+    renderEvent(doc){
       console.log("newRenderFunc");
       const eventInfo = doc.properties;
       const el = this.createMarker();
@@ -625,6 +576,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
       el.setAttribute('data-name', eventInfo.name);
       el.setAttribute('data-private', eventInfo.isPrivate);
       el.setAttribute('data-type', eventInfo.type);
+      el.setAttribute('is-event', doc.isEvent);
       // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
       //     el.setAttribute('data-link', 'true');
       // } else {
