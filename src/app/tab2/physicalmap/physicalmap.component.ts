@@ -644,9 +644,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!!document.getElementById(el.id)) {
           document.getElementById(el.id).remove();
       }
-      var check = (eventInfo.endTime - eventInfo.startTime);
+      var check = (eventInfo.endTime.getTime() - eventInfo.startTime.getTime());
       var currentTime = (new Date()).toISOString();
-      if((eventInfo.startTime ) + (check)*0.25 >= currentTime){
+      if((eventInfo.startTime.getTime()) + (check)*0.25 >= currentTime){
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
         } else if (eventInfo.type === 'networking') {
@@ -654,7 +654,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
         }
-      }else if((eventInfo.startTime) + (check)*0.5 >= currentTime){
+      }else if((eventInfo.startTime.getTime()) + (check)*0.5 >= currentTime){
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
         } else if (eventInfo.type === 'networking') {
@@ -662,7 +662,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
         }
-      }else if((eventInfo.startTime) + (check)*0.75 >= currentTime){
+      }else if((eventInfo.startTime.getTime()) + (check)*0.75 >= currentTime){
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
         } else if (eventInfo.type === 'networking') {
@@ -670,7 +670,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
         }
-      }else if((eventInfo.endTime) >= currentTime){
+      }else if((eventInfo.endTime.getTime()) >= currentTime){
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
         } else if (eventInfo.type === 'networking') {
