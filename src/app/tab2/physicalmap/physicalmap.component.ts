@@ -316,7 +316,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     type: "Feature",
                     geometry: {
                         type: "Point",
-                        coordinates: [-94.6618, 31.347]
+                        coordinates: [-94.1618, 31.347]
                     },
                     properties: {
                         sentMessage: "Dinagat Islands",
@@ -327,6 +327,23 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         creatorPRofilePIc: "LINKTOPROFILEPIC"
                     },
                     id: "100",
+                    isEvent: false
+                },
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-93.6618, 31.347]
+                    },
+                    properties: {
+                        sentMessage: "Dinagat Islands",
+                        isPrivate: true,
+                        timeCreate: new Date('21 June 2021 16:48 UTC'),
+                        pingId: "UNIQUE_ID",
+                        creatorName: "John",
+                        creatorPRofilePIc: "LINKTOPROFILEPIC"
+                    },
+                    id: "101",
                     isEvent: false
                 }
             ]
@@ -396,7 +413,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 const el = document.createElement('div');
                 el.className = 'marker-style';
                 el.title = "null";
-                el.style.background = null;
+                el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
                 el.id = feat[i].id;
                 console.log("HERE");
                 console.log(el);
