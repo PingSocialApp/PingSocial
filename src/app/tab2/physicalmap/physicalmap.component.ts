@@ -227,8 +227,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         name: "Event 1",
                         isPrivate: false,
                         rating: 3,
-                        startTime: new Date('21 June 2021 20:48 UTC'),
-                        endTime: new Date('22 June 2021 20:48 UTC'),
+                        startTime: new Date('7 July 2021 20:48 UTC'),
+                        endTime: new Date('9 July 2021 20:48 UTC'),
                         hostName: "Billy",
                         profilePic: "LINKTOPROFILEPIC",
                         type: "networking"
@@ -265,8 +265,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         name: "Event 3",
                         isPrivate: false,
                         rating: 3,
-                        startTime: new Date('19 June 2021 14:48 UTC'),
-                        endTime: new Date('20 June 2021 14:48 UTC'),
+                        startTime: new Date('7 July 2021 14:48 UTC'),
+                        endTime: new Date('10 July 2021 14:48 UTC'),
                         hostName: "Billy",
                         profilePic: "LINKTOPROFILEPIC",
                         type: "hangout"
@@ -284,8 +284,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         name: "Event 4",
                         isPrivate: false,
                         rating: 3,
-                        startTime: new Date('21 June 2021 16:00 UTC'),
-                        endTime: new Date('21 June 2021 17:00 UTC'),
+                        startTime: new Date('7 July 2021 16:00 UTC'),
+                        endTime: new Date('24 July 2021 17:00 UTC'),
                         hostName: "Billy",
                         profilePic: "LINKTOPROFILEPIC",
                         type: "hangout"
@@ -303,8 +303,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                         name: "Event 5",
                         isPrivate: false,
                         rating: 3,
-                        startTime: new Date('21 June 2021 14:48 UTC'),
-                        endTime: new Date('21 June 2021 16:48 UTC'),
+                        startTime: new Date('8 July 2021 14:48 UTC'),
+                        endTime: new Date('8 July 2021 16:48 UTC'),
                         hostName: "Billy",
                         profilePic: "LINKTOPROFILEPIC",
                         type: "party"
@@ -371,8 +371,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: ['has', 'point_count'],
                 paint: {
                     'circle-opacity': 0.0
-                },
-                includeGeometry: true
+                }
             });
 
             data.forEach(event => {
@@ -384,10 +383,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             })
 
             this.map.on('moveend', function(e){
+              //all event objects
               var points = this.querySourceFeatures('events');
+              //all cluster objects
               var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
               var cc = this.getContainer();
+              //all html of event objects
               var eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+              //removes duplicate html objects
               for(var i = 0; i < eventH.length; i++){
                 for(var j = 0; j < eventH.length; j++){
                   if((eventH[i].id === eventH[j].id) && (i !== j)){
@@ -395,10 +398,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                   }
                 }
               }
-              for(var i = 0; i < eventH.length; i++){
-                document.getElementById(eventH[i].id).style.display = "none";
-              }
+              //displays html points that are within events ((not within a cluster))
               for(var m = 0; m < eventH.length; m++){
+                //visually removes all html ponts
+                document.getElementById(eventH[m].id).style.display = "none";
                 for(var i = 0; i < points.length; i++){
                   if(parseInt(eventH[m].id) === points[i].id){
                     document.getElementById(eventH[m].id).style.display = "inline";
@@ -406,18 +409,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                   }
                 }
               }
-              console.log("reached");
+              //current point to find distance from clusters
               var currentPoint;
+              //finding points within cluster to color correctly
               for(var i = 0; i < feat.length; i++){
-                console.log(feat[i].id);
+                //creation of new cluster marker html
                 const el = document.createElement('div');
                 el.className = 'marker-style';
                 el.title = "null";
                 el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
                 el.id = feat[i].id;
-                console.log("HERE");
-                console.log(el);
-                console.log(el.style.width, el.style.height);
                 try {
                     const marker = new mapboxgl.Marker(el);
                     marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
@@ -426,9 +427,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 } catch (e) {
                     console.log(e.message);
                 }
+                //array for point distances from cluster, smallest to largest
                 var distArr = new Array(data.length);
+                //array for points based on distances from cluster, smallest to largest (using above numbers)
                 var pointArr = new Array(data.length);
                 var x = 0;
+                //puts distance and point into arrays
                 for(var k = 0; k < eventH.length; k++){
                   for(var j = 0; j < data.length; j++){
                     if((document.getElementById(eventH[k].id).style.display === "none") && (eventH[k].id === data[j].id)){
@@ -443,8 +447,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                  }
                 }
-                console.log(distArr);
-                console.log(pointArr);
+                //sorts arrays smallest to largest based on distance
                 for(var j = 0; j < distArr.length; j++){
                   for(var k = j; k < distArr.length; k++){
                     if((distArr[j] > distArr[k]) && (j !== k)){
@@ -457,6 +460,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                   }
                 }
+                //sets image and title of cluster html
                 for(var j = 0; j < feat[i].properties.point_count; j++){
                   if(el !== null){
                     //if(!)
@@ -527,32 +531,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         }
 
-    presentGeoPing() {
-        const data = [
-            {
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [125.6, 10.1]
-                },
-                properties: {
-                    sentMessage: "Dinagat Islands",
-                    isPrivate: true,
-                    timeCreate: "TIMESTRIGN",
-                    pingId: "UNIQUE_ID",
-                    creatorName: "John",
-                    creatorProfilePic: "LINKTOPROFILEPIC"
-                }
-            }
-        ]
-
-        data.forEach(event => {
-            this.renderPings(event);
-        })
-
-
-    }
-
     renderPings(doc) {
         const pingInfo = doc.properties;
         const el = this.createMarker();
@@ -586,10 +564,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderEvent(doc){
-      console.log("newRenderFunc");
+      //create point html
       const eventInfo = doc.properties;
       const el = this.createMarker();
-      console.log(el);
       el.setAttribute('data-name', eventInfo.name);
       el.setAttribute('data-private', eventInfo.isPrivate);
       el.setAttribute('data-type', eventInfo.type);
@@ -611,11 +588,24 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
       el.setAttribute('data-time', eventInfo.startTime);
       el.id = doc.id;
       if (!!document.getElementById(el.id)) {
-          document.getElementById(el.id).remove();
+          document.getElementById(el.id).remove(
+          );
       }
+      //total event time
       var check = (eventInfo.endTime.getTime() - eventInfo.startTime.getTime());
-      var currentTime = (new Date()).toISOString();
+      //current itme
+      //var currentTime = (new Date()).toISOString();
+      var currentTime = new Date().getTime();
+      //figures out time for specific image on marker
+
+      console.log("current time", currentTime);
+      console.log("check", check);
+      console.log("full", (eventInfo.startTime.getTime()) + (check)*0.25);
+      console.log("quarter", (eventInfo.startTime.getTime()) + (check)*0.5);
+      console.log("half", (eventInfo.startTime.getTime()) + (check)*0.75);
+      console.log("three quarters", eventInfo.endTime.getTime());
       if((eventInfo.startTime.getTime()) + (check)*0.25 >= currentTime){
+        console.log("full");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
         } else if (eventInfo.type === 'networking') {
@@ -624,6 +614,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
         }
       }else if((eventInfo.startTime.getTime()) + (check)*0.5 >= currentTime){
+        console.log("quarter");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
         } else if (eventInfo.type === 'networking') {
@@ -632,6 +623,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
         }
       }else if((eventInfo.startTime.getTime()) + (check)*0.75 >= currentTime){
+        console.log("half");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
         } else if (eventInfo.type === 'networking') {
@@ -640,6 +632,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
         }
       }else if((eventInfo.endTime.getTime()) >= currentTime){
+        console.log("three quarters");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
         } else if (eventInfo.type === 'networking') {
@@ -648,6 +641,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
         }
       }else{
+        console.log("empty");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
         } else if (eventInfo.type === 'networking') {
