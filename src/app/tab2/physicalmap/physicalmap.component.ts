@@ -381,6 +381,28 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                   this.renderPings(event);
                 }
             })
+            //zooms in on clusters
+            this.map.on('click', 'clusters', function (e) {
+              var features = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
+              var clusterId = features[0].properties.cluster_id;
+              console.log(this);
+              this.getSource('events').getClusterExpansionZoom(
+                clusterId,
+                function (err, zoom) {
+                  if (err) return;
+                  console.log(zoom);
+                  //zoomVariable = zoom;
+                }
+              );
+              //console.log(zoomVariable);
+              //if(zoomVariable){
+              var zoomLevel = this.getZoom() + 2;
+                this.easeTo({
+                  center: features[0].geometry.coordinates,
+                  zoom: zoomLevel
+                })
+              //
+            });
 
             this.map.on('moveend', function(e){
               //all event objects
