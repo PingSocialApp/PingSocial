@@ -53,7 +53,6 @@
                     *ngIf="this.socials[10].length !== 0">
             <ion-icon class="displayIcon" name="logo-venmo"></ion-icon>
         </ion-button>
-        <!-- TODO -->
         <ion-button expand="block" class="linkedinbutton" href="{{this.socials.linkedIn}}" *ngIf="this.socials[8].length !== 0">
             <ion-icon name="logo-linkedin"></ion-icon>
         </ion-button>
@@ -64,9 +63,9 @@
         <ion-button expand="block" color="danger" href="{{this.socials.website}}" *ngIf="this.socials.website.length !== 0">
             <ion-icon name="link"></ion-icon>
         </ion-button>
-        <ion-button expand="block" class="locationButton" *ngIf="this.socials[11]  !== ''" (click)="showLocation()">
+        <!-- <ion-button expand="block" class="locationButton" *ngIf="this.socials[11]  !== ''" (click)="showLocation()">
             <ion-icon name="location"></ion-icon>
-        </ion-button>
+        </ion-button> -->
         <ion-button expand="block" [routerLink]="['/eventmanager/', userId]"><ion-icon name="calendar"></ion-icon></ion-button>
     </ion-list>
     <ion-list *ngIf="!displayTF && myInfo">
