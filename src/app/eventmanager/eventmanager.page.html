@@ -18,7 +18,7 @@
                 refreshingText="Refreshing...">
         </ion-refresher-content>
     </ion-refresher>
-    <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+    <!-- <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar> -->
     <ion-card *ngFor="let event of (eventsSub | async)">
         <ion-card-header>
             <ion-card-title>{{event.name}}</ion-card-title>

@@ -10,7 +10,7 @@
 </ion-header>
 
 <ion-content>
-    <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
+    <!-- <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar> -->
     <ion-list>
         <!-- TODO Not showing up -->
         <ion-img *ngIf="(pingArray | async)?.length === 0" src="assets/noping.svg" class="noPingImg"></ion-img>

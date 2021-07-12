@@ -7,6 +7,7 @@ import {UsersService} from '../services/users.service';
 import {map} from 'rxjs/operators';
 import {Observable} from 'rxjs';
 import {UtilsService} from '../services/utils.service'
+import { AuthHandler } from '../services/authHandler.service';
 
 @Component({
     selector: 'app-settings',
@@ -24,16 +25,18 @@ export class SettingsPage implements OnInit {
     currentUserId: string;
     currentUserSocials: Observable<any>;
 
-    constructor(private modalCtrl: ModalController, private auth: AngularFireAuth, private r: Router, private firestore: AngularFirestore
+    constructor(private modalCtrl: ModalController, private auth: AuthHandler, private afAuth: AngularFireAuth,
+         private r: Router, private firestore: AngularFirestore
         ,private us: UsersService, private utils: UtilsService) {
-        this.currentUserId = this.auth.auth.currentUser.uid;
-        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
-        this.currentUserBasic = new Observable<any>();
-        this.currentUserSocials = new Observable<any>();
+      
     }
 
     ngOnInit() {
-        this.currentUserBasic = this.us.getUserBasic(this.auth.auth.currentUser.uid).pipe(map((ret:any) => {
+        this.currentUserId = this.auth.getUID();
+        this.currentUserBasic = new Observable<any>();
+        this.currentUserSocials = new Observable<any>();
+
+        this.currentUserBasic = this.us.getUserBasic(this.currentUserId).pipe(map((ret:any) => {
             document.getElementById('imagePreview').style.backgroundImage = 'url(' + ret.data.profilepic + ')';
             return {
                 name: ret.data.name,
@@ -54,7 +57,7 @@ export class SettingsPage implements OnInit {
     }
 
     logout() {
-        this.auth.auth.signOut().then(() => {
+        this.afAuth.auth.signOut().then(() => {
             this.closeModal();
             this.r.navigate(['/login']);
         }).catch((er) => console.log(er));
