@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {Observable} from 'rxjs';
-import {map, switchMap, tap} from 'rxjs/operators';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {concatMap, tap} from 'rxjs/operators';
 import {MarkercreatorPage} from '../tab2/markercreator/markercreator.page';
 import {AlertController, ModalController} from '@ionic/angular';
 import {firestore} from 'firebase';
@@ -10,6 +10,7 @@ import {AngularFireFunctions} from '@angular/fire/functions';
 import {RatingPage} from '../rating/rating.page';
 import { AuthHandler } from '../services/authHandler.service';
 import { UsersService } from '../services/users.service';
+import { EventsService } from '../services/events.service';
 
 @Component({
     selector: 'app-tab1',
@@ -23,19 +24,23 @@ export class Tab1Page implements OnInit {
     eventId: string;
     currentUserId: string;
     attendees: Observable<any>;
+    attendeesBS: BehaviorSubject<number>;
     eventCreator: string;
     eventCreatorId: string;
+    offset: any;
 
     constructor(private afs: AngularFirestore, private modalController: ModalController,
                 private alertController: AlertController, private requestService: RequestsService,
-                private auth: AuthHandler, private us: UsersService) {
+                private auth: AuthHandler, private es: EventsService, private us: UsersService) {
     }
 
     ngOnInit(){
         this.currentUserId = this.auth.getUID();
-        this.eventId = null;
+        this.eventId = '';
+        this.attendeesBS = new BehaviorSubject(this.offset);
+        // this.attendeesBS.subscribe(() => this.getAttendees());
         
-        // this.us.getUserBasic(this.currentUserId).pipe(tap((val:any) => this.eventId=val.data.checkedIn), switchMap((val:any) ))
+        // this.us.getUserBasic(this.currentUserId).pipe(tap((val:any) => this.eventId=val.data.checkedIn), concatMap((val:any) ))
 
         //     this.attendees = this.afs.collection('events').doc(this.eventId).collection('attendeesPublic').snapshotChanges().pipe(map(v=> {
         //         return v.map(doc => {
@@ -113,7 +118,12 @@ export class Tab1Page implements OnInit {
         return await modal.present();
     }
 
-    sendRequest(id) {
+    sendRequest(id: string) {
         this.requestService.sendRequest(id, 2047);
     }
+
+    getAttendees() {
+        this.attendees = this.es.viewAttendees(this.eventId, this.offset);
+    }
+
 }

@@ -82,10 +82,9 @@ export class UserprofilePage implements OnInit, OnDestroy {
 
                 this.socials = linkData;
                 this.theirInfo = true;
-                //TODO Location
             }else{
                 this.theirInfo = false;
-            }   
+            }
         }, err => {
             console.error(err.error);
         });

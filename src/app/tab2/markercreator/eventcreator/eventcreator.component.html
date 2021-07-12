@@ -56,7 +56,7 @@
                 <ion-label>Private Event</ion-label>
                 <ion-toggle [(ngModel)]="isPublic"></ion-toggle>
             </ion-item>
-            <ion-searchbar animated *ngIf="isPublic && isCreator" (ionInput)="handleInput($event)"></ion-searchbar>
+            <!-- <ion-searchbar animated *ngIf="isPublic && isCreator" (ionInput)="handleInput($event)"></ion-searchbar> -->
             <ion-list id="memberList" *ngIf="isPublic && isCreator">
                 <ion-item *ngFor="let link of links | async">
                     <ion-avatar slot="start">

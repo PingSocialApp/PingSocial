@@ -68,7 +68,6 @@ export class UsersService {
   updateProfile() {
       const uid = this.fAuth.auth.currentUser.uid;
 
-        // TODO set profile pic as old profile pic
         const userObject = {
             name: (document.getElementById('username') as HTMLInputElement).value,
             bio: (document.getElementById('bio') as HTMLInputElement).value,
