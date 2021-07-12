@@ -7,13 +7,13 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-    <ion-img *ngIf="eventId == null" class="emptyRequests" src="assets/undraw_Waiting__for_you_ldha.svg">
+    <ion-img *ngIf="eventId == ''" class="emptyRequests" src="assets/undraw_Waiting__for_you_ldha.svg">
     </ion-img>
-    <h2 *ngIf="eventId == null" class="emptyRequestsLabel">
+    <h2 *ngIf="eventId == ''" class="emptyRequestsLabel">
         <ion-label>Check In to an Event</ion-label>
     </h2>
 
-    <ion-card *ngIf="eventId != null">
+    <ion-card *ngIf="eventId != ''">
         <ion-card-header>
             <ion-card-title>{{this.eventName}}</ion-card-title>
             <ion-card-subtitle>By {{this.eventCreator}}</ion-card-subtitle>
@@ -30,7 +30,7 @@
             </ion-button>
         </ion-card-content>
     </ion-card>
-    <ion-card *ngIf="eventId != null">
+    <ion-card *ngIf="eventId != ''">
         <ion-card-content>
             <ion-list>
                 <ion-item-sliding *ngFor="let attendee of attendees | async">
