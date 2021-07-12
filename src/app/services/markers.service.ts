@@ -19,14 +19,7 @@ export class MarkersService {
         params = params.set('radius', radius.toString());
 
     return this.http.get(environment.apiURL.markers + 'events', {params}
-        ).pipe(retry(3), share(), scan((all,current:any) => {
-          if(reset){
-              all = [];
-          }
-          // TODO Remove repeating markers
-          // @ts-ignore
-          return all.concat(current.data);
-        }, []));
+        ).pipe(retry(3), share());
   }
 
   getRelevantGeoPings(latitude: number, longitude: number, radius:number, reset?:boolean) {
@@ -36,14 +29,7 @@ export class MarkersService {
         params = params.set('radius', radius.toString());
 
     return this.http.get(environment.apiURL.markers + 'geopings',{params}
-    ).pipe(retry(3), share(), scan((all,current) => {
-      if(reset){
-          all = [];
-      }
-      // TODO Remove repeating markers
-      // @ts-ignore
-      return all.concat(current.data);
-    }, []));
+    ).pipe(retry(3), share());
   }
 
   getLinks(latitude: number, longitude: number, radius:number, reset?:boolean) {
@@ -53,12 +39,6 @@ export class MarkersService {
         params = params.set('radius', radius.toString());
 
     return this.http.get(environment.apiURL.markers + 'links',{params}
-        ).pipe(retry(3), share(), scan((all,current) => {
-          if(reset){
-              all = [];
-          }
-          // @ts-ignore
-          return all.concat(current.data);
-    }, []));
+        ).pipe(retry(3), share());
   }
 }
