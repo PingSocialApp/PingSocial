@@ -559,6 +559,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             // this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
             this.pingImg = pingInfo.creatorProfilePic;
             this.pingAuthor = pingInfo.creatorName;
+            console.log("click ping");
         });
 
         el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
@@ -668,6 +669,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.currentEventTitle = eventInfo.name;
             this.currentEventDes = eventInfo.type + ' @ ' + eventInfo.startTime.toDateString() + ' ' + eventInfo.startTime.getHours() + ':' + minutes;
             this.currentEventId = el.id;
+            console.log("click event");
             //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
             //    eventInfo.position) < 0.025 && startTime < new Date();
         });
