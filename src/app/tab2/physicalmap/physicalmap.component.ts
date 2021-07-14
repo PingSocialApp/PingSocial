@@ -3,7 +3,7 @@ import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
 import {environment} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
 import {Geolocation, Position} from '@capacitor/geolocation'
-import {forkJoin, Subscription} from 'rxjs';
+import {forkJoin, merge, Subscription} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {MarkercreatorPage} from '../markercreator/markercreator.page';
 import {RatingPage} from '../../rating/rating.page';
@@ -78,7 +78,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     enableHighAccuracy: true,
                 },(position, err) => {
                     this.renderCurrent(position);
-                    this.present();
+                    this.refreshContent(true);
                 });
             });
         }).catch((error) => {
@@ -92,14 +92,24 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     refreshContent(reset = false) {
+      console.log("refreshContent");
         this.renderLinks(reset);
 
         const coords = this.map.getCenter();
+        console.log("done w coords");
 
-        this.markersSub = forkJoin([this.ms.getRelevantEvents(coords.lat, coords.lng, this.getRadius(), reset),
-        this.ms.getRelevantGeoPings(coords.lat, coords.lng, this.getRadius(), reset)]).subscribe((markerSet:any) => {
-            const markerArr = [...markerSet[0], ...markerSet[1]];
-            // TODO render Markers
+        const sub = merge(this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
+        this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset));
+        this.markersSub = sub.subscribe((markerSet:any) => {
+             console.log(markerSet);
+             //console.log(markerSet[0]);
+             //console.log(markerSet[1]);
+             //needs to change after geoping integration
+             //const markerArr = markerSet;
+             //console.log("marker arr", markerSet);
+             if(markerSet.length !== 0){
+               this.presentCollectedData(markerSet);
+             }
         }, err => console.error(err));
     }
 
@@ -128,13 +138,15 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderLinks(reset) {
+      console.log("renderLinks");
         const coords = this.map.getCenter();
 
         this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
-            res.forEach(doc => {
+            console.log(res.data.features);
+            res.data.features.forEach(doc => {
                 // create marker and style it
                 const el = this.createMarker();
                 el.style.width = '30px';
@@ -198,7 +210,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }).subscribe((val: any) => console.log(val) ,(err: any) => console.error(err));
     }
 
-    present() {
+    presentCollectedData(pointData) {
             // const nowString = firestore.Timestamp.now();
 
             // const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
@@ -216,171 +228,92 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             //     });
             // });
 
-            const data = [
-                {
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [-95.6618, 32.349]
-                    },
-                    properties: {
-                        name: "Event 1",
-                        isPrivate: false,
-                        rating: 3,
-                        startTime: new Date('7 July 2021 20:48 UTC'),
-                        endTime: new Date('9 July 2021 20:48 UTC'),
-                        hostName: "Billy",
-                        profilePic: "LINKTOPROFILEPIC",
-                        type: "networking"
-                    },
-                    id: "1",
-                    isEvent: true
-                },
-                {
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [-95.6628, 32.61]
-                    },
-                    properties: {
-                        name: "Event 2",
-                        isPrivate: false,
-                        rating: 3,
-                        startTime: new Date('21 June 2021 20:48 UTC'),
-                        endTime: new Date('22 June 2021 20:48 UTC'),
-                        hostName: "Billy",
-                        profilePic: "LINKTOPROFILEPIC",
-                        type: "party"
-                    },
-                    id: "2",
-                    isEvent: true
-                },
-                {
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [-95.6618, 31.349]
-                    },
-                    properties: {
-                        name: "Event 3",
-                        isPrivate: false,
-                        rating: 3,
-                        startTime: new Date('7 July 2021 14:48 UTC'),
-                        endTime: new Date('10 July 2021 14:48 UTC'),
-                        hostName: "Billy",
-                        profilePic: "LINKTOPROFILEPIC",
-                        type: "hangout"
-                    },
-                    id: "3",
-                    isEvent: true
-                },
-                {
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [-95.6618, 31.49]
-                    },
-                    properties: {
-                        name: "Event 4",
-                        isPrivate: false,
-                        rating: 3,
-                        startTime: new Date('7 July 2021 16:00 UTC'),
-                        endTime: new Date('24 July 2021 17:00 UTC'),
-                        hostName: "Billy",
-                        profilePic: "LINKTOPROFILEPIC",
-                        type: "hangout"
-                    },
-                    id: "4",
-                    isEvent: true
-                },
-                {
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [-95.6618, 31.347]
-                    },
-                    properties: {
-                        name: "Event 5",
-                        isPrivate: false,
-                        rating: 3,
-                        startTime: new Date('8 July 2021 14:48 UTC'),
-                        endTime: new Date('8 July 2021 16:48 UTC'),
-                        hostName: "Billy",
-                        profilePic: "LINKTOPROFILEPIC",
-                        type: "party"
-                    },
-                    id: "5",
-                    isEvent: true
-                },
-                {
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [-94.1618, 31.347]
-                    },
-                    properties: {
-                        sentMessage: "Dinagat Islands",
-                        isPrivate: true,
-                        timeCreate: new Date('21 June 2021 16:48 UTC'),
-                        pingId: "UNIQUE_ID",
-                        creatorName: "John",
-                        creatorPRofilePIc: "LINKTOPROFILEPIC"
-                    },
-                    id: "100",
-                    isEvent: false
-                },
-                {
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates: [-93.6618, 31.347]
-                    },
-                    properties: {
-                        sentMessage: "Dinagat Islands",
-                        isPrivate: true,
-                        timeCreate: new Date('21 June 2021 16:48 UTC'),
-                        pingId: "UNIQUE_ID",
-                        creatorName: "John",
-                        creatorPRofilePIc: "LINKTOPROFILEPIC"
-                    },
-                    id: "101",
-                    isEvent: false
-                }
-            ]
+            // const data = [
+            //     {
+            //         type: "Feature",
+            //         geometry: {
+            //             type: "Point",
+            //             coordinates: [-95.6618, 32.349]
+            //         },
+            //         properties: {
+            //             name: "Event 1",
+            //             isPrivate: false,
+            //             rating: 3,
+            //             startTime: new Date('7 July 2021 20:48 UTC'),
+            //             endTime: new Date('9 July 2021 20:48 UTC'),
+            //             hostName: "Billy",
+            //             profilePic: "LINKTOPROFILEPIC",
+            //             type: "networking"
+            //         },
+            //         id: "1",
+            //         isEvent: true
+            //     },
+            //     {
+            //         type: "Feature",
+            //         geometry: {
+            //             type: "Point",
+            //             coordinates: [-95.6628, 32.61]
+            //         },
+            //         properties: {
+            //             name: "Event 2",
+            //             isPrivate: false,
+            //             rating: 3,
+            //             startTime: new Date('21 June 2021 20:48 UTC'),
+            //             endTime: new Date('22 June 2021 20:48 UTC'),
+            //             hostName: "Billy",
+            //             profilePic: "LINKTOPROFILEPIC",
+            //             type: "party"
+            //         },
+            //         id: "2",
+            //         isEvent: true
+            //     }
+            // ]
 
-            this.map.addSource('events', {
-                type: 'geojson',
-                // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-                // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-                data: {
-    							"type": "FeatureCollection",
-    							"features": data
-    						},
-                cluster: true,
-                clusterMaxZoom: 14, // Max zoom to cluster points on
-                clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
-                clusterProperties: {
-                  coordinates: ['max', ['get', 'coordinates']]
-                }
-            });
+            console.log("presentCollectedData");
+            console.log(pointData);
 
-            this.map.addLayer({
-                id: 'clusters',
-                type: 'circle',
-                source: 'events',
-                filter: ['has', 'point_count'],
-                paint: {
-                    'circle-opacity': 0.0
-                }
-            });
+            if(!this.map.getLayer('clusters')){
+              this.map.addSource('events', {
+                  type: 'geojson',
+                  // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+                  // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+                  data: {
+      							"type": "FeatureCollection",
+      							"features": pointData
+      						},
+                  cluster: true,
+                  clusterMaxZoom: 14, // Max zoom to cluster points on
+                  clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+                  clusterProperties: {
+                    coordinates: ['max', ['get', 'coordinates']]
+                  }
+              });
 
-            data.forEach(event => {
-                if(event.isEvent){
-                  this.renderEvent(event);
-                }else{
-                  this.renderPings(event);
-                }
-            })
+              this.map.addLayer({
+                  id: 'clusters',
+                  type: 'circle',
+                  source: 'events',
+                  filter: ['has', 'point_count'],
+                  paint: {
+                      'circle-opacity': 0.0
+                  }
+              });
+            }else{
+              this.map.getSource('events').setData(pointData);
+            }
+
+            console.log("points");
+            console.log(pointData);
+            console.log(pointData.data);
+            if(!pointData.data.features){
+              pointData.data.forEach(event => {
+                  if(event.properties.entity === 'event'){
+                    this.renderEvent(event);
+                  }else{
+                    this.renderPings(event);
+                  }
+              })
+            }
             //zooms in on clusters
             this.map.on('click', 'clusters', function (e) {
               var features = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
@@ -439,22 +372,22 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     console.log(e.message);
                 }
                 //array for point distances from cluster, smallest to largest
-                var distArr = new Array(data.length);
+                var distArr = new Array(pointData.length);
                 //array for points based on distances from cluster, smallest to largest (using above numbers)
-                var pointArr = new Array(data.length);
+                var pointArr = new Array(pointData.length);
                 var x = 0;
                 //puts distance and point into arrays
                 for(var k = 0; k < eventH.length; k++){
-                  for(var j = 0; j < data.length; j++){
-                    if((document.getElementById(eventH[k].id).style.display === "none") && (eventH[k].id === data[j].id)){
-                      currentPoint = data[j].geometry;
+                  for(var j = 0; j < pointData.length; j++){
+                    if((document.getElementById(eventH[k].id).style.display === "none") && (eventH[k].id === pointData[j].id)){
+                      currentPoint = pointData[j].geometry;
                       var squareDistX = (feat[i].geometry.coordinates[0] - currentPoint.coordinates[0])*(feat[i].geometry.coordinates[0] - currentPoint.coordinates[0]);
                       var squareDistY = (feat[i].geometry.coordinates[1] - currentPoint.coordinates[1])*(feat[i].geometry.coordinates[1] - currentPoint.coordinates[1]);
                       var currentDist = Math.sqrt(squareDistX + squareDistY);
                       distArr[x] = currentDist;
-                      pointArr[x] = data[j];
+                      pointArr[x] = pointData[j];
                       x++;
-                      console.log(data[j].id);
+                      console.log(pointData[j].id);
                     }
                  }
                 }
@@ -565,7 +498,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
         el.className += ' ping-marker';
         el.style.display = "inline";
-        el.setAttribute('is-event', doc.isEvent);
+        el.setAttribute('is-event', doc.entity);
         console.log(el);
         try {
             const marker = new mapboxgl.Marker(el);
@@ -578,11 +511,21 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     renderEvent(doc){
       //create point html
       const eventInfo = doc.properties;
+      console.log(doc);
+      console.log(eventInfo);
       const el = this.createMarker();
-      el.setAttribute('data-name', eventInfo.name);
+      el.setAttribute('data-name', "Filler name");
+      //el.setAttribute('data-name', eventInfo.name);
       el.setAttribute('data-private', eventInfo.isPrivate);
       el.setAttribute('data-type', eventInfo.type);
-      el.setAttribute('is-event', doc.isEvent);
+      el.setAttribute('is-event', eventInfo.entity);
+      el.id = eventInfo.id;
+      console.log(el);
+      console.log(eventInfo.id);
+      console.log(el.id);
+      console.log(el.getAttribute('id'));
+      console.log(eventInfo.id, eventInfo.entity);
+
       // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
       //     el.setAttribute('data-link', 'true');
       // } else {
@@ -591,32 +534,27 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
       //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
       //     });
       // }
-      const startTime = eventInfo.startTime.toISOString();
-      console.log(startTime);
-      let minutes = eventInfo.startTime.getMinutes() < 10 ? '0' : '';
-      console.log(minutes);
-      minutes += eventInfo.startTime.getMinutes();
+      // const startTime = eventInfo.startTime.toISOString();
+      var startTime = new Date(eventInfo.startTime);
+      var endTime = new Date(eventInfo.endTime);
+      let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
+      startMinutes += startTime.getMinutes();
+      let endMinutes = startTime.getMinutes() < 10 ? '0' : '';
+      endMinutes += startTime.getMinutes();
 
       el.setAttribute('data-time', eventInfo.startTime);
-      el.id = doc.id;
       if (!!document.getElementById(el.id)) {
           document.getElementById(el.id).remove(
           );
       }
       //total event time
-      var check = (eventInfo.endTime.getTime() - eventInfo.startTime.getTime());
+      var check = (endTime.getTime() - startTime.getTime());
       //current itme
       //var currentTime = (new Date()).toISOString();
       var currentTime = new Date().getTime();
       //figures out time for specific image on marker
 
-      console.log("current time", currentTime);
-      console.log("check", check);
-      console.log("full", (eventInfo.startTime.getTime()) + (check)*0.25);
-      console.log("quarter", (eventInfo.startTime.getTime()) + (check)*0.5);
-      console.log("half", (eventInfo.startTime.getTime()) + (check)*0.75);
-      console.log("three quarters", eventInfo.endTime.getTime());
-      if((eventInfo.startTime.getTime()) + (check)*0.25 >= currentTime){
+      if((startTime.getTime()) + (check)*0.25 >= currentTime){
         console.log("full");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
@@ -625,7 +563,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
         }
-      }else if((eventInfo.startTime.getTime()) + (check)*0.5 >= currentTime){
+      }else if((startTime.getTime()) + (check)*0.5 >= currentTime){
         console.log("quarter");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
@@ -634,7 +572,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
         }
-      }else if((eventInfo.startTime.getTime()) + (check)*0.75 >= currentTime){
+      }else if((startTime.getTime()) + (check)*0.75 >= currentTime){
         console.log("half");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-varv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
@@ -643,7 +581,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
         }
-      }else if((eventInfo.endTime.getTime()) >= currentTime){
+      }else if((endTime.getTime()) >= currentTime){
         console.log("three quarters");
         if (eventInfo.type === 'party') {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
@@ -667,7 +605,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.showUserDetails = false;
             this.showPing = false;
             this.currentEventTitle = eventInfo.name;
-            this.currentEventDes = eventInfo.type + ' @ ' + eventInfo.startTime.toDateString() + ' ' + eventInfo.startTime.getHours() + ':' + minutes;
+            this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes + " - " + endTime.getHours() + ':' + endMinutes;
             this.currentEventId = el.id;
             console.log("click event");
             //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
