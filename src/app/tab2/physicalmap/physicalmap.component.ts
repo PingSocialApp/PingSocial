@@ -272,7 +272,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             console.log("presentCollectedData");
             console.log(pointData);
 
-            if(!this.map.getLayer('clusters')){
+            //this.map.on('load', function() {
+            if(!this.map.getSource('events')){
               this.map.addSource('events', {
                   type: 'geojson',
                   // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
@@ -288,7 +289,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     coordinates: ['max', ['get', 'coordinates']]
                   }
               });
+            }else{
+              this.map.getSource('events').setData({
+                type: 'FeatureCollection',
+                features: pointData
+              });
+            }
 
+            if(!this.map.getLayer('clusters')){
               this.map.addLayer({
                   id: 'clusters',
                   type: 'circle',
@@ -298,13 +306,42 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                       'circle-opacity': 0.0
                   }
               });
-            }else{
-              this.map.getSource('events').setData(pointData);
             }
+            //})
 
+            // if(!this.map.getSource('events')){
+            //   this.map.addSource('events', {
+            //       type: 'geojson',
+            //       // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+            //       // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+            //       data: {
+      			// 				"type": "FeatureCollection",
+      			// 				"features": pointData
+      			// 			},
+            //       cluster: true,
+            //       clusterMaxZoom: 14, // Max zoom to cluster points on
+            //       clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+            //       clusterProperties: {
+            //         coordinates: ['max', ['get', 'coordinates']]
+            //       }
+            //   });
+            // }else{
+            //   this.map.getSource('events').setData(pointData);
+            // }
+            // if(!this.map.getLayer('clusters')){
+            //   this.map.addLayer({
+            //       id: 'clusters',
+            //       type: 'circle',
+            //       source: 'events',
+            //       filter: ['has', 'point_count'],
+            //       paint: {
+            //           'circle-opacity': 0.0
+            //       }
+            //   });
+            // }
+            console.log(this.map.getLayer('clusters'));
+            console.log(this.map.getSource('events'));
             console.log("points");
-            console.log(pointData);
-            console.log(pointData.data);
             if(!pointData.data.features){
               pointData.data.forEach(event => {
                   if(event.properties.entity === 'event'){
@@ -328,6 +365,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
             this.map.on('moveend', function(e){
               //all event objects
+              console.log("moveend");
               var points = this.querySourceFeatures('events');
               //all cluster objects
               var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
@@ -520,11 +558,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
       el.setAttribute('data-type', eventInfo.type);
       el.setAttribute('is-event', eventInfo.entity);
       el.id = eventInfo.id;
-      console.log(el);
-      console.log(eventInfo.id);
-      console.log(el.id);
-      console.log(el.getAttribute('id'));
-      console.log(eventInfo.id, eventInfo.entity);
 
       // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
       //     el.setAttribute('data-link', 'true');
@@ -553,7 +586,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
       //var currentTime = (new Date()).toISOString();
       var currentTime = new Date().getTime();
       //figures out time for specific image on marker
-
+      el.style.display = "inline";
       if((startTime.getTime()) + (check)*0.25 >= currentTime){
         console.log("full");
         if (eventInfo.type === 'party') {
@@ -592,26 +625,27 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }else{
         console.log("empty");
-        if (eventInfo.type === 'party') {
-            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
-        } else if (eventInfo.type === 'networking') {
-            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
-        } else {
-            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
-        }
+        // if (eventInfo.type === 'party') {
+        //     el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
+        // } else if (eventInfo.type === 'networking') {
+        //     el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
+        // } else {
+        //     el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
+        // }
+        el.style.display = "none";
       }
         el.addEventListener('click', (e) => {
             this.showEventDetails = true;
             this.showUserDetails = false;
             this.showPing = false;
-            this.currentEventTitle = eventInfo.name;
+            this.currentEventTitle = "Filler name";
+            //this.currentEventTitle = eventInfo.name;
             this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes + " - " + endTime.getHours() + ':' + endMinutes;
             this.currentEventId = el.id;
             console.log("click event");
             //this.showCheckIn = this.geofirex.distance(this.geofirex.point(this.location[1], this.location[0]),
             //    eventInfo.position) < 0.025 && startTime < new Date();
         });
-        console.log(el);
         //const marker = new mapboxgl.Marker(el);
         try {
             console.log('made');
