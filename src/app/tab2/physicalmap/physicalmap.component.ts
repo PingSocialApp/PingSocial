@@ -46,6 +46,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     pingDate: string;
     private linksSub: Subscription;
     private markersSub: Subscription;
+    private geoSub: Subscription;
     showCheckIn: boolean;
     location: any;
     checkedIn: string;
@@ -92,16 +93,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     refreshContent(reset = false) {
-      console.log("refreshContent");
         this.renderLinks(reset);
 
         const coords = this.map.getCenter();
-        console.log("done w coords");
 
         const sub = merge(this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
         this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset));
-        this.markersSub = sub.subscribe((markerSet:any) => {
-             console.log(markerSet);
+        this.eventSub = sub.subscribe((markerSet:any) => {
              //console.log(markerSet[0]);
              //console.log(markerSet[1]);
              //needs to change after geoping integration
@@ -211,16 +209,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     presentCollectedData(pointData) {
-            // const nowString = firestore.Timestamp.now();
-
-            // const query1 = this.afs.collection('events', ref => ref.where('isPrivate', '==', false)
-            //     .where('endTime', '>=', nowString));
-            // const query2 = this.afs.collection('events', ref => ref.where('creator', '==', this.currentUserRef.ref)
-            //     .where('endTime', '>=', nowString));
-            // const query3 = this.afs.collection('events', ref => ref.where('members', 'array-contains', this.currentUserRef.ref)
-            //     .where('endTime', '>=', nowString));
-
-            // const events = merge(query1.snapshotChanges(), query2.snapshotChanges(), query3.snapshotChanges());
+            if(pointData.data.features){
+              return;
+            }
 
             // this.eventSub = events.subscribe(eventData => {
             //     eventData.forEach((event) => {
@@ -270,7 +261,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             // ]
 
             console.log("presentCollectedData");
-            console.log(pointData);
+            const data = pointData.data;
 
             //this.map.on('load', function() {
             if(!this.map.getSource('events')){
@@ -280,7 +271,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                   // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
                   data: {
       							"type": "FeatureCollection",
-      							"features": pointData
+      							"features": data
       						},
                   cluster: true,
                   clusterMaxZoom: 14, // Max zoom to cluster points on
@@ -291,8 +282,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
               });
             }else{
               this.map.getSource('events').setData({
-                type: 'FeatureCollection',
-                features: pointData
+                "type": "FeatureCollection",
+                "features": data
               });
             }
 
@@ -307,41 +298,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                   }
               });
             }
-            //})
 
-            // if(!this.map.getSource('events')){
-            //   this.map.addSource('events', {
-            //       type: 'geojson',
-            //       // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-            //       // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-            //       data: {
-      			// 				"type": "FeatureCollection",
-      			// 				"features": pointData
-      			// 			},
-            //       cluster: true,
-            //       clusterMaxZoom: 14, // Max zoom to cluster points on
-            //       clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
-            //       clusterProperties: {
-            //         coordinates: ['max', ['get', 'coordinates']]
-            //       }
-            //   });
-            // }else{
-            //   this.map.getSource('events').setData(pointData);
-            // }
-            // if(!this.map.getLayer('clusters')){
-            //   this.map.addLayer({
-            //       id: 'clusters',
-            //       type: 'circle',
-            //       source: 'events',
-            //       filter: ['has', 'point_count'],
-            //       paint: {
-            //           'circle-opacity': 0.0
-            //       }
-            //   });
-            // }
-            console.log(this.map.getLayer('clusters'));
-            console.log(this.map.getSource('events'));
-            console.log("points");
             if(!pointData.data.features){
               pointData.data.forEach(event => {
                   if(event.properties.entity === 'event'){
@@ -363,10 +320,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
               //
             });
 
-            this.map.on('moveend', function(e){
+            const tempThis = this;
+
+            this.map.on('moveend', function(e) {
               //all event objects
-              console.log("moveend");
-              var points = this.querySourceFeatures('events');
+              //var points = this.querySourceFeatures('events');
               //all cluster objects
               var feat = this.queryRenderedFeatures(e.point, {layers: ['clusters']});
               var cc = this.getContainer();
@@ -375,8 +333,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
               //removes duplicate html objects
               for(var i = 0; i < eventH.length; i++){
                 for(var j = 0; j < eventH.length; j++){
-                  if((eventH[i].id === eventH[j].id) && (i !== j)){
-                    document.getElementById(eventH[i].id).remove();
+                  if(eventH[i] && eventH[j]){
+                    if((eventH[i].id === eventH[j].id) && (i !== j)){
+                      console.log("removed from array", eventH[i].id);
+                      document.getElementById(eventH[i].id).remove();
+                    }
                   }
                 }
               }
@@ -384,12 +345,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
               for(var m = 0; m < eventH.length; m++){
                 //visually removes all html ponts
                 document.getElementById(eventH[m].id).style.display = "none";
-                for(var i = 0; i < points.length; i++){
-                  if(parseInt(eventH[m].id) === points[i].id){
-                    document.getElementById(eventH[m].id).style.display = "inline";
-                    break;
-                  }
-                }
               }
               //current point to find distance from clusters
               var currentPoint;
@@ -404,31 +359,30 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 try {
                     const marker = new mapboxgl.Marker(el);
                     marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
-                    console.log(marker);
                     el.title = "null";
                 } catch (e) {
                     console.log(e.message);
                 }
                 //array for point distances from cluster, smallest to largest
-                var distArr = new Array(pointData.length);
+                var distArr = new Array(data.length);
                 //array for points based on distances from cluster, smallest to largest (using above numbers)
-                var pointArr = new Array(pointData.length);
+                var pointArr = new Array(data.length);
                 var x = 0;
                 //puts distance and point into arrays
-                for(var k = 0; k < eventH.length; k++){
-                  for(var j = 0; j < pointData.length; j++){
-                    if((document.getElementById(eventH[k].id).style.display === "none") && (eventH[k].id === pointData[j].id)){
-                      currentPoint = pointData[j].geometry;
+                //for(var k = 0; k < eventH.length; k++){
+                  for(var j = 0; j < data.length; j++){
+                    //console.log(document.getElementById(eventH[k].id));
+                    //if(eventH[k].id === data[j].properties.id){
+                      currentPoint = data[j].geometry;
                       var squareDistX = (feat[i].geometry.coordinates[0] - currentPoint.coordinates[0])*(feat[i].geometry.coordinates[0] - currentPoint.coordinates[0]);
                       var squareDistY = (feat[i].geometry.coordinates[1] - currentPoint.coordinates[1])*(feat[i].geometry.coordinates[1] - currentPoint.coordinates[1]);
                       var currentDist = Math.sqrt(squareDistX + squareDistY);
                       distArr[x] = currentDist;
-                      pointArr[x] = pointData[j];
+                      pointArr[x] = data[j];
                       x++;
-                      console.log(pointData[j].id);
                     }
-                 }
-                }
+                 //}
+                //}
                 //sorts arrays smallest to largest based on distance
                 for(var j = 0; j < distArr.length; j++){
                   for(var k = j; k < distArr.length; k++){
@@ -445,72 +399,77 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 //sets image and title of cluster html
                 for(var j = 0; j < feat[i].properties.point_count; j++){
                   if(el !== null){
-                    //if(!)
-                    if(document.getElementById(pointArr[j].id).getAttribute('data-type') === 'party'){
-                      console.log("found party", pointArr[j].id);
-              //set marker
-                      if(el.title === "null"){
-                        el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
-                        el.title = "party";
-                //marker set to networking
-                      }else if(el.title === "networking"){
-                        el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
-                        el.title = "partynetworking";
-                //marker set to hangout
-                      }else if(el.title === "hangout"){
-                        el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
-                        el.title = "partyhangout";
-                //cluster of all 3
-                      }else if(el.title === "networkinghangout"){
-                        el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-                        el.title = "all";
-                      }
-                  }else if(document.getElementById(pointArr[j].id).getAttribute('data-type') === 'networking'){
-                    console.log("found networking", pointArr[j].id);
-              //set marker
-                    if(el.title === "null"){
-                      el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
-                      el.title = "networking";
-              //marker set to party
-                    }else if(el.title === "party"){
-                      el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
-                      el.title = "partynetworking"
-              //marker set to hangout
-                    }else if(el.title === "hangout"){
-                      el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-                      el.title = "networkinghangout";
-              //cluster of all 3
-                    }else if(el.title === "partyhangout"){
-                      el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-                      el.title = "all";
-                    }
-                  }else if(document.getElementById(pointArr[j].id).getAttribute('data-type') === 'hangout'){
-                      console.log("found hangout", pointArr[j].id);
-            //set marker
-                        if(el.title === "null"){
-                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
-                            el.title = "hangout";
-              //marker set to networking
-                        }else if(el.title === "networking"){
+                    //if(document.getElementById(pointArr[j].properties.id)){
+                    for(var k = 0; k < eventH.length; k++){
+                      console.log(eventH[k].id, pointArr[j].properties.id);
+                      if(eventH[k].id === pointArr[j].properties.id){
+                        if(eventH[k].getAttribute('data-type') === 'party'){
+                          console.log("found party", pointArr[j].properties.id);
+                  //set marker
+                          if(el.title === "null"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
+                            el.title = "party";
+                    //marker set to networking
+                          }else if(el.title === "networking"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
+                            el.title = "partynetworking";
+                    //marker set to hangout
+                          }else if(el.title === "hangout"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
+                            el.title = "partyhangout";
+                    //cluster of all 3
+                          }else if(el.title === "networkinghangout"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
+                            el.title = "all";
+                          }
+                        }else if(eventH[k].getAttribute('data-type') === 'networking'){
+                          console.log("found networking", pointArr[j].properties.id);
+                    //set marker
+                          if(el.title === "null"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
+                            el.title = "networking";
+                    //marker set to party
+                          }else if(el.title === "party"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
+                            el.title = "partynetworking"
+                    //marker set to hangout
+                          }else if(el.title === "hangout"){
                             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
                             el.title = "networkinghangout";
-            //marker set to party
-                        }else if(el.title === "party"){
-                          el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
-                          el.title = "partyhangout";
-            //cluster of all 3
-                    }else if(el.title === "partynetworking"){
-                      el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-                      el.title = "all";
+                    //cluster of all 3
+                          }else if(el.title === "partyhangout"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
+                            el.title = "all";
+                          }
+                        }else if(eventH[k].getAttribute('data-type') === 'hangout'){
+                          console.log("found hangout", pointArr[j].properties.id);
+                //set marker
+                            if(el.title === "null"){
+                                el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
+                                el.title = "hangout";
+                  //marker set to networking
+                            }else if(el.title === "networking"){
+                                el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
+                                el.title = "networkinghangout";
+                //marker set to party
+                            }else if(el.title === "party"){
+                              el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
+                              el.title = "partyhangout";
+                //cluster of all 3
+                          }else if(el.title === "partynetworking"){
+                            el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
+                            el.title = "all";
+                          }
+                          }
+                          if(el.title === "all"){
+                            el.style.backgroundPosition = "45% 50%";
+                          }
+                        }
+                      }
+                    }
                   }
-                }
-                if(el.title === "all"){
-                  el.style.backgroundPosition = "45% 50%";
-                }
               }
-            }
-          }
-        });
+          });
         }
 
     renderPings(doc) {
@@ -537,7 +496,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         el.className += ' ping-marker';
         el.style.display = "inline";
         el.setAttribute('is-event', doc.entity);
-        console.log(el);
         try {
             const marker = new mapboxgl.Marker(el);
             marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
@@ -549,8 +507,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     renderEvent(doc){
       //create point html
       const eventInfo = doc.properties;
-      console.log(doc);
-      console.log(eventInfo);
       const el = this.createMarker();
       el.setAttribute('data-name', "Filler name");
       //el.setAttribute('data-name', eventInfo.name);
@@ -559,15 +515,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
       el.setAttribute('is-event', eventInfo.entity);
       el.id = eventInfo.id;
 
-      // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
-      //     el.setAttribute('data-link', 'true');
-      // } else {
-      //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-      //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
-      //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
-      //     });
-      // }
-      // const startTime = eventInfo.startTime.toISOString();
       var startTime = new Date(eventInfo.startTime);
       var endTime = new Date(eventInfo.endTime);
       let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
@@ -623,16 +570,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
         }
-      }else{
-        console.log("empty");
-        // if (eventInfo.type === 'party') {
-        //     el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/QWA2htyQ1RpyFOcfUEfuCSbfBUnspNyjudf3gWYtVkHJJdSNsyOkmC9N0YrnDPwTdRQ-QLApSQ5Q6IW6weBfGbbkMnIhlhwxtSVcEtTJY27VhpmLJowg1iyK8WTdIf4AgjWRSqJtEw=w2400)';
-        // } else if (eventInfo.type === 'networking') {
-        //     el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/uMWsfzMX-h0vkJACrHBqn0HBB6fA9ZyuhMD3SFJWnk9OgBgIp_zfwC5_RPlQ2evwL4iwaeMegZtHHEUAof0MX7ML2B1ANB1qaxsZ7pcw5Ch5_ujJ1EuzzUbjDGHvvk219c2pnWHmKw=w2400)';
-        // } else {
-        //     el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/vybjXk9YzgqeTZg__ICKBoi9egT7xx4zRNhbqd7iWw7TkPpH7Y9GzxpIpbRb44c82s-HoDtDCwTt8M9JjYmTvDujl62WU2if-RGkObEGpA1WArj6z9A7W6gVkHFnW_s1XwWPnO3-vg=w2400)';
-        // }
         el.style.display = "none";
+        return;
       }
         el.addEventListener('click', (e) => {
             this.showEventDetails = true;
@@ -652,8 +591,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             const marker = new mapboxgl.Marker(el);
             marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
           //var marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
-
-            console.log(marker);
         } catch (e) {
             console.log(e.message);
             console.log('it');
