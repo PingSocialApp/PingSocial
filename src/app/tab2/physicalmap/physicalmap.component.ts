@@ -1,17 +1,51 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { IonSearchbar, ModalController, Platform } from '@ionic/angular';
-import { environment } from '../../../environments/environment';
+import {
+	AfterViewInit,
+	Component,
+	OnDestroy,
+	OnInit
+} from '@angular/core';
+import {
+	IonSearchbar,
+	ModalController,
+	Platform
+} from '@ionic/angular';
+import {
+	environment
+} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import { Geolocation, Position } from '@capacitor/geolocation'
-import { forkJoin, merge, Subscription } from 'rxjs';
-import { AngularFireDatabase } from '@angular/fire/database';
-import { MarkercreatorPage } from '../markercreator/markercreator.page';
-import { RatingPage } from '../../rating/rating.page';
-import { MarkersService } from 'src/app/services/markers.service';
-import { UsersService } from 'src/app/services/users.service';
-import { AuthHandler } from 'src/app/services/authHandler.service';
-import { EventsService } from 'src/app/services/events.service';
-import { UtilsService } from 'src/app/services/utils.service';
+import {
+	Geolocation,
+	Position
+} from '@capacitor/geolocation'
+import {
+	forkJoin,
+	merge,
+	Subscription
+} from 'rxjs';
+import {
+	AngularFireDatabase
+} from '@angular/fire/database';
+import {
+	MarkercreatorPage
+} from '../markercreator/markercreator.page';
+import {
+	RatingPage
+} from '../../rating/rating.page';
+import {
+	MarkersService
+} from 'src/app/services/markers.service';
+import {
+	UsersService
+} from 'src/app/services/users.service';
+import {
+	AuthHandler
+} from 'src/app/services/authHandler.service';
+import {
+	EventsService
+} from 'src/app/services/events.service';
+import {
+	UtilsService
+} from 'src/app/services/utils.service';
 
 @Component({
 	selector: 'app-physicalmap',
@@ -74,17 +108,15 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.map.on('load', () => {
 				this.presentCurrentLocation();
 				this.refreshContent(true);
-        console.log("view init");
 				Geolocation.watchPosition({
 					enableHighAccuracy: true,
 				}, (position, err) => {
 					this.renderCurrent(position);
 					this.refreshContent(true);
-          console.log("view init failure");
 				});
 			});
 		}).catch((error) => {
-			console.log('Error getting location', error);
+			console.error('Error getting location', error);
 		});
 	}
 
@@ -101,11 +133,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		const sub = merge(this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
 			this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset));
 		this.markersSub = sub.subscribe((markerSet: any) => {
-			//console.log(markerSet[0]);
-			//console.log(markerSet[1]);
-			//needs to change after geoping integration
-			//const markerArr = markerSet;
-			//console.log("marker arr", markerSet);
+			// console.log(markerSet[0]);
+			// console.log(markerSet[1]);
+			// needs to change after geoping integration
+			// const markerArr = markerSet;
+			// console.log("marker arr", markerSet);
 			if (markerSet.length !== 0) {
 				this.presentCollectedData(markerSet);
 			}
@@ -137,7 +169,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	renderLinks(reset) {
-		console.log("renderLinks");
 		const coords = this.map.getCenter();
 
 		this.linksSub = this.ms.getLinks(coords.lat, coords.lng, this.getRadius(), reset).subscribe((res: any) => {
@@ -179,20 +210,20 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			marker.setLngLat([lng, lat])
 				.addTo(this.map);
 		} catch (e) {
-			console.log(e.message);
+			console.error(e.message);
 		}
 	}
 
 	convertTime(t) {
-		if (t >= 86_400_000) {
+		if (t >= 86400000) {
 			// days
-			return Math.floor(t / 86_400_000) + 'd ago';
-		} else if (t >= 3_600_000) {
+			return Math.floor(t / 86400000) + 'd ago';
+		} else if (t >= 3600000) {
 			// hours
-			return Math.floor(t / 3_600_000) + 'h ago';
-		} else if (t >= 60_000) {
+			return Math.floor(t / 3600000) + 'h ago';
+		} else if (t >= 60000) {
 			// mins
-			return Math.floor(t / 60_000) + 'm ago';
+			return Math.floor(t / 60000) + 'm ago';
 		} else if (t >= 1000) {
 			// secs
 			return Math.floor(t / 1000) + 's ago';
@@ -213,65 +244,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			return;
 		}
 
-		// this.eventSub = events.subscribe(eventData => {
-		//     eventData.forEach((event) => {
-		//         this.renderEvent(event.payload.doc);
-		//     });
-		// });
-
-		// const data = [
-		//     {
-		//         type: "Feature",
-		//         geometry: {
-		//             type: "Point",
-		//             coordinates: [-95.6618, 32.349]
-		//         },
-		//         properties: {
-		//             name: "Event 1",
-		//             isPrivate: false,
-		//             rating: 3,
-		//             startTime: new Date('7 July 2021 20:48 UTC'),
-		//             endTime: new Date('9 July 2021 20:48 UTC'),
-		//             hostName: "Billy",
-		//             profilePic: "LINKTOPROFILEPIC",
-		//             type: "professional"
-		//         },
-		//         id: "1",
-		//         isEvent: true
-		//     },
-		//     {
-		//         type: "Feature",
-		//         geometry: {
-		//             type: "Point",
-		//             coordinates: [-95.6628, 32.61]
-		//         },
-		//         properties: {
-		//             name: "Event 2",
-		//             isPrivate: false,
-		//             rating: 3,
-		//             startTime: new Date('21 June 2021 20:48 UTC'),
-		//             endTime: new Date('22 June 2021 20:48 UTC'),
-		//             hostName: "Billy",
-		//             profilePic: "LINKTOPROFILEPIC",
-		//             type: "party"
-		//         },
-		//         id: "2",
-		//         isEvent: true
-		//     }
-		// ]
-
-		console.log("presentCollectedData");
 		const data = pointData.data;
 
-		//this.map.on('load', function() {
 		if (!this.map.getSource('events')) {
 			this.map.addSource('events', {
 				type: 'geojson',
 				// Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
 				// from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
 				data: {
-					"type": "FeatureCollection",
-					"features": data
+					type: 'FeatureCollection',
+					features: data
 				},
 				cluster: true,
 				clusterMaxZoom: 14, // Max zoom to cluster points on
@@ -282,8 +264,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			});
 		} else {
 			this.map.getSource('events').setData({
-				"type": "FeatureCollection",
-				"features": data
+				type: 'FeatureCollection',
+				features: data
 			});
 		}
 
@@ -308,11 +290,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			})
 		}
-		//zooms in on clusters
-		this.map.on('click', 'clusters', function(e) {
-			let features = this.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-			let clusterId = features[0].properties.cluster_id;
-			let zoomLevel = this.getZoom() + 2;
+		// zooms in on clusters
+		this.map.on('click', 'clusters', function (e) {
+			const features = this.queryRenderedFeatures(e.point, {
+				layers: ['clusters']
+			});
+			const clusterId = features[0].properties.cluster_id;
+			const zoomLevel = this.getZoom() + 2;
 			this.easeTo({
 				center: features[0].geometry.coordinates,
 				zoom: zoomLevel
@@ -322,77 +306,74 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		const tempThis = this;
 
-		this.map.on('moveend', function(e) {
-			//all event objects
-			//let points = this.querySourceFeatures('events');
-			//all cluster objects
-			let feat = this.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-      console.log(feat);
-			let cc = this.getContainer();
-			//all html of event objects
-			let eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
-			//removes duplicate html objects
+		this.map.on('moveend', function (e) {
+			// all event objects
+			// let points = this.querySourceFeatures('events');
+			// all cluster objects
+			const feat = this.queryRenderedFeatures(e.point, {
+				layers: ['clusters']
+			});
+			const cc = this.getContainer();
+			// all html of event objects
+			const eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+			// removes duplicate html objects
 			for (let i = 0; i < eventH.length; i++) {
 				for (let j = 0; j < eventH.length; j++) {
 					if (eventH[i] && eventH[j]) {
 						if ((eventH[i].id === eventH[j].id) && (i !== j)) {
-							console.log("removed from array", eventH[i].id);
+							console.log('removed from array', eventH[i].id);
 							document.getElementById(eventH[i].id).remove();
 						}
 					}
 				}
 			}
-			//displays html points that are within events ((not within a cluster))
-			for (let m = 0; m < eventH.length; m++) {
-				//visually removes all html ponts
-        //TODO: rewrite to turn off ones needed not turn on ones needed
-				document.getElementById(eventH[m].id).setAttribute('in-cluster', 'false');
+			// displays html points that are within events ((not within a cluster))
+			for (const id of eventH) {
+				// visually removes all html ponts
+				// TODO: rewrite to turn off ones needed not turn on ones needed
+				document.getElementById(id).setAttribute('in-cluster', 'false');
 			}
-			//current point to find distance from clusters
+			// current point to find distance from clusters
 			let currentPoint;
-			//finding points within cluster to color correctly
-			for (let i = 0; i < feat.length; i++) {
-				//creation of new cluster marker html
+			// finding points within cluster to color correctly
+			for (const feature of feat) {
+				// creation of new cluster marker html
 				const el = document.createElement('div');
 				el.className = 'marker-style';
-				el.title = "null";
+				el.title = 'null';
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
-				el.id = feat[i].id;
-        el.setAttribute('in-cluster', 'true');
-        //el.setAttribute('in-cluster', 'true');
+				el.id = feature.id;
+				el.setAttribute('in-cluster', 'true');
+
 				try {
 					const marker = new mapboxgl.Marker(el);
-					marker.setLngLat(feat[i].geometry.coordinates).addTo(this);
-					el.title = "null";
+					marker.setLngLat(feature.geometry.coordinates).addTo(this);
+					el.title = 'null';
 				} catch (e) {
 					console.log(e.message);
 				}
-				//array for point distances from cluster, smallest to largest
-				let distArr = new Array(data.length);
-				//array for points based on distances from cluster, smallest to largest (using above numbers)
-				let pointArr = new Array(data.length);
-				let x = 0;
-				//puts distance and point into arrays
-				//for(let k = 0; k < eventH.length; k++){
+				// array for point distances from cluster, smallest to largest
+				const distArr = new Array(data.length);
+				// array for points based on distances from cluster, smallest to largest (using above numbers)
+				const pointArr = new Array(data.length);
+				// puts distance and point into arrays
 				for (let j = 0; j < data.length; j++) {
-					//console.log(document.getElementById(eventH[k].id));
-					//if(eventH[k].id === data[j].properties.id){
 					currentPoint = data[j].geometry;
-					let squareDistX = (feat[i].geometry.coordinates[0] - currentPoint.coordinates[0]) * (feat[i].geometry.coordinates[0] - currentPoint.coordinates[0]);
-					let squareDistY = (feat[i].geometry.coordinates[1] - currentPoint.coordinates[1]) * (feat[i].geometry.coordinates[1] - currentPoint.coordinates[1]);
-					let currentDist = Math.sqrt(squareDistX + squareDistY);
-					distArr[x] = currentDist;
-					pointArr[x] = data[j];
-					x++;
+					const squareDistX =
+						(feature.geometry.coordinates[0] - currentPoint.coordinates[0]) * (feature.geometry.coordinates[0] - currentPoint.coordinates[0]);
+					const squareDistY =
+						(feature.geometry.coordinates[1] - currentPoint.coordinates[1]) * (feature.geometry.coordinates[1] - currentPoint.coordinates[1]);
+					const currentDist = Math.sqrt(squareDistX + squareDistY);
+					distArr[j] = currentDist;
+					pointArr[j] = data[j];
 				}
-				//}
-				//}
-				//sorts arrays smallest to largest based on distance
+
+				// sorts arrays smallest to largest based on distance
 				for (let j = 0; j < distArr.length; j++) {
 					for (let k = j; k < distArr.length; k++) {
 						if ((distArr[j] > distArr[k]) && (j !== k)) {
-							let tempD = distArr[k];
-							let tempP = pointArr[k];
+							const tempD = distArr[k];
+							const tempP = pointArr[k];
 							distArr[k] = distArr[j];
 							pointArr[k] = pointArr[j];
 							distArr[j] = tempD;
@@ -400,101 +381,93 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 						}
 					}
 				}
-				//sets image and title of cluster html
-				for (let j = 0; j < feat[i].properties.point_count; j++) {
+				// sets image and title of cluster html
+				for (let j = 0; j < feature.properties.point_count; j++) {
 					if (el !== null) {
-						//if(document.getElementById(pointArr[j].properties.id)){
-						for (let k = 0; k < eventH.length; k++) {
-							if (eventH[k].id === pointArr[j].properties.id) {
-								if (eventH[k].getAttribute('data-type') === 'party') {
-									console.log("found party", pointArr[j].properties.id);
-									//set marker
-									if (el.title === "null") {
+						// if(document.getElementById(pointArr[j].properties.id)){
+						for (const element of eventH) {
+							if (element.id === pointArr[j].properties.id) {
+								if (element.getAttribute('data-type') === 'party') {
+									// set marker
+									if (el.title === 'null') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
-										el.title = "party";
-										//marker set to professional
-									} else if (el.title === "professional") {
+										el.title = 'party';
+										// marker set to professional
+									} else if (el.title === 'professional') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
-										el.title = "partyprofessional";
-										//marker set to hangout
-									} else if (el.title === "hangout") {
+										el.title = 'partyprofessional';
+										// marker set to hangout
+									} else if (el.title === 'hangout') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
-										el.title = "partyhangout";
-										//cluster of all 3
-									} else if (el.title === "professionalhangout") {
+										el.title = 'partyhangout';
+										// cluster of all 3
+									} else if (el.title === 'professionalhangout') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-										el.title = "all";
+										el.title = 'all';
 									}
-								} else if (eventH[k].getAttribute('data-type') === 'professional') {
-									console.log("found professional", pointArr[j].properties.id);
-									//set marker
-									if (el.title === "null") {
+								} else if (element.getAttribute('data-type') === 'professional') {
+									// set marker
+									if (el.title === 'null') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
-										el.title = "professional";
-										//marker set to party
-									} else if (el.title === "party") {
+										el.title = 'professional';
+										// marker set to party
+									} else if (el.title === 'party') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
-										el.title = "partyprofessional"
-										//marker set to hangout
-									} else if (el.title === "hangout") {
+										el.title = 'partyprofessional'
+										// marker set to hangout
+									} else if (el.title === 'hangout') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-										el.title = "professionalhangout";
-										//cluster of all 3
-									} else if (el.title === "partyhangout") {
+										el.title = 'professionalhangout';
+										// cluster of all 3
+									} else if (el.title === 'partyhangout') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-										el.title = "all";
+										el.title = 'all';
 									}
-								} else if (eventH[k].getAttribute('data-type') === 'hangout') {
-									console.log("found hangout", pointArr[j].properties.id);
-									//set marker
-									if (el.title === "null") {
+								} else if (element.getAttribute('data-type') === 'hangout') {
+									// set marker
+									if (el.title === 'null') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
-										el.title = "hangout";
-										//marker set to professional
-									} else if (el.title === "professional") {
+										el.title = 'hangout';
+										// marker set to professional
+									} else if (el.title === 'professional') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-										el.title = "professionalhangout";
-										//marker set to party
-									} else if (el.title === "party") {
+										el.title = 'professionalhangout';
+										// marker set to party
+									} else if (el.title === 'party') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
-										el.title = "partyhangout";
-										//cluster of all 3
-									} else if (el.title === "partyprofessional") {
+										el.title = 'partyhangout';
+										// cluster of all 3
+									} else if (el.title === 'partyprofessional') {
 										el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-										el.title = "all";
+										el.title = 'all';
 									}
 								}
-								if (el.title === "all") {
-									el.style.backgroundPosition = "45% 50%";
+								if (el.title === 'all') {
+									el.style.backgroundPosition = '45% 50%';
 								}
-                document.getElementById(eventH[k].id).setAttribute('in-cluster', 'true');
+								document.getElementById(element.id).setAttribute('in-cluster', 'true');
 							}
 						}
 					}
 				}
 			}
-      for(var i = 0; i < eventH.length; i++){
-        if(document.getElementById(eventH[i].id).getAttribute('in-cluster') === 'false'){
-          document.getElementById(eventH[i].id).style.display = "inline";
-        }else{
-          document.getElementById(eventH[i].id).style.display = "none";
-        }
-      }
+			for (const id of eventH) {
+				document.getElementById(id).style.display = document.getElementById(id).getAttribute('in-cluster') === 'false' ? 'inline' : 'none';
+			}
 		});
 	}
 
 	renderPings(doc) {
-    if(document.getElementById(doc.properties.id)){
-      return;
-    }
+		if (document.getElementById(doc.properties.id)) {
+			return;
+		}
 		const pingInfo = doc.properties;
-    let el = null;
-    if(document.getElementById(pingInfo.id)){
-      el = document.getElementById(pingInfo.id);
-    }else{
-      el = this.createMarker();
-    }
-		console.log("ping", doc);
+		let el = null;
+		if (document.getElementById(pingInfo.id)) {
+			el = document.getElementById(pingInfo.id);
+		} else {
+			el = this.createMarker();
+		}
 		el.id = doc.id;
 		if (!!document.getElementById(el.id)) {
 			document.getElementById(el.id).remove();
@@ -508,15 +481,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			// this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
 			this.pingImg = pingInfo.creatorProfilePic;
 			this.pingAuthor = pingInfo.creatorName;
-			console.log("click ping");
 		});
 
 		el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
 		el.className += ' ping-marker';
-		//el.style.display = "inline";
-    //el.style.display = "inline";
 		el.setAttribute('is-event', doc.entity);
-    el.setAttribute('in-cluster', 'false');
+		el.setAttribute('in-cluster', 'false');
 		try {
 			const marker = new mapboxgl.Marker(el);
 			marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
@@ -526,46 +496,38 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	renderEvent(doc) {
-		//create point html
+		// create point html
 		const eventInfo = doc.properties;
-    let el = null;
-    if(document.getElementById(eventInfo.id)){
-      el = document.getElementById(eventInfo.id)
-    }else{
-      el = this.createMarker();
-    }
-    el.setAttribute('data-name', "Filler name");
-    el.setAttribute('in-cluster', 'false');
-    //el.setAttribute('data-name', eventInfo.name);
-    el.setAttribute('data-private', eventInfo.isPrivate);
-    el.setAttribute('data-type', eventInfo.type);
-    el.setAttribute('is-event', eventInfo.entity);
-    el.id = eventInfo.id;
-    console.log("created el");
+		let el = null;
+		if (document.getElementById(eventInfo.id)) {
+			el = document.getElementById(eventInfo.id)
+		} else {
+			el = this.createMarker();
+		}
+		el.setAttribute('in-cluster', 'false');
+		el.setAttribute('data-name', eventInfo.eventName);
+		el.setAttribute('data-private', eventInfo.isPrivate);
+		el.setAttribute('data-type', eventInfo.type);
+		el.setAttribute('is-event', eventInfo.entity);
+		el.id = eventInfo.id;
 
-		let startTime = new Date(eventInfo.startTime);
-		let endTime = new Date(eventInfo.endTime);
+		const startTime = new Date(eventInfo.startTime);
+		const endTime = new Date(eventInfo.endTime);
 		let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
 		startMinutes += startTime.getMinutes();
 		let endMinutes = startTime.getMinutes() < 10 ? '0' : '';
 		endMinutes += startTime.getMinutes();
-    console.log("got minutes");
 
 		el.setAttribute('data-time', eventInfo.startTime);
 		if (!!document.getElementById(el.id)) {
 			document.getElementById(el.id).remove();
 		}
-		//total event time
-		let check = (endTime.getTime() - startTime.getTime());
-		//current itme
-		//let currentTime = (new Date()).toISOString();
-		let currentTime = new Date().getTime();
-		//figures out time for specific image on marker
-		//el.style.display = "inline";
-    //console.log("show inline", el.id);
-    //el.style.display = "inline";
+		// total event time
+		const check = (endTime.getTime() - startTime.getTime());
+		// current itme
+		const currentTime = new Date().getTime();
+		// figures out time for specific image on marker
 		if ((startTime.getTime()) + (check) * 0.25 >= currentTime) {
-			console.log("full");
 			if (eventInfo.type === 'party') {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
 			} else if (eventInfo.type === 'professional') {
@@ -574,7 +536,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
 			}
 		} else if ((startTime.getTime()) + (check) * 0.5 >= currentTime) {
-			console.log("quarter");
 			if (eventInfo.type === 'party') {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/u3_6-40YDItN7xRsctrM7Hn0wu1EHA2cqHHuADOZ72ligPMAMmx1DlKAfgZBr67ldOIaaAla0LtEQ4C3kqhdRD3F0Xca_rBW6yiOcke5XhqjIR_Q7SSsfr8LHLii4E_uzpNMY9VwQg=w2400)';
 			} else if (eventInfo.type === 'professional') {
@@ -583,7 +544,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/NuoFsmbqn02anGT1vpMG64BcgobiM1lTm2v22vH-j5BargEnp-wNVUYRlTot3jY7Snz3T8vVyBfQQlieW2Vl5RmvOfECK3hRPNl3lePeLyezcHU2Tl7aaKqyiPwHp3ge7fS5jnRd0w=w2400)';
 			}
 		} else if ((startTime.getTime()) + (check) * 0.75 >= currentTime) {
-			console.log("half");
+			console.log('half');
 			if (eventInfo.type === 'party') {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/LFGeHzwmpOeBePnUZzlNBdwTfCwoTw5P6kAx7o8uUCdPwUvXvC_3mvPROpPF3oYkcxXG8Ap-letv0KR_qTRGA_cNvp6Nv6pXeSmmyDCmJ3AhwraQUxXP9QFswNYrEkCBn2CweIsN6g=w2400)';
 			} else if (eventInfo.type === 'professional') {
@@ -592,7 +553,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/-5d8hnDLbFZbkISW0J8bvPGyDZgdO24j3P2lRdvRWITGMqsBi3AhHt1BUT7bKaPQSBRvVM_clcMbtO38FkzMObntvJjB4798cggE1gFSxVZIqgKKXEfkfF0DC6wKYiLs3WI0AtS9Xg=w2400)';
 			}
 		} else if ((endTime.getTime()) >= currentTime) {
-			console.log("three quarters");
+			console.log('three quarters');
 			if (eventInfo.type === 'party') {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
 			} else if (eventInfo.type === 'professional') {
@@ -601,48 +562,40 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
 			}
 		} else {
-      if (eventInfo.type === 'party') {
+			if (eventInfo.type === 'party') {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/f29YV14ebVAcftjiNcVpiKvzy52j0je6o4rgfgVSyVVfeVyNZgc86c7NiaoyddKckJAMY7LbmYmJsU1-HsxHQs_OuP9riSmS_5-ujLVAc1tG-y94V9K9UP9DKL_Uk4LypQ81vpQ5EQ=w2400)';
 			} else if (eventInfo.type === 'professional') {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/kGtGgAcoVv8zj4l6tHJribovAKnR4ug8830Ovbaz8c3IhgKiC_u2IFHFyPSN_GTLa-uRKPEdeUOateKFhnfQfUYTiCHHWccVgqwRuTH-Fvw_-YEBF3aUZK29ZKQN6aaDe1ydWUOeNA=w2400)';
 			} else {
 				el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/52Y56xNR9OzwcTzyaZzaF-nXJK14Dy3NXZTT12gzx6reMLNUg-i7GTKz4Zq6SQ6kXIhgeY_xB-b_63hukdfTgzB6G8Ubq_LWaPQvuO5JboY88K7l0ZWxgz3AKolT0nReL0QhidXDnQ=w2400)';
 			}
-    }
-    console.log("set time / background");
+		}
 		el.addEventListener('click', (e) => {
 			this.showEventDetails = true;
 			this.showUserDetails = false;
 			this.showPing = false;
-			this.currentEventTitle = "Filler name";
-			//this.currentEventTitle = eventInfo.name;
-			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes + " - " + endTime.getHours() + ':' + endMinutes;
+			this.currentEventTitle = 'Filler name';
+			// this.currentEventTitle = eventInfo.name;
+			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
+				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.getHours() + ':' + endMinutes;
 			this.currentEventId = el.id;
 		});
-		//const marker = new mapboxgl.Marker(el);
 		try {
-			console.log('made');
 			const marker = new mapboxgl.Marker(el);
 			marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
-			//let marker = new mapboxgl.Marker().setLngLat(doc.geometry.coordinates).addTo(this.map);
 		} catch (e) {
 			console.log(e.message);
-			console.log('it');
 		}
 	}
 
 	createMarker() {
-		console.log("createMarker");
 		const el = document.createElement('div');
 		el.className = 'marker-style';
-    console.log("retunred");
 		return el;
 	}
 
 	presentCurrentLocation() {
-    console.log("before call");
 		const el = this.createMarker();
-    console.log("Current location");
 		el.style.width = '30px';
 		el.style.height = '30px';
 
@@ -661,7 +614,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.id = 'currentLocation';
 			this.currentLocationMarker = new mapboxgl.Marker(el);
 		})
-    console.log("finish");
 	}
 
 	buildMap(coords: any) {
@@ -706,7 +658,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const currentDate = new Date();
 
 			if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
-				elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
+					elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
 				(elements[i] as HTMLElement).style.display = 'none';
 				continue;
 			}
@@ -767,7 +719,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		return modal.onDidDismiss();
 	}
 
-	getDistance(lat1, lon1, lat2, lon2) {
+	getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 		const earthRadiusKm = 6371;
 
 		const dLat = this.degreesToRadians(lat2 - lat1);
