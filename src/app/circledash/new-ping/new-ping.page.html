@@ -22,15 +22,15 @@
     </ion-refresher>
     <!-- <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar> -->
     <ion-list id="memberList">
-        <ion-item *ngFor="let link of links | async">
+        <ion-item *ngFor="let link of (links | async)">
             <ion-avatar slot="start">
-                <img src="{{link.data.img | async}}">
+                <img src="{{link.profilepic}}">
             </ion-avatar>
             <ion-label>
-                <h2>{{link.data.name}}</h2>
-                <p>{{link.data.bio}}</p>
+                <h2>{{link.name}}</h2>
+                <p>{{link.bio}}</p>
             </ion-label>
-            <ion-checkbox id="{{link.data.id}}"></ion-checkbox>
+            <ion-checkbox id="{{link.uid}}"></ion-checkbox>
         </ion-item>
     </ion-list>
     <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="(links | async)?.length != 0">

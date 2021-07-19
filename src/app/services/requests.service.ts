@@ -1,8 +1,5 @@
 import {Injectable} from '@angular/core';
-import {ToastController} from '@ionic/angular';
 import {first, retry, scan, share} from 'rxjs/operators';
-import { AuthHandler } from './authHandler.service';
-import { UtilsService } from './utils.service';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 
@@ -11,12 +8,17 @@ import { environment } from 'src/environments/environment';
 })
 export class RequestsService {;
 
-    constructor(private toastController: ToastController, private utils: UtilsService, private auth: AuthHandler,
-        private http: HttpClient) {
+    constructor(private http: HttpClient) {
     }
 
-    sendRequest(userId: string, optionsData) {
-        return this.http.post(environment.apiURL.requests + userId, {permissions: optionsData},
+    sendRequest(userId: string, optionsData: number) {
+        const body = {
+            permissions: optionsData,
+            userRec: {
+                uid: userId
+            }
+        }
+        return this.http.post(environment.apiURL.requests, body,
             ).pipe(retry(3));
     }
 

@@ -54,17 +54,17 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit() {
-        Geolocation.getCurrentPosition({
-            timeout: 15000
-        }).then((resp) => {
+        Geolocation.getCurrentPosition().then((resp) => {
             // resp.coords.latitude
             // resp.coords.longitude
             this.location = [resp.coords.latitude, resp.coords.longitude];
+        }).catch((error) => {
+            console.error('Error getting location', error);
+            this.location = [0,0];
+        }).finally(() => {
             this.buildMap();
             (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
             (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
-        }).catch((error) => {
-            console.error('Error getting location', error);
         });
     }
 
@@ -73,9 +73,9 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
             container: 'pingmap',
             style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
             zoom: 7,
-            // center: [this.location[1], this.location[0]]
+            center: [this.location[1], this.location[0]]
         });
-        // new mapboxgl.Marker().setLngLat([this.location[1], this.location[0]]).addTo(this.map);
+        new mapboxgl.Marker().setLngLat([this.location[1], this.location[0]]).addTo(this.map);
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
@@ -153,14 +153,13 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         const geoPing = {
-            uid: this.auth.getUID(),
-            message: this.message,
-            position: {
+            sentMessage: this.message,
+            location: {
                 latitude: this.location[0],
                 longitude: this.location[1]
             },
             isPrivate: !this.isPublic,
-            timeExpire: duration
+            timeLimit: duration
         }
 
         this.gs.createGeoPing(geoPing).pipe(concatMap((val:any) => {

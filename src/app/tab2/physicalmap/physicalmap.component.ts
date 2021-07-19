@@ -91,14 +91,20 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     refreshContent(reset = false) {
-        this.renderLinks(reset);
+        // this.renderLinks(reset);
 
         const coords = this.map.getCenter();
 
-        this.markersSub = forkJoin([this.ms.getRelevantEvents(coords.lat, coords.lng, this.getRadius(), reset),
-        this.ms.getRelevantGeoPings(coords.lat, coords.lng, this.getRadius(), reset)]).subscribe((markerSet:any) => {
-            const markerArr = [...markerSet[0], ...markerSet[1]];
-            // TODO render Markers
+		// TODO adjust radius
+        const sub = forkJoin({
+            events: this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
+            geoPings: this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
+        });
+        this.markersSub = sub.subscribe((markersSet:any) => {
+            // markersSet.events.data
+
+            // markerSet.geoPings.data
+
         }, err => console.error(err));
     }
 
@@ -333,6 +339,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             container: 'map',
             style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
             zoom: 18,
+            minZoom: 10,
             center: [coords.longitude, coords.latitude]
         });
         this.map.on('dragstart', () => {

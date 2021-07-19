@@ -29,11 +29,11 @@ export class LinksService {
   }
 
   getToSocials(id: string){
-    return this.http.get(environment.apiURL.links + id + '/tosocials').pipe(retry(3));
+    return this.http.get(environment.apiURL.links + 'tosocials/' + id).pipe(retry(3));
   }
 
   getFromSocials(id: string){
-    return this.http.get(environment.apiURL.links + id + '/fromsocials').pipe(retry(3));
+    return this.http.get(environment.apiURL.links + 'fromsocials/' + id).pipe(retry(3));
   }
 
   updatePermissions(permissions: boolean[], id: string){
