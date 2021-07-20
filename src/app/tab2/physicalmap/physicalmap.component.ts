@@ -72,6 +72,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	otherUserLocation: any;
 	otherUserStatus = '';
 	otherUserId: string;
+  //Neeley
+  showClusterDetails: boolean;
 
 	// puts marker on the map with user info
 	pingMessage: string;
@@ -97,6 +99,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.showEventDetails = false;
 		this.showUserDetails = false;
 		this.showPing = false;
+    this.showClusterDetails = false;
 		this.checkedIn = null;
 	}
 
@@ -337,6 +340,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				center: features[0].geometry.coordinates,
 				zoom: zoomLevel
 			})
+      console.log("cluster click", this.getZoom());
+      if(this.getZoom() >= 11){
+        console.log("max zoom");
+        this.showClusterDetails = true;
+      }
 		});
   }
   //removes any duplicate html markers, prep to cluster
@@ -551,6 +559,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showEventDetails = false;
 			this.showUserDetails = false;
 			this.showPing = true;
+      this.showClusterDetails = false;
 			this.pingMessage = pingInfo.sentMessage;
 			// this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
 			this.pingImg = pingInfo.creatorProfilePic;
@@ -629,6 +638,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showEventDetails = true;
 			this.showUserDetails = false;
 			this.showPing = false;
+      this.showClusterDetails = false;
 			this.currentEventTitle = 'Filler name';
 			// this.currentEventTitle = eventInfo.name;
 			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
@@ -661,6 +671,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.showUserDetails = true;
 				this.showEventDetails = false;
 				this.showPing = false;
+        this.showClusterDetails = false;
 				this.otherUserName = val.data.name;
 				this.otherUserStatus = 'Online';
 				this.otherUserId = 'currentLocation';
@@ -683,6 +694,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showEventDetails = false;
 			this.showUserDetails = false;
 			this.showPing = false;
+      this.showClusterDetails = false;
 		});
 		this.map.on('dragend', () => {
 			this.refreshContent();
