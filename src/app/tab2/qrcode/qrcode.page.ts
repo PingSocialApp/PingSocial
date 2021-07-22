@@ -40,11 +40,13 @@ export class QrcodePage implements OnInit {
     constructor(private modalController: ModalController, private utils: UtilsService,
    private toastCtrl: ToastController, private alertController: AlertController,
                 private rs: RequestsService, private us: UsersService, private auth: AuthHandler) {
-        this.updateVals();
+
     }
 
     ngOnInit() {
+        this.userId = this.auth.getUID();
         BarcodeScanner.prepare();
+        this.updateVals();
     }
 
     segmentChanged(ev: any) {
@@ -103,7 +105,7 @@ export class QrcodePage implements OnInit {
     }
 
     async presentAlertConfirm(dataArray: Array<string>) {
-        if (this.auth.getUID() === dataArray[0]) {
+        if (this.userId === dataArray[0]) {
             this.utils.presentToast('Whoops, this is your code!');
             return;
         }
@@ -122,7 +124,15 @@ export class QrcodePage implements OnInit {
                     }, {
                         text: 'Okay',
                         handler: () => {
-                            this.rs.sendRequest(dataArray[0], parseInt(dataArray[1], 10));
+                            this.rs.sendRequest(dataArray[0], parseInt(dataArray[1], 10)).subscribe({
+                                next: () => {
+                                    this.utils.presentToast('Successfull added ' + data.data.name);
+                                },
+                                error: (error) => {
+                                    console.error(error);
+                                    this.utils.presentToast('Whoops! Unexpected error, try again')
+                                }
+                            });
                         }
                     }
                 ]

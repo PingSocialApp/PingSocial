@@ -39,7 +39,7 @@ export class RequestsPage implements OnInit {
     }
 
     deleteUser(linkId: string) {
-        this.rs.deleteRequest(linkId).subscribe(val => {
+        this.rs.cancelRequest(linkId).subscribe(val => {
             this.utils.presentToast('Declined!');
         }, err => {
             this.utils.presentToast('Whoops! Try again');

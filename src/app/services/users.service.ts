@@ -50,12 +50,13 @@ export class UsersService {
 
   createUser(){
     const uid = this.auth.getUID();
-      // TODO get photo from lorem picsum
+    const seed = Math.floor(Math.random() * Math.floor(10000));
+
       const userObject = {
           name: 'User' + uid,
           bio: 'New to Ping!',
           userType: 'Independent',
-          profilepic: ''
+          profilepic: 'https://picsum.photos/seed/' + seed + '/300'
       };
 
       return this.http.post(environment.apiURL.users, userObject).pipe(retry(3));

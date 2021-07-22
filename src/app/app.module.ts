@@ -7,10 +7,6 @@ import {AppComponent} from './app.component';
 import {AngularFireModule} from '@angular/fire';
 import {environment} from '../environments/environment';
 import {AngularFirestore} from '@angular/fire/firestore';
-import {ORIGIN as FUNCTIONS_ORIGIN} from '@angular/fire/functions';
-import { URL as DATABASE_URL } from '@angular/fire/database';
-import { SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/firestore';
-import {FCM} from '@capacitor-community/fcm';
 import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
 import { AngularFireStorage } from '@angular/fire/storage';
 import { AuthHandler } from './services/authHandler.service';
@@ -23,7 +19,6 @@ import { AuthHandler } from './services/authHandler.service';
     providers: [
         AngularFirestore,
         AngularFireStorage,
-        FCM,
         AuthHandler,
         {
             provide: HTTP_INTERCEPTORS,

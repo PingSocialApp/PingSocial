@@ -21,7 +21,7 @@
     <!-- <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar> -->
     <ion-card *ngFor="let event of (eventsSub | async)">
         <ion-card-header>
-            <ion-card-title>{{event.name}}</ion-card-title>
+            <ion-card-title>{{event.eventName}}</ion-card-title>
         </ion-card-header>
         <ion-card-content>
             <ion-label>{{event.type}}</ion-label>

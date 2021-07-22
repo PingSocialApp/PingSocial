@@ -1,11 +1,10 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ModalController, Platform} from '@ionic/angular';
+import {ModalController} from '@ionic/angular';
 import {PhysicalmapComponent} from './physicalmap/physicalmap.component';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
 import {QrcodePage} from './qrcode/qrcode.page';
-import { FCM } from '@capacitor-community/fcm';
 import {Subscription} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import { AuthHandler } from '../services/authHandler.service';
@@ -22,8 +21,8 @@ export class Tab2Page implements OnInit, OnDestroy {
     private unreadPingSub: Subscription;
     private notifToken: Subscription;
 
-    constructor(private pm: PhysicalmapComponent, private platform: Platform, private auth: AuthHandler,
-                private modalController: ModalController, private fcm: FCM, private db: AngularFireDatabase) {
+    constructor(private pm: PhysicalmapComponent, private auth: AuthHandler,
+                private modalController: ModalController, private db: AngularFireDatabase) {
 
         mapboxgl.accessToken = environment.mapbox.accessToken;
     }
@@ -32,16 +31,6 @@ export class Tab2Page implements OnInit, OnDestroy {
         this.unreadPingSub = this.db.object('numPings/' + this.auth.getUID()).valueChanges().subscribe(res => {
             this.unreadPings = res;
         });
-
-
-        // TODO Set Notif Token
-        // if (this.platform.is('cordova')) {
-        //     this.fcm.getToken().then(token => {
-        //         this.firestore.collection('notifTokens').doc(this.currentUserId).update({
-        //             notifToken: token
-        //         });
-        //     });
-        // }
     }
 
     ngOnDestroy() {

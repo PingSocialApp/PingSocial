@@ -61,7 +61,7 @@ export class NewPingPage implements OnInit, OnDestroy {
         const batch = this.fs.firestore.batch();
         for (const toggle of toggles) {
             if (toggle.checked) {
-                batch.set(uuidv4, {
+                batch.set(this.fs.collection('pings').doc(uuidv4()).ref, {
                     responseMessage: this.pingMessage,
                     userSent: this.auth.getUID(),
                     userRec: toggle.id,

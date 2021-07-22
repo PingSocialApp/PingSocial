@@ -63,13 +63,13 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
             const data = ref.data;
             (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
             (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
-            this.eventName = data.name;
+            this.eventName = data.eventName;
             this.eventCreator = data.creator.id;
             this.eventCreatorName = data.creator.name;
             this.eventDes = data.description;
             this.isPublic = data.isPrivate;
             this.eventType = data.type;
-            this.location = [data.position.latitude,data.position.longitude];
+            this.location = [data.location.latitude,data.location.longitude];
             this.map.flyTo({
                 center: this.location,
                 essential: true
@@ -77,7 +77,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
             // if (this.isPublic) {
             //     this.members = data.members;
             // }
-            this.isCreator = data.creator.id === this.auth.getUID();
+            this.isCreator = data.creator.uid === this.auth.getUID();
             new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
         }, () => {
 
@@ -154,8 +154,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
 
             // TODO propogate changes
             const data = {
-                name: this.eventName,
-                creator: this.auth.getUID(),
+                eventName: this.eventName,
                 location: {
                     latitude: this.location[1],
                     longitude: this.location[0]

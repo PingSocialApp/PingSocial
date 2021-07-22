@@ -1,8 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { retry, scan, share } from 'rxjs/operators';
+import { retry, share } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { AuthHandler } from './authHandler.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +9,7 @@ import { AuthHandler } from './authHandler.service';
 
 export class MarkersService {
 
-  constructor(private auth: AuthHandler, private http: HttpClient) { }
+  constructor(private http: HttpClient) { }
 
   getRelevantEvents(latitude: number, longitude: number, radius:number, reset?:boolean) {
     let params = new HttpParams();
@@ -19,7 +18,7 @@ export class MarkersService {
         params = params.set('radius', radius.toString());
 
     return this.http.get(environment.apiURL.markers + 'events', {params}
-        ).pipe(retry(3), share());
+        ).pipe(retry(3));
   }
 
   getRelevantGeoPings(latitude: number, longitude: number, radius:number, reset?:boolean) {
@@ -29,7 +28,7 @@ export class MarkersService {
         params = params.set('radius', radius.toString());
 
     return this.http.get(environment.apiURL.markers + 'geopings',{params}
-    ).pipe(retry(3), share());
+    ).pipe(retry(3));
   }
 
   getLinks(latitude: number, longitude: number, radius:number, reset?:boolean) {

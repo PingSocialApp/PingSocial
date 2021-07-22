@@ -30,7 +30,8 @@ export class UserprofilePage implements OnInit, OnDestroy {
     myDataSub: Subscription;
 
     constructor(private actionSheet: ActionSheetController, private modalController: ModalController,
-                private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, private ls: LinksService,
+                private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, 
+                private ls: LinksService,
                 private rps: RequestsService, private us: UsersService, private utils: UtilsService
                 ) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
@@ -45,11 +46,12 @@ export class UserprofilePage implements OnInit, OnDestroy {
         this.getMyData();
         this.getOtherData();
 
-        this.userBasicSub = this.us.getUserBasic(this.userId).subscribe((data:any) => {
-            this.userObj = data.data;
-        }, err => {
+        this.userBasicSub = this.us.getUserBasic(this.userId).subscribe({
+            next: (data:any) => {
+                this.userObj = data.data;
+        }, error: (err) => {
             console.error(err.error);
-        });
+        }});
     }
 
     ngOnDestroy(){
@@ -72,13 +74,14 @@ export class UserprofilePage implements OnInit, OnDestroy {
     }
 
     getOtherData(){
-        this.userSocialsSub = this.ls.getFromSocials(this.userId).subscribe((linkData:any) => {
-            if (linkData.data != null) {
+        this.userSocialsSub = this.ls.getFromSocials(this.userId).subscribe((socialsData:any) => {
+            const linkData = socialsData.data;
+            if (linkData != null) {
                 linkData.phone = linkData.phone.replace('(', '').replace(')', '')
                     .replace('-', '').replace(' ', '');
-                linkData.website = !((linkData.website.includes('http://')) || (linkData.website.includes('https://')) 
-                || linkData.website.length <= 0) ?
-                    'http://' + linkData.website : linkData.website;
+                linkData.website = !((linkData.web.includes('http://')) || (linkData.web.includes('https://'))
+                || linkData.web.length <= 0) ?
+                    'http://' + linkData.web : linkData.web;
 
                 this.socials = linkData;
                 this.theirInfo = true;
@@ -98,29 +101,29 @@ export class UserprofilePage implements OnInit, OnDestroy {
         this.rps.sendRequest(id, 2047);
     }
 
-    async renderUserPermissions(userData: any, userPermissions: any) {
-        const permissions = this.getPermission(userPermissions);
-        this.socials = Object.values(userData);
-        this.socials.push('');
-        for (let i = 0; i < this.socials.length; i++) {
-            this.socials[i] = permissions[i] ? this.socials[i] : '';
-        }
+    // async renderUserPermissions(userData: any, userPermissions: any) {
+    //     const permissions = this.getPermission(userPermissions);
+    //     this.socials = Object.values(userData);
+    //     this.socials.push('');
+    //     for (let i = 0; i < this.socials.length; i++) {
+    //         this.socials[i] = permissions[i] ? this.socials[i] : '';
+    //     }
 
-        this.socials[0] = this.socials[0].replace('(', '').replace(')', '')
-            .replace('-', '').replace(' ', '');
+    //     this.socials[0] = this.socials[0].replace('(', '').replace(')', '')
+    //         .replace('-', '').replace(' ', '');
 
-        this.socials[4] = !((this.socials[4].includes('http://')) || (this.socials[4].includes('https://')) || this.socials[4].length <= 0) ?
-            'http://' + this.socials[4] : this.socials[4];
+    //     this.socials[4] = !((this.socials[4].includes('http://')) || (this.socials[4].includes('https://')) || this.socials[4].length <= 0) ?
+    //         'http://' + this.socials[4] : this.socials[4];
 
-        await this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
-            if (snapshot.val()) {
-                // get other users longitude, latitude, and lastOnline vals
-                const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
-                const oStat = this.convertTime(Date.now() - snapshot.val().lastOnline);
-                this.socials[11] = permissions[0] ? locat + ' ' + oStat : '';
-            }
-        });
-    }
+    //     await this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
+    //         if (snapshot.val()) {
+    //             // get other users longitude, latitude, and lastOnline vals
+    //             const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
+    //             const oStat = this.convertTime(Date.now() - snapshot.val().lastOnline);
+    //             this.socials[11] = permissions[0] ? locat + ' ' + oStat : '';
+    //         }
+    //     });
+    // }
 
     convertTime(t) {
         if (t >= 86_400_000) {
