@@ -18,8 +18,7 @@ import {
 	Position
 } from '@capacitor/geolocation'
 import {
-	forkJoin,
-	merge,
+	combineLatest,
 	Subscription
 } from 'rxjs';
 import {
@@ -72,8 +71,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	otherUserLocation: any;
 	otherUserStatus = '';
 	otherUserId: string;
-  //Neeley
-  showClusterDetails: boolean;
+	// Neeley
+	showClusterDetails: boolean;
 
 	// puts marker on the map with user info
 	pingMessage: string;
@@ -99,7 +98,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.showEventDetails = false;
 		this.showUserDetails = false;
 		this.showPing = false;
-    this.showClusterDetails = false;
+		this.showClusterDetails = false;
 		this.checkedIn = null;
 	}
 
@@ -115,7 +114,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					enableHighAccuracy: true,
 				}, (position, err) => {
 					this.renderCurrent(position);
-					this.refreshContent(true);
 				});
 			});
 		}).catch((error) => {
@@ -133,16 +131,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		const coords = this.map.getCenter();
 
-		const sub = merge(this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
-			this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset));
+		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
+			this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
+		]);
 		this.markersSub = sub.subscribe((markerSet: any) => {
-			// console.log(markerSet[0]);
-			// console.log(markerSet[1]);
-			// needs to change after geoping integration
-			// const markerArr = markerSet;
-			// console.log("marker arr", markerSet);
-			if (markerSet.length !== 0) {
-				this.presentCollectedData(markerSet);
+			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
+
+			if (newSet.length !== 0) {
+				this.presentCollectedData({
+					data: newSet
+				});
 			}
 		}, err => console.error(err));
 	}
@@ -243,20 +241,20 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	presentCollectedData(pointData) {
-    //to call functions within file
-    const tempThis = this;
-    //if no data, don't rerender nothing
-		if (pointData.data.features) {
+		// to call functions within file
+		const tempThis = this;
+		// if no data, don't rerender nothing
+		if (!pointData.data) {
 			return;
 		}
-    //geojson format
+		// geojson format
 		const data = pointData.data;
-    //sets up source and cluster layer
+		// sets up source and cluster layer
 		tempThis.clusterSetUp(data);
-    //rendering individual events and geopings
-		if (!pointData.data.features) {
-			pointData.data.forEach(event => {
-				if (event.properties.entity === 'event') {
+		// rendering individual events and geopings
+		if (data) {
+			data.forEach(event => {
+				if (event.properties.rating) {
 					this.renderEvent(event);
 				} else {
 					this.renderPings(event);
@@ -279,23 +277,23 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			// current point to find distance from clusters
 			tempThis.renderClusters(feat, data, eventH);
 			for (const html of eventH) {
-        for(const cluster of feat){
-          if((document.getElementById(html.id).getAttribute('in-cluster') === 'false') || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster') && (parseInt(html.id) === cluster.id))){
-            document.getElementById(html.id).style.display = 'inline';
-            break;
-          }else{
-            document.getElementById(html.id).style.display = 'none';
-          }
-        }
+				for (const cluster of feat) {
+					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false') || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster') && (parseInt(html.id) === cluster.id))) {
+						document.getElementById(html.id).style.display = 'inline';
+						break;
+					} else {
+						document.getElementById(html.id).style.display = 'none';
+					}
+				}
 			}
 		});
 	}
 
-  //start of subfunctions
-  //sets up map for sources, clusters, and cluster click functions
-  clusterSetUp(data){
-    //creates or updates source
-    if (!this.map.getSource('events')) {
+	// start of subfunctions
+	// sets up map for sources, clusters, and cluster click functions
+	clusterSetUp(data) {
+		// creates or updates source
+		if (!this.map.getSource('events')) {
 			this.map.addSource('events', {
 				type: 'geojson',
 				// Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
@@ -317,7 +315,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				features: data
 			});
 		}
-    //creates cluster layer
+		// creates cluster layer
 		if (!this.map.getLayer('clusters')) {
 			this.map.addLayer({
 				id: 'clusters',
@@ -329,7 +327,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			});
 		}
-    // zooms in on clusters
+		// zooms in on clusters
 		this.map.on('click', 'clusters', function (e) {
 			const features = this.queryRenderedFeatures(e.point, {
 				layers: ['clusters']
@@ -340,205 +338,157 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				center: features[0].geometry.coordinates,
 				zoom: zoomLevel
 			})
-      console.log("cluster click", this.getZoom());
-      if(this.getZoom() >= 11){
-        console.log("max zoom");
-        this.showClusterDetails = true;
-      }
+			console.log('cluster click', this.getZoom());
+			if (this.getZoom() >= 11) {
+				console.log('max zoom');
+				this.showClusterDetails = true;
+			}
 		});
-  }
-  //removes any duplicate html markers, prep to cluster
-  htmlDataSetUp(events){
-    // removes duplicate html objects
-    for (let i = 0; i < events.length; i++) {
-      for (let j = 0; j < events.length; j++) {
-          if(events[i] && events[j]){
-            if ((events[i].id === events[j].id) && (i !== j)) {
-              document.getElementById(events[i].id).remove();
-            }
-          }
-      }
-    }
-    // displays html points that are within events ((not within a cluster))
-    for (const html of events) {
-      // says all individual points not in cluster (set later if found in cluster)
-      if(document.getElementById(html.id).getAttribute('in-cluster') !== 'is-cluster'){
-        document.getElementById(html.id).setAttribute('in-cluster', 'false');
-      }
-    }
-  }
-  //renders clusters
-  renderClusters(clusters, data, events){
-    let currentPoint;
-    // finding points within cluster to color correctly
-    for (const feature of clusters) {
-      // creation of new cluster marker html
-      const el = this.createMarker();
-      el.className += ' cluster';
-      el.className += ' ping';
-      el.id = feature.id;
-      el.setAttribute('in-cluster', 'is-cluster');
+	}
+	// removes any duplicate html markers, prep to cluster
+	htmlDataSetUp(events) {
+		// removes duplicate html objects
+		for (let i = 0; i < events.length; i++) {
+			for (let j = 0; j < events.length; j++) {
+				if (events[i] && events[j]) {
+					if ((events[i].id === events[j].id) && (i !== j)) {
+						document.getElementById(events[i].id).remove();
+					}
+				}
+			}
+		}
+		// displays html points that are within events ((not within a cluster))
+		for (const html of events) {
+			// says all individual points not in cluster (set later if found in cluster)
+			if (document.getElementById(html.id).getAttribute('in-cluster') !== 'is-cluster') {
+				document.getElementById(html.id).setAttribute('in-cluster', 'false');
+			}
+		}
+	}
+	// renders clusters
+	renderClusters(clusters, data, events) {
+		let currentPoint;
+		// finding points within cluster to color correctly
+		for (const feature of clusters) {
+			// creation of new cluster marker html
+			const el = this.createMarker();
+			el.className += ' cluster';
+			el.className += ' ping';
+			el.id = feature.id;
+			el.setAttribute('in-cluster', 'is-cluster');
 
-      try {
-        const marker = new mapboxgl.Marker(el);
-        marker.setLngLat(feature.geometry.coordinates).addTo(this.map);
-      } catch (e) {
-        console.log(e.message);
-      }
-      // array for point distances from cluster, smallest to largest
-      const distArr = new Array(data.length);
-      // array for points based on distances from cluster, smallest to largest (using above numbers)
-      const pointArr = new Array(data.length);
-      // puts distance and point into arrays
-      this.getClusterDistances(feature, data, distArr, pointArr);
-      // sets image and title of cluster html
-      for (let j = 0; j < feature.properties.point_count; j++) {
-        if (el !== null) {
-          // if(document.getElementById(pointArr[j].properties.id)){
-          for (const element of events){
-            if(pointArr[j]){
-              if (element.id === pointArr[j].properties.id) {
-                this.setClusterImage(el, element);
-                if(document.getElementById(element.id).getAttribute('in-cluster') !== 'is-cluster'){
-                  document.getElementById(element.id).setAttribute('in-cluster', 'true');
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  //gets distance from points to given cluster
-  getClusterDistances(feature, data, distArr, pointArr){
-    let currentPoint;
-    for (let j = 0; j < data.length; j++) {
-      currentPoint = data[j].geometry;
-      const squareDistX =
-        (feature.geometry.coordinates[0] - currentPoint.coordinates[0]) * (feature.geometry.coordinates[0] - currentPoint.coordinates[0]);
-      const squareDistY =
-        (feature.geometry.coordinates[1] - currentPoint.coordinates[1]) * (feature.geometry.coordinates[1] - currentPoint.coordinates[1]);
-      const currentDist = Math.sqrt(squareDistX + squareDistY);
-      distArr[j] = currentDist;
-      pointArr[j] = data[j];
-    }
+			try {
+				const marker = new mapboxgl.Marker(el);
+				marker.setLngLat(feature.geometry.coordinates).addTo(this.map);
+			} catch (e) {
+				console.log(e.message);
+			}
+			// array for point distances from cluster, smallest to largest
+			const distArr = new Array(data.length);
+			// array for points based on distances from cluster, smallest to largest (using above numbers)
+			const pointArr = new Array(data.length);
+			// puts distance and point into arrays
+			this.getClusterDistances(feature, data, distArr, pointArr);
+			// sets image and title of cluster html
+			for (let j = 0; j < feature.properties.point_count; j++) {
+				if (el !== null) {
+					// if(document.getElementById(pointArr[j].properties.id)){
+					for (const element of events) {
+						if (pointArr[j]) {
+							if (element.id === pointArr[j].properties.id) {
+								this.setClusterImage(el, element);
+								if (document.getElementById(element.id).getAttribute('in-cluster') !== 'is-cluster') {
+									document.getElementById(element.id).setAttribute('in-cluster', 'true');
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	// gets distance from points to given cluster
+	getClusterDistances(feature, data, distArr, pointArr) {
+		let currentPoint;
+		for (let j = 0; j < data.length; j++) {
+			currentPoint = data[j].geometry;
+			const squareDistX =
+				(feature.geometry.coordinates[0] - currentPoint.coordinates[0]) * (feature.geometry.coordinates[0] - currentPoint.coordinates[0]);
+			const squareDistY =
+				(feature.geometry.coordinates[1] - currentPoint.coordinates[1]) * (feature.geometry.coordinates[1] - currentPoint.coordinates[1]);
+			const currentDist = Math.sqrt(squareDistX + squareDistY);
+			distArr[j] = currentDist;
+			pointArr[j] = data[j];
+		}
 
-    // sorts arrays smallest to largest based on distance
-    for (let j = 0; j < distArr.length; j++) {
-      for (let k = j; k < distArr.length; k++) {
-        if ((distArr[j] > distArr[k]) && (j !== k)) {
-          const tempD = distArr[k];
-          const tempP = pointArr[k];
-          distArr[k] = distArr[j];
-          pointArr[k] = pointArr[j];
-          distArr[j] = tempD;
-          pointArr[j] = tempP;
-        }
-      }
-    }
-  }
-  //sets background image of cluster
-  //el.classList.contains(className);
-  //el.classList.remove(className)
-  setClusterImage(el, element){
-    if (element.getAttribute('data-type') === 'party') {
-      // set marker
-      // if (el.title === 'null') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400)';
-      //   el.title = 'party';
-      //   // marker set to professional
-      // } else if (el.title === 'professional') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
-      //   el.title = 'partyprofessional';
-      //   // marker set to hangout
-      // } else if (el.title === 'hangout') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
-      //   el.title = 'partyhangout';
-      //   // cluster of all 3
-      // } else if (el.title === 'professionalhangout') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-      //   el.title = 'all';
-      // }
-      if(el.classList.contains('ping')){
-        el.classList.remove('ping');
-        el.classList += ' party';
-      }else if(el.classList.contains('professional')){
-        el.classList.remove('professional');
-        el.classList += ' partyprofessional';
-      }else if(el.classList.contains('hangout')){
-        el.classList.remove('hangout');
-        el.classList += ' partyhangout';
-      }else if(el.classList.contains('professionalhangout')){
-        el.classList.remove('professionalhangout');
-        el.classList += ' all';
-      }
-    } else if (element.getAttribute('data-type') === 'professional') {
-      // set marker
-      // if (el.title === 'null') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400)';
-      //   el.title = 'professional';
-      //   // marker set to party
-      // } else if (el.title === 'party') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400)';
-      //   el.title = 'partyprofessional'
-      //   // marker set to hangout
-      // } else if (el.title === 'hangout') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-      //   el.title = 'professionalhangout';
-      //   // cluster of all 3
-      // } else if (el.title === 'partyhangout') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-      //   el.title = 'all';
-      // }
-      if(el.classList.contains('ping')){
-        el.classList.remove('ping');
-        el.classList += ' professional';
-      }else if(el.classList.contains('party')){
-        el.classList.remove('party');
-        el.classList += ' partyprofessional';
-      }else if(el.classList.contains('hangout')){
-        el.classList.remove('hangout');
-        el.classList += ' professionalhangout';
-      }else if(el.classList.contains('professionalhangout')){
-        el.classList.remove('partyhangout');
-        el.classList += ' all';
-      }
-    } else if (element.getAttribute('data-type') === 'hangout') {
-      // set marker
-      // if (el.title === 'null') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400)';
-      //   el.title = 'hangout';
-      //   // marker set to professional
-      // } else if (el.title === 'professional') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400)';
-      //   el.title = 'professionalhangout';
-      //   // marker set to party
-      // } else if (el.title === 'party') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400)';
-      //   el.title = 'partyhangout';
-      //   // cluster of all 3
-      // } else if (el.title === 'partyprofessional') {
-      //   el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400)';
-      //   el.title = 'all';
-      // }
-      if(el.classList.contains('ping')){
-        el.classList.remove('ping');
-        el.classList += ' hangout';
-      }else if(el.classList.contains('professional')){
-        el.classList.remove('professional');
-        el.classList += ' professionalhangout';
-      }else if(el.classList.contains('party')){
-        el.classList.remove('party');
-        el.classList += ' partyhangout';
-      }else if(el.classList.contains('partyprofessional')){
-        el.classList.remove('partyprofessional');
-        el.classList += ' all';
-      }
-    }
-    if (el.classList.contains('all')) {
-      el.style.backgroundPosition = '45% 50%';
-    }
-  }
+		// sorts arrays smallest to largest based on distance
+		for (let j = 0; j < distArr.length; j++) {
+			for (let k = j; k < distArr.length; k++) {
+				if ((distArr[j] > distArr[k]) && (j !== k)) {
+					const tempD = distArr[k];
+					const tempP = pointArr[k];
+					distArr[k] = distArr[j];
+					pointArr[k] = pointArr[j];
+					distArr[j] = tempD;
+					pointArr[j] = tempP;
+				}
+			}
+		}
+	}
+	// sets background image of cluster
+	// el.classList.contains(className);
+	// el.classList.remove(className)
+	setClusterImage(el, element) {
+		if (element.getAttribute('data-type') === 'party') {
+			// set marker
+			if (el.classList.contains('ping')) {
+				el.classList.remove('ping');
+				el.classList += ' party';
+			} else if (el.classList.contains('professional')) {
+				el.classList.remove('professional');
+				el.classList += ' partyprofessional';
+			} else if (el.classList.contains('hangout')) {
+				el.classList.remove('hangout');
+				el.classList += ' partyhangout';
+			} else if (el.classList.contains('professionalhangout')) {
+				el.classList.remove('professionalhangout');
+				el.classList += ' all';
+			}
+		} else if (element.getAttribute('data-type') === 'professional') {
+			// set marker
+			if (el.classList.contains('ping')) {
+				el.classList.remove('ping');
+				el.classList += ' professional';
+			} else if (el.classList.contains('party')) {
+				el.classList.remove('party');
+				el.classList += ' partyprofessional';
+			} else if (el.classList.contains('hangout')) {
+				el.classList.remove('hangout');
+				el.classList += ' professionalhangout';
+			} else if (el.classList.contains('professionalhangout')) {
+				el.classList.remove('partyhangout');
+				el.classList += ' all';
+			}
+		} else if (element.getAttribute('data-type') === 'hangout') {
+			// set marker
+			if (el.classList.contains('ping')) {
+				el.classList.remove('ping');
+				el.classList += ' hangout';
+			} else if (el.classList.contains('professional')) {
+				el.classList.remove('professional');
+				el.classList += ' professionalhangout';
+			} else if (el.classList.contains('party')) {
+				el.classList.remove('party');
+				el.classList += ' partyhangout';
+			} else if (el.classList.contains('partyprofessional')) {
+				el.classList.remove('partyprofessional');
+				el.classList += ' all';
+			}
+		}
+		if (el.classList.contains('all')) {
+			el.style.backgroundPosition = '45% 50%';
+		}
+	}
 	renderPings(doc) {
 		if (document.getElementById(doc.properties.id)) {
 			return;
@@ -559,14 +509,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showEventDetails = false;
 			this.showUserDetails = false;
 			this.showPing = true;
-      this.showClusterDetails = false;
+			this.showClusterDetails = false;
 			this.pingMessage = pingInfo.sentMessage;
 			// this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
 			this.pingImg = pingInfo.creatorProfilePic;
 			this.pingAuthor = pingInfo.creatorName;
 		});
 
-		//el.style.backgroundImage = 'url(https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400)';
 		el.className += ' ping-marker';
 		el.setAttribute('is-event', doc.entity);
 		el.setAttribute('in-cluster', 'false');
@@ -609,43 +558,37 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		const check = (endTime.getTime() - startTime.getTime());
 		// current itme
 		const currentTime = new Date().getTime();
-    //set type of event
-    if(eventInfo.type === 'party'){
-      el.className += ' party-marker';
-    }else if(eventInfo.type === 'professional'){
-      el.className += ' professional-marker';
-    }else if(eventInfo.type === 'hangout'){
-      el.className += ' hangout-marker';
-    }
-    //time left on event
-    if ((startTime.getTime()) + (check) * 0.25 >= currentTime) {
-      el.className += ' full';
-      console.log("4");
-    } else if ((startTime.getTime()) + (check) * 0.5 >= currentTime) {
-      el.className += ' three-quarters';
-      console.log("3");
-    } else if ((startTime.getTime()) + (check) * 0.75 >= currentTime) {
-      el.className += ' half'
-      console.log("2");
-    } else if ((endTime.getTime()) >= currentTime) {
-      el.className += ' quarter';
-      console.log("1");
-    } else {
-      el.className += ' empty';
-      console.log("0");
-    }
+		// set type of event
+		if (eventInfo.type === 'party') {
+			el.className += ' party-marker';
+		} else if (eventInfo.type === 'professional') {
+			el.className += ' professional-marker';
+		} else if (eventInfo.type === 'hangout') {
+			el.className += ' hangout-marker';
+		}
+		// time left on event
+		if ((startTime.getTime()) + (check) * 0.25 >= currentTime) {
+			el.className += ' full';
+		} else if ((startTime.getTime()) + (check) * 0.5 >= currentTime) {
+			el.className += ' three-quarters';
+		} else if ((startTime.getTime()) + (check) * 0.75 >= currentTime) {
+			el.className += ' half'
+		} else if ((endTime.getTime()) >= currentTime) {
+			el.className += ' quarter';
+		} else {
+			el.className += ' empty';
+		}
 		el.addEventListener('click', (e) => {
 			this.showEventDetails = true;
 			this.showUserDetails = false;
 			this.showPing = false;
-      this.showClusterDetails = false;
+			this.showClusterDetails = false;
 			this.currentEventTitle = 'Filler name';
 			// this.currentEventTitle = eventInfo.name;
 			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
 				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.getHours() + ':' + endMinutes;
 			this.currentEventId = el.id;
 		});
-    console.log(el);
 		try {
 			const marker = new mapboxgl.Marker(el);
 			marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
@@ -671,7 +614,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				this.showUserDetails = true;
 				this.showEventDetails = false;
 				this.showPing = false;
-        this.showClusterDetails = false;
+				this.showClusterDetails = false;
 				this.otherUserName = val.data.name;
 				this.otherUserStatus = 'Online';
 				this.otherUserId = 'currentLocation';
@@ -694,7 +637,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showEventDetails = false;
 			this.showUserDetails = false;
 			this.showPing = false;
-      this.showClusterDetails = false;
+			this.showClusterDetails = false;
 		});
 		this.map.on('dragend', () => {
 			this.refreshContent();
