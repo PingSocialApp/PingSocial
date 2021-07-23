@@ -19,13 +19,13 @@ export const environment = {
         accessToken: 'pk.eyJ1Ijoic3JlZWdyYW5kaGUiLCJhIjoiY2thanhpaDByMDBxZDJybGdxMnQ5ZnNxaiJ9.mkcuMoDmiPapnplpJ_lgaQ'
     },
     apiURL: {
-        default: 'http://localhost/api/v1/',
-        events: 'http://localhost/api/v1/events/',
-        users:'http://localhost/api/v1/users/',
-        geoPing:'http://localhost/api/v1/geoping/',
-        links:'http://localhost/api/v1/links/',
-        requests:'http://localhost/api/v1/requests/',
-        markers: 'http://localhost/api/v1/markers/'
+        default: 'http://localhost:8080/api/v1/',
+        events: 'http://localhost:8080/api/v1/events/',
+        users:'http://localhost:8080/api/v1/users/',
+        geoPing:'http://localhost:8080/api/v1/geoping/',
+        links:'http://localhost:8080/api/v1/links/',
+        requests:'http://localhost:8080/api/v1/requests/',
+        markers: 'http://localhost:8080/api/v1/markers/'
     }
 };
 

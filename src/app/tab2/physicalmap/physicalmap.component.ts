@@ -73,6 +73,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	otherUserId: string;
 	// Neeley
 	showClusterDetails: boolean;
+	markerArray: any;
+	clusterArray: any;
+	eventNumber: any;
 
 	// puts marker on the map with user info
 	pingMessage: string;
@@ -138,6 +141,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
 
 			if (newSet.length !== 0) {
+				this.markerArray = newSet;
 				this.presentCollectedData({
 					data: newSet
 				});
@@ -269,6 +273,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const feat = this.queryRenderedFeatures(e.point, {
 				layers: ['clusters']
 			});
+			tempThis.clusterArray = feat;
 			const cc = this.getContainer();
 			// all html of event objects
 			const eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
@@ -276,6 +281,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			tempThis.htmlDataSetUp(eventH);
 			// current point to find distance from clusters
 			tempThis.renderClusters(feat, data, eventH);
+			console.log(eventH);
+			console.log(feat);
 			for (const html of eventH) {
 				for (const cluster of feat) {
 					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false') || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster') && (parseInt(html.id) === cluster.id))) {
@@ -283,6 +290,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 						break;
 					} else {
 						document.getElementById(html.id).style.display = 'none';
+					}
+				}
+				if(feat.length === 0){
+					if(document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster'){
+						document.getElementById(html.id).style.display = 'none';
+					}else{
+						document.getElementById(html.id).style.display = 'inline';
 					}
 				}
 			}
@@ -328,22 +342,17 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			});
 		}
 		// zooms in on clusters
-		this.map.on('click', 'clusters', function (e) {
-			const features = this.queryRenderedFeatures(e.point, {
-				layers: ['clusters']
-			});
-			const clusterId = features[0].properties.cluster_id;
-			const zoomLevel = this.getZoom() + 2;
-			this.easeTo({
-				center: features[0].geometry.coordinates,
-				zoom: zoomLevel
-			})
-			console.log('cluster click', this.getZoom());
-			if (this.getZoom() >= 11) {
-				console.log('max zoom');
-				this.showClusterDetails = true;
-			}
-		});
+		// this.map.on('click', 'clusters', function (e) {
+		// 	const features = this.queryRenderedFeatures(e.point, {
+    //     layers: ['clusters']
+    //   });
+    //   const clusterId = features[0].properties.cluster_id;
+    //   const zoomLevel = this.getZoom() + 2;
+    //   this.easeTo({
+    //     center: features[0].geometry.coordinates,
+    //     zoom: zoomLevel
+    //   })
+		// });
 	}
 	// removes any duplicate html markers, prep to cluster
 	htmlDataSetUp(events) {
@@ -368,6 +377,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	// renders clusters
 	renderClusters(clusters, data, events) {
 		let currentPoint;
+		// array for point distances from cluster, smallest to largest
+		const distArr = new Array(data.length);
+		// array for points based on distances from cluster, smallest to largest (using above numbers)
+		const pointArr = new Array(data.length);
 		// finding points within cluster to color correctly
 		for (const feature of clusters) {
 			// creation of new cluster marker html
@@ -376,17 +389,39 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.className += ' ping';
 			el.id = feature.id;
 			el.setAttribute('in-cluster', 'is-cluster');
-
+			el.addEventListener('click', (e: any) => {
+				const markerArray = this.markerArray;
+				if(this.map.getZoom() >= 10.5){
+					const srcElem = e.srcElement;
+					const idValue = srcElem.id;
+					for(var i = 0; i < this.clusterArray.length; i++){
+						if(this.clusterArray[i].id === parseInt(idValue)){
+							const distArr = new Array(markerArray.length);
+							const pointArr = new Array(markerArray.length);
+							this.getClusterDistances(this.clusterArray[i], markerArray, distArr, pointArr);
+							pointArr.length = this.clusterArray[i].properties.point_count;
+							this.markerArray = pointArr;
+							this.showEventDetails = false;
+							this.showUserDetails = false;
+							this.showPing = false;
+							this.showClusterDetails = true;
+							this.currentEventTitle = "should work now";
+						}
+					}
+				}else{
+					const zoomLevel = this.map.getZoom() + 2;
+      		this.map.easeTo({
+        		center: feature.geometry.coordinates,
+        		zoom: zoomLevel
+      		})
+				}
+			});
 			try {
 				const marker = new mapboxgl.Marker(el);
 				marker.setLngLat(feature.geometry.coordinates).addTo(this.map);
 			} catch (e) {
 				console.log(e.message);
 			}
-			// array for point distances from cluster, smallest to largest
-			const distArr = new Array(data.length);
-			// array for points based on distances from cluster, smallest to largest (using above numbers)
-			const pointArr = new Array(data.length);
 			// puts distance and point into arrays
 			this.getClusterDistances(feature, data, distArr, pointArr);
 			// sets image and title of cluster html
@@ -405,6 +440,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					}
 				}
 			}
+			// TODO: check for zoom level, display all points
+			// need to call
+
+			//tentative algo
+			//find cluster based on id
+			//find distance and point arrays
+			//for points in cluster display that info
+			// console.log("finished making cluster");
+			// el.addEventListener('click', this.clusterClick());
+			// console.log("added listener");
 		}
 	}
 	// gets distance from points to given cluster
@@ -586,7 +631,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.currentEventTitle = 'Filler name';
 			// this.currentEventTitle = eventInfo.name;
 			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
-				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.getHours() + ':' + endMinutes;
+				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.toDateString() + ' ' +
+				endTime.getHours() + ':' + endMinutes;
 			this.currentEventId = el.id;
 		});
 		try {
