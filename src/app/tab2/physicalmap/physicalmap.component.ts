@@ -73,9 +73,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	otherUserId: string;
 	// Neeley
 	showClusterDetails: boolean;
-	markerArray: any;
-	clusterArray: any;
-	eventNumber: any;
+	markerArray: Array<any>;
+	clusterArray: Array<any>;
+	startTimeArray: Array<any>;
 
 	// puts marker on the map with user info
 	pingMessage: string;
@@ -141,6 +141,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
 
 			if (newSet.length !== 0) {
+				console.log(newSet);
 				this.markerArray = newSet;
 				this.presentCollectedData({
 					data: newSet
@@ -341,18 +342,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			});
 		}
-		// zooms in on clusters
-		// this.map.on('click', 'clusters', function (e) {
-		// 	const features = this.queryRenderedFeatures(e.point, {
-    //     layers: ['clusters']
-    //   });
-    //   const clusterId = features[0].properties.cluster_id;
-    //   const zoomLevel = this.getZoom() + 2;
-    //   this.easeTo({
-    //     center: features[0].geometry.coordinates,
-    //     zoom: zoomLevel
-    //   })
-		// });
 	}
 	// removes any duplicate html markers, prep to cluster
 	htmlDataSetUp(events) {
@@ -389,6 +378,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.className += ' ping';
 			el.id = feature.id;
 			el.setAttribute('in-cluster', 'is-cluster');
+			// TODO:
+			// create close button for list of events
+			// set max length on list window?
+			// end times?
+			// reposition more details button
 			el.addEventListener('click', (e: any) => {
 				const markerArray = this.markerArray;
 				if(this.map.getZoom() >= 10.5){
@@ -401,11 +395,18 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 							this.getClusterDistances(this.clusterArray[i], markerArray, distArr, pointArr);
 							pointArr.length = this.clusterArray[i].properties.point_count;
 							this.markerArray = pointArr;
+							this.clusterArray = this.clusterArray[i];
 							this.showEventDetails = false;
 							this.showUserDetails = false;
 							this.showPing = false;
 							this.showClusterDetails = true;
-							this.currentEventTitle = "should work now";
+							for(var j = 0; j < this.markerArray.length; j++){
+								const startTime = new Date(this.markerArray[j].properties.startTime);
+								let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
+								startMinutes += startTime.getMinutes();
+								this.markerArray[j].properties.startTime = startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes;
+							}
+							break;
 						}
 					}
 				}else{
@@ -440,16 +441,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					}
 				}
 			}
-			// TODO: check for zoom level, display all points
-			// need to call
-
-			//tentative algo
-			//find cluster based on id
-			//find distance and point arrays
-			//for points in cluster display that info
-			// console.log("finished making cluster");
-			// el.addEventListener('click', this.clusterClick());
-			// console.log("added listener");
 		}
 	}
 	// gets distance from points to given cluster
@@ -534,6 +525,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.style.backgroundPosition = '45% 50%';
 		}
 	}
+	//returns date string
+	// ISOToString(eventInfo){
+	// 	const startTime = new Date(eventInfo.startTime);
+	// 	const endTime = new Date(eventInfo.endTime);
+	// 	let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
+	// 	startMinutes += startTime.getMinutes();
+	// 	let endMinutes = startTime.getMinutes() < 10 ? '0' : '';
+	// 	endMinutes += startTime.getMinutes();
+	// }
+
 	renderPings(doc) {
 		if (document.getElementById(doc.properties.id)) {
 			return;
