@@ -379,9 +379,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.id = feature.id;
 			el.setAttribute('in-cluster', 'is-cluster');
 			// TODO:
-			// create close button for list of events
-			// set max length on list window?
-			// end times?
 			// reposition more details button
 			el.addEventListener('click', (e: any) => {
 				const markerArray = this.markerArray;
@@ -648,6 +645,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		const el = document.createElement('div');
 		el.className = 'marker-style';
 		return el;
+	}
+
+	async close() {
+		this.showClusterDetails = false;
 	}
 
 	presentCurrentLocation() {

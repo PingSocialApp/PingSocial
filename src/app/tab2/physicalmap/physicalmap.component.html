@@ -97,20 +97,22 @@
         </ion-card-content>
     </ion-card>
 
-    <ion-card style="z-index: 3" *ngIf="showClusterDetails">
-        <ion-card-content *ngFor="let event of markerArray; let place = index">
-          <ion-card-title>{{event.properties.name}}</ion-card-title>
-          <ion-card-subtitle>{{event.properties.type}} @ {{event.properties.startTime}}</ion-card-subtitle>
-          <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
-              <ion-icon name="expand-outline"></ion-icon>
-          </ion-button>
-          <ion-button *ngIf='showCheckIn && checkedIn === null' (click)="checkIn()" style="width: 79%">
-              <ion-icon name="log-in"></ion-icon>
-          </ion-button>
-          <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut()" style="width: 79%">
-              <ion-icon name="log-out"></ion-icon>
-          </ion-button>
-        </ion-card-content>
-    </ion-card>
+    <div *ngIf="showClusterDetails" class="clusterList">
+      <ion-card style="z-index: 3" *ngFor="let event of markerArray; let place = index">
+          <ion-card-content>
+            <ion-card-title>{{event.properties.name}}</ion-card-title>
+            <ion-card-subtitle>{{event.properties.type}} @ {{event.properties.startTime}}</ion-card-subtitle>
+            <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
+                <ion-icon name="expand-outline"></ion-icon>
+            </ion-button>
+            <ion-button *ngIf='showCheckIn && checkedIn === null' (click)="checkIn()" style="width: 79%">
+                <ion-icon name="log-in"></ion-icon>
+            </ion-button>
+            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut()" style="width: 79%">
+                <ion-icon name="log-out"></ion-icon>
+            </ion-button>
+          </ion-card-content>
+      </ion-card>
+    </div>
 </div>
 <div id="map"></div>
