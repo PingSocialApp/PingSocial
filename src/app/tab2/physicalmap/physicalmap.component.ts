@@ -108,6 +108,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	ngAfterViewInit() {
 		Geolocation.getCurrentPosition().then((resp) => {
 			this.buildMap(resp.coords);
+			this.map.resize();
 			// this.updateLocation(resp.coords);
 		}).then(() => {
 			this.map.on('load', () => {
@@ -521,11 +522,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (el.classList.contains('all')) {
 			el.style.backgroundPosition = '45% 50%';
 		}
-	}
-	//to fix map resize issue
-	onMapLoaded(event){
-		console.log("onMapLoaded");
-		event.map.resize();
 	}
 
 	renderPings(doc) {
