@@ -78,10 +78,10 @@
             <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(currentEventId)">
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='showCheckIn && checkedIn === null' (click)="checkIn()" style="width: 79%">
+            <ion-button *ngIf='showCheckIn && checkedIn === null' (click)="checkIn(currentEventId, currentEventTitle)" style="width: 79%">
                 <ion-icon name="log-in"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut()" style="width: 79%">
+            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut(currentEventId, currentEventTitle)" style="width: 79%">
                 <ion-icon name="log-out"></ion-icon>
             </ion-button>
         </ion-card-content>
@@ -105,10 +105,10 @@
             <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='showCheckIn && checkedIn === null' (click)="checkIn()" style="width: 79%">
+            <ion-button *ngIf='showCheckIn && checkedIn === null' (click)="checkIn(event.properties.id, event.properties.name)" style="width: 79%">
                 <ion-icon name="log-in"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut()" style="width: 79%">
+            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut(event.properties.id, event.properties.name)" style="width: 79%">
                 <ion-icon name="log-out"></ion-icon>
             </ion-button>
           </ion-card-content>

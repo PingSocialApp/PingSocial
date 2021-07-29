@@ -108,7 +108,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	ngAfterViewInit() {
 		Geolocation.getCurrentPosition().then((resp) => {
 			this.buildMap(resp.coords);
-			// this.updateLocation(resp.coords); 
+			// this.updateLocation(resp.coords);
 		}).then(() => {
 			this.map.on('load', () => {
 				this.presentCurrentLocation();
@@ -122,7 +122,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		}).catch((error) => {
 			console.error('Error getting location', error);
 		});
-		setTimeout(() => this.map.invalidateSize(), 0);
+		//setTimeout(() => this.map.invalidateSize(), 0);
 	}
 
 	ngOnDestroy() {
@@ -470,6 +470,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	// el.classList.contains(className);
 	// el.classList.remove(className)
 	setClusterImage(el, element) {
+		console.log(element.getAttribute('data-type'));
+		console.log(el.classList);
 		if (element.getAttribute('data-type') === 'party') {
 			// set marker
 			if (el.classList.contains('ping')) {
@@ -496,7 +498,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			} else if (el.classList.contains('hangout')) {
 				el.classList.remove('hangout');
 				el.classList += ' professionalhangout';
-			} else if (el.classList.contains('professionalhangout')) {
+			} else if (el.classList.contains('partyhangout')) {
 				el.classList.remove('partyhangout');
 				el.classList += ' all';
 			}
@@ -750,25 +752,25 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		return await modal.present();
 	}
 
-	async checkIn() {
+	async checkIn(currentEventId, currentEventTitle) {
 		if (this.checkedIn) {
-			if ((await this.checkOut()).data.isSuccesful) {
-				this.es.checkin(this.currentEventId).subscribe((val) => {
-					this.utils.presentToast('Welcome to ' + this.currentEventTitle);
+			if ((await this.checkOut(currentEventId, currentEventTitle)).data.isSuccesful) {
+				this.es.checkin(currentEventId).subscribe((val) => {
+					this.utils.presentToast('Welcome to ' + currentEventTitle);
 				}, (err) => console.error(err));
 			}
 		}
 	}
 
-	async checkOut() {
+	async checkOut(currentEventId, currentEventTitle) {
 		const modal = await this.modalController.create({
 			component: RatingPage,
 			componentProps: {
-				eventID: this.currentEventId,
+				eventID: currentEventId,
 			}
 		});
 		await modal.present();
-		this.utils.presentToast('Goodbye from ' + this.currentEventTitle);
+		this.utils.presentToast('Goodbye from ' + currentEventTitle);
 		return modal.onDidDismiss();
 	}
 
