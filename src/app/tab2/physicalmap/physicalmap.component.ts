@@ -108,7 +108,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	ngAfterViewInit() {
 		Geolocation.getCurrentPosition().then((resp) => {
 			this.buildMap(resp.coords);
-			// this.updateLocation(resp.coords);
+			// this.updateLocation(resp.coords); 
 		}).then(() => {
 			this.map.on('load', () => {
 				this.presentCurrentLocation();
@@ -122,6 +122,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		}).catch((error) => {
 			console.error('Error getting location', error);
 		});
+		setTimeout(() => this.map.invalidateSize(), 0);
 	}
 
 	ngOnDestroy() {
@@ -141,7 +142,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
 
 			if (newSet.length !== 0) {
-				console.log(newSet);
 				this.markerArray = newSet;
 				this.presentCollectedData({
 					data: newSet
@@ -282,8 +282,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			tempThis.htmlDataSetUp(eventH);
 			// current point to find distance from clusters
 			tempThis.renderClusters(feat, data, eventH);
-			console.log(eventH);
-			console.log(feat);
 			for (const html of eventH) {
 				for (const cluster of feat) {
 					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false') || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster') && (parseInt(html.id) === cluster.id))) {
@@ -522,15 +520,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.style.backgroundPosition = '45% 50%';
 		}
 	}
-	//returns date string
-	// ISOToString(eventInfo){
-	// 	const startTime = new Date(eventInfo.startTime);
-	// 	const endTime = new Date(eventInfo.endTime);
-	// 	let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
-	// 	startMinutes += startTime.getMinutes();
-	// 	let endMinutes = startTime.getMinutes() < 10 ? '0' : '';
-	// 	endMinutes += startTime.getMinutes();
-	// }
+	//to fix map resize issue
+	onMapLoaded(event){
+		console.log("onMapLoaded");
+		event.map.resize();
+	}
 
 	renderPings(doc) {
 		if (document.getElementById(doc.properties.id)) {
