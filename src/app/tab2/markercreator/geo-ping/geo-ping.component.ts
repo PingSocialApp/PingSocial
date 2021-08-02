@@ -103,7 +103,6 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
 
     togglePublic() {
         this.isPublic = !this.isPublic;
-        // document.getElementById('mapContainer').style.display = 'none';
     }
 
     async showLinks() {
@@ -124,11 +123,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     closeModal() {
-        // using the injected ModalController this page
-        // can "dismiss" itself and optionally pass back data
-        this.modalController.dismiss({
-            dismissed: true
-        });
+        this.modalController.dismiss();
     }
 
     sendPing() {
@@ -141,7 +136,6 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
             duration = 24*60;
         }
 
-        const userArray = [];
         if (!this.isPublic) {
             if (this.links.length > 20) {
                 this.utils.presentToast('Whoops! You have more than 20 people');
@@ -166,7 +160,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
             if(this.isPublic){
                 return new Observable<any>();
             }
-            return this.gs.shareGeoPing(val.data.id, userArray);
+            return this.gs.shareGeoPing(val.data.id, this.links);
         })).subscribe(val => {
             this.utils.presentToast('GeoPing Made!');
             this.closeModal();

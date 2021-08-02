@@ -18,7 +18,6 @@ import { UsersService } from '../services/users.service';
 
 
 export class CircledashPage implements OnInit, OnDestroy {
-    currentUser: AngularFirestoreDocument;
     pingArray: Observable<any>;
 
 
@@ -31,11 +30,10 @@ export class CircledashPage implements OnInit, OnDestroy {
         // TODO Paginate
         this.pingArray = this.firestore.collection('pings', ref => ref.where('userRec', '==',
             this.auth.getUID()).orderBy('timeStamp','desc'))
-            .snapshotChanges().pipe(concatMap(querySnap =>
-                forkJoin(querySnap.map(doc => {
-                    const data = doc.payload.doc;
+            .get().pipe(concatMap(querySnap =>
+                querySnap.docs.map(doc => {
+                    const data = doc;
                     // @ts-ignore
-                    return this.us.getUserBasic(this.auth.getUID()).toPromise().then((val:any) => {
                         return {
                             // @ts-ignore
                             id: data.id,
@@ -43,13 +41,15 @@ export class CircledashPage implements OnInit, OnDestroy {
                             sentMessage: data.get('sentMessage'),
                             // @ts-ignore
                             recMessage: data.get('responseMessage'),
-                            // @ts-ignore
-                            userSentId: data.get('userSent').id,
-                            userSentImg: val.data.profilepic,
-                            userSent: val.data.name,
+                            userSent: {
+                                id: data.get('userSent'),
+                                profilepic: data.get('userSent').profilepic,
+                                name: data.get('userSent').name,
+                            }
+                           
                         };
-                    });
-                }))));
+                    })
+                ));
     }
 
     ngOnDestroy(){

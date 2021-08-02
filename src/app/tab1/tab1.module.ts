@@ -4,17 +4,17 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Tab1Page} from './tab1.page';
-import {AngularFireAuthModule} from '@angular/fire/auth';
+import { InEventComponent } from './in-event/in-event.component';
+import { ActivityStatusComponent } from './activity-status/activity-status.component';
 
 @NgModule({
     imports: [
         IonicModule,
         CommonModule,
-        AngularFireAuthModule,
         FormsModule,
         RouterModule.forChild([{path: '', component: Tab1Page}]),
     ],
-    declarations: [Tab1Page]
+    declarations: [Tab1Page, InEventComponent, ActivityStatusComponent]
 })
 
 export class Tab1PageModule {

@@ -3,35 +3,40 @@
 
 <ion-content>
     <ion-img src="assets/dolphinpinglogo.png"></ion-img>
-    <ion-list *ngIf="loginScreen">
-        <ion-item>
-            <ion-label position="floating">Email</ion-label>
-            <ion-input [(ngModel)]="email"></ion-input>
-        </ion-item>
-        <ion-item>
-            <ion-label position="floating">Password</ion-label>
-            <ion-input [(ngModel)]="password" type="password"></ion-input>
-        </ion-item>
-        <p><a (click)="forgotPassAlert()">Forgot Password?</a></p>
-        <ion-button (click)="login()">Login</ion-button>
-        <p>New to Ping? <a (click)="loginScreen = false">Sign up!</a></p>
-    </ion-list>
-    <ion-list *ngIf="!loginScreen">
-        <ion-item>
-            <ion-label position="floating">Email</ion-label>
-            <ion-input [(ngModel)]="newEmail"></ion-input>
-        </ion-item>
-        <ion-item>
-            <ion-label position="floating">Password</ion-label>
-            <ion-input [(ngModel)]="newPass" type="password"></ion-input>
-        </ion-item>
-        <ion-item>
-            <ion-label position="floating">Re-Input Password</ion-label>
-            <ion-input [(ngModel)]="rePass" type="password"></ion-input>
-        </ion-item>
-        <ion-button (click)="createAccount()">Sign Up</ion-button>
-        <p>Back to <a (click)="loginScreen = true">Login!</a></p>
-    </ion-list>
+    <ion-card>
+        <ion-card-content>
+            <ion-list *ngIf="loginScreen">
+                <ion-item>
+                    <ion-label position="floating">Email</ion-label>
+                    <ion-input [(ngModel)]="email"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Password</ion-label>
+                    <ion-input [(ngModel)]="password" type="password"></ion-input>
+                </ion-item>
+                <p><a (click)="forgotPassAlert()">Forgot Password?</a></p>
+                <ion-button (click)="login()">Login</ion-button>
+                <p>New to Ping? <a (click)="loginScreen = false">Sign up!</a></p>
+            </ion-list>
+            <ion-list *ngIf="!loginScreen">
+                <ion-item>
+                    <ion-label position="floating">Email</ion-label>
+                    <ion-input [(ngModel)]="newEmail"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Password</ion-label>
+                    <ion-input [(ngModel)]="newPass" type="password"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Re-Input Password</ion-label>
+                    <ion-input [(ngModel)]="rePass" type="password"></ion-input>
+                </ion-item>
+                <ion-button (click)="createAccount()">Sign Up</ion-button>
+                <p>Back to <a (click)="loginScreen = true">Login!</a></p>
+            </ion-list>
+        </ion-card-content>
+    </ion-card>
+    
 </ion-content>
 <ion-footer class="creds">
     <p>Created by Sreesaketh Grandhe, Dhruva Rao, and Uma Srinivasan</p>

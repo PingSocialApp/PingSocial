@@ -39,7 +39,6 @@ export class RegistrationPage implements OnInit, OnDestroy {
     slideChanged(){
         this.slides.getActiveIndex().then(index => {
             this.currentProgress = (index + 1) * 1/3;
-            console.log(this.currentProgress);
         });
     }
 
@@ -62,7 +61,6 @@ export class RegistrationPage implements OnInit, OnDestroy {
     async createProfile() {
         const loading = await this.loadingController.create({
             message: 'Creating Profile...',
-            duration: 2000
         });
         if ((document.getElementById('username') as HTMLInputElement).value === '') {
             await this.utils.presentToast('Whoops! Looks like you forgot your name');

@@ -10,7 +10,7 @@
         </ion-title>
         <ion-buttons slot="primary">
             <ion-button (click)="presentRequestsPage()">
-                <ion-badge *ngIf="requestAmount != 0">{{requestAmount}}</ion-badge>
+                <ion-badge *ngIf="(requestAmount | async) !== 0">{{requestAmount | async}}</ion-badge>
                 <ion-icon name="person-add"></ion-icon>
             </ion-button>
         </ion-buttons>
@@ -26,11 +26,11 @@
                 refreshingText="Refreshing...">
         </ion-refresher-content>
     </ion-refresher>
-    <!-- <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar> -->
+    <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
     <ion-list>
-        <ion-img *ngIf="(links | async)?.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
-        <h1 *ngIf="(links | async)?.length === 0" class="addLinkDisplay">No Links Yet!</h1>
-        <ion-item *ngFor="let link of (links | async)" [routerLink]="['/userprofile/', link.uid]">
+        <ion-img *ngIf="(links | async)?.data.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
+        <h1 *ngIf="(links | async)?.data.length === 0" class="addLinkDisplay">No Links Yet!</h1>
+        <ion-item *ngFor="let link of (links | async)?.data" [routerLink]="['/userprofile/', link.uid]">
             <ion-avatar slot="start">
                 <ion-img src="{{link.profilepic}}"></ion-img>
             </ion-avatar>
@@ -40,7 +40,7 @@
             </ion-label>
         </ion-item>
     </ion-list>
-    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="(links | async)?.length != 0">
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((links | async)?.isDone)">
         <ion-infinite-scroll-content
           loadingSpinner="bubbles"
           loadingText="Loading more data...">

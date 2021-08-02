@@ -10,11 +10,11 @@
         <ion-card-content>
             <ion-item>
                 <ion-label position="floating">Name</ion-label>
-                <ion-input [(ngModel)]="eventName"></ion-input>
+                <ion-input [(ngModel)]="eventName" [readonly]="!isCreator"></ion-input>
             </ion-item>
             <ion-item>
                 <ion-label position="floating">Description</ion-label>
-                <ion-textarea [(ngModel)]="eventDes"></ion-textarea>
+                <ion-textarea [(ngModel)]="eventDes" [readonly]="!isCreator"></ion-textarea>
             </ion-item>
         </ion-card-content>
     </ion-card>
@@ -33,12 +33,12 @@
             <ion-item>
                 <ion-label position="stacked">Start Time</ion-label>
                 <ion-datetime displayFormat="D MMM YYYY H:mm" min="2021" max="2022"
-                              id='startTime'></ion-datetime>
+                              id='startTime' [readonly]="!isCreator"></ion-datetime>
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">End Time</ion-label>
                 <ion-datetime displayFormat="D MMM YYYY H:mm" min="2021" max="2022"
-                              id="endTime"></ion-datetime>
+                              id="endTime" [readonly]="!isCreator"></ion-datetime>
             </ion-item>
         </ion-card-content>
     </ion-card>
@@ -46,7 +46,7 @@
         <ion-card-content>
             <ion-item>
                 <ion-label>Event Type</ion-label>
-                <ion-select placeholder="Select One" [(ngModel)]="eventType">
+                <ion-select placeholder="Select One" [(ngModel)]="eventType" [disabled]="!isCreator">
                     <ion-select-option value="party">Party</ion-select-option>
                     <ion-select-option value="professional">Professional</ion-select-option>
                     <ion-select-option value="hangout">Hangout</ion-select-option>
@@ -54,21 +54,12 @@
             </ion-item>
             <ion-item>
                 <ion-label>Private Event</ion-label>
-                <ion-toggle [(ngModel)]="isPublic"></ion-toggle>
+                <ion-toggle [(ngModel)]="isPrivate" [disabled]="!isCreator"></ion-toggle>
             </ion-item>
-            <!-- <ion-searchbar animated *ngIf="isPublic && isCreator" (ionInput)="handleInput($event)"></ion-searchbar> -->
-            <ion-list id="memberList" *ngIf="isPublic && isCreator">
-                <ion-item *ngFor="let link of links | async">
-                    <ion-avatar slot="start">
-                        <img src="{{link.img | async}}">
-                    </ion-avatar>
-                    <ion-label>
-                        <h2>{{link.name}}</h2>
-                        <p>{{link.bio}}</p>
-                    </ion-label>
-                    <ion-checkbox [checked]="link.checked" id="{{link.id}}"></ion-checkbox>
-                </ion-item>
-            </ion-list>
+            <ion-button *ngIf="isPrivate && isCreator" expand="block" (click)="showLinks()">
+                <ion-icon name="people"></ion-icon>
+                Links
+            </ion-button>
         </ion-card-content>
     </ion-card>
     <ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator">
