@@ -1,4 +1,4 @@
-import {HttpClient, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest} from '@angular/common/http';
+import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {AngularFireAuth} from '@angular/fire/auth';
 import { environment } from 'src/environments/environment';
@@ -10,7 +10,7 @@ import { switchMap } from 'rxjs/operators';
     providedIn: 'root'
 })
 export class AuthHandler implements HttpInterceptor {
-    constructor(private http: HttpClient, private auth: AngularFireAuth) {
+    constructor(private auth: AngularFireAuth) {
     }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>>{

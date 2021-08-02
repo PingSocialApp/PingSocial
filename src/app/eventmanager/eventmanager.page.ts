@@ -1,8 +1,8 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {MarkercreatorPage} from '../tab2/markercreator/markercreator.page';
-import {ModalController} from '@ionic/angular';
+import {IonSlides, ModalController} from '@ionic/angular';
 import {ActivatedRoute} from '@angular/router';
-import {BehaviorSubject} from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 import { AuthHandler } from '../services/authHandler.service';
 import { EventsService } from '../services/events.service';
 
@@ -13,40 +13,68 @@ import { EventsService } from '../services/events.service';
 })
 export class EventmanagerPage implements OnInit, OnDestroy {
     isMe: boolean;
-    eventsSub: any;
-    offset: number;
-    private eventsBS: BehaviorSubject<number>;
+    invitedSub: Observable<any>;
+    createdSub: Observable<any>;
+    createdOffset: number;
+    invitedOffset: number;
+    private eventsBS: Subject<any>;
+
+    @ViewChild('mySlides') slides: IonSlides;
+
+    slideOpts = {
+        initialSlide: 0,
+        speed: 400
+    };
 
     constructor(private acr: ActivatedRoute, private modalController: ModalController,
-        private es: EventsService,
-                private auth: AuthHandler) {    }
+        private es: EventsService, private auth: AuthHandler) {    }
 
     ngOnInit() {
         this.isMe = this.acr.snapshot.params.id === this.auth.getUID();
-
-        this.offset = 0;
-        this.eventsBS = new BehaviorSubject(this.offset);
+        this.createdOffset = 0;
+        this.invitedOffset = 0;
+        this.eventsBS = new Subject();
         this.eventsBS.subscribe(() => this.getEvents());
+        this.invitedSub = this.es.getInvitedEvents(this.invitedOffset);
+        this.createdSub = this.es.getUserEvents(this.acr.snapshot.params.id, this.createdOffset);
     }
 
     ngOnDestroy(): void {
-        // this.eventsSub?.unsubscribe();
     }
 
     getEvents() {
-        this.eventsSub = this.es.getUserEvents(this.acr.snapshot.params.id, this.offset)
+        this.slides.getActiveIndex().then(index => {
+            if(index === 1){
+                this.invitedSub = this.es.getInvitedEvents(this.invitedOffset);
+            } else {
+                this.createdSub = this.es.getUserEvents(this.acr.snapshot.params.id, this.createdOffset);
+            }
+        }).catch(e => console.error(e));
     }
 
     doRefresh(event) {
-        this.offset = 0;
-        this.eventsBS.next(this.offset);
+        this.slides.getActiveIndex().then(index => {
+            if(index === 1){
+                this.invitedOffset = 0;
+            }else {
+                this.createdOffset = 0;
+            }
+    }).catch(e => console.error(e));
+
+        this.eventsBS.next();
         event.target.complete();
     }
 
     loadData(event){
-        ++this.offset;
-        this.eventsBS.next(this.offset);
-        event.target.complete();
+        this.slides.getActiveIndex().then(index => {
+            if(index === 0){
+                this.createdOffset++;
+            }else{
+                this.invitedOffset++;
+            }
+            this.eventsBS.next();
+            event.target.complete();
+        }).catch(e => console.error(e));
     }
 
     async presentEventCreatorModal(data: string) {
@@ -74,6 +102,9 @@ export class EventmanagerPage implements OnInit, OnDestroy {
                 eventID: ''
             }
         });
+
+        modal.onDidDismiss().then(() => this.eventsBS.next());
+
         return await modal.present();
     }
 }

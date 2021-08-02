@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {BehaviorSubject, forkJoin} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {ModalController} from '@ionic/angular';
 import { LinksService } from 'src/app/services/links.service';
 
@@ -21,28 +21,12 @@ export class LinkSelectorPage implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.offset = 0;
+        this.userArray = this.ids;
         this.linksBS = new BehaviorSubject(this.offset);
         this.linksBS.subscribe(() => this.getLinks());
-
-        // this.userArray = [];
-        // this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-        //     .pipe(mergeMap(querySnap => forkJoin(
-        //         querySnap.docs.map(doc => doc.get('otherUser').get())
-        //     )), map((val: any) => {
-        //         return val.map(userData => {
-        //             return {
-        //                 id: userData.id,
-        //                 img: this.getImage(userData.get('profilepic')),
-        //                 name: userData.get('name'),
-        //                 bio: userData.get('bio'),
-        //                 checked: this.ids.includes(userData.id)
-        //             };
-        //         });
-        //     }));
     }
 
     ngOnDestroy() {
-        this.links.unsubscribe()
     }
 
     getLinks() {

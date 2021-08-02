@@ -19,6 +19,6 @@ export class GeopingsService {
   }
 
   shareGeoPing(id: string, uid: string[]){
-    return this.http.post(environment.apiURL.geoPing + id + '/shares', {uids: uid}).pipe(retry(3),first())
+    return this.http.post(environment.apiURL.geoPing + id, {ids: uid}).pipe(retry(3),first())
   }
 }

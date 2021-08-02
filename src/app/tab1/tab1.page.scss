@@ -1,14 +1,13 @@
-.emptyRequests {
-  padding-left: 20%;
-  padding-right: 20%;
-  position: relative;
-  top: 30%;
+ion-slides {
+  height: 100%;
 }
 
-.emptyRequestsLabel {
-  position: relative;
-  top: 30%;
-  text-align: center;
-  color: var(--ion-color-primary);
-  font-family: 'Lobster Two';
+app-in-event, app-activity-status {
+  height: 100%;
+  width: 100%;
+}
+
+// TODO set at top
+.swiper-pagination-bullets {
+  top: 10px !important;
 }

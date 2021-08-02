@@ -20,21 +20,20 @@
                 refreshingText="Refreshing...">
         </ion-refresher-content>
     </ion-refresher>
-<!--    <ion-label [ngStyle]="{'color' : this.userArray.length > 20 ? 'red' : 'black'}">{{this.userArray.length}} / 20</ion-label>-->
-    <!-- <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar> -->
+    <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
     <ion-list id="memberList">
-        <ion-item *ngFor="let link of (links | async)">
+        <ion-item *ngFor="let link of (links | async)?.data">
             <ion-avatar slot="start">
-                <img src="{{link.profilepic | async}}">
+                <img src="{{link.profilepic}}">
             </ion-avatar>
             <ion-label>
                 <h2>{{link.name}}</h2>
                 <p>{{link.bio}}</p>
             </ion-label>
-            <ion-checkbox [checked]="this.ids.includes(link.id)" id="{{link.id}}" (ionChange)="updateLinkList()"></ion-checkbox>
+            <ion-checkbox [checked]="this.ids.includes(link.uid)" id="{{link.uid}}" (ionChange)="updateLinkList()"></ion-checkbox>
         </ion-item>
     </ion-list>
-    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((links | async)?.isDone)">
         <ion-infinite-scroll-content
                 loadingSpinner="bubbles"
                 loadingText="Loading more data...">
@@ -45,4 +44,8 @@
             <ion-icon name="checkmark-outline"></ion-icon>
         </ion-fab-button>
     </ion-fab>
+    <ion-chip id="peopleCount">
+        <ion-icon name="people"></ion-icon>
+        <ion-label [ngStyle]="{'color' : this.ids.length > 20 ? 'red' : 'black'}">{{this.ids.length}} / 20</ion-label>
+    </ion-chip>
 </ion-content>

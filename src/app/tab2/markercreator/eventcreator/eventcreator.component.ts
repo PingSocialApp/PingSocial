@@ -1,14 +1,15 @@
-import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Calendar} from '@ionic-native/calendar/ngx';
 import {AlertController, ModalController} from '@ionic/angular';
 import {environment} from '../../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import {Observable} from 'rxjs';
 import { UsersService } from 'src/app/services/users.service';
 import { AuthHandler } from 'src/app/services/authHandler.service';
 import { UtilsService } from 'src/app/services/utils.service';
 import { EventsService } from 'src/app/services/events.service';
 import { LinkSelectorPage } from '../link-selector/link-selector.page';
+import { of, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
     selector: 'app-eventcreator',
@@ -16,14 +17,14 @@ import { LinkSelectorPage } from '../link-selector/link-selector.page';
     styleUrls: ['./eventcreator.component.scss'],
     providers:[]
 })
-export class EventcreatorComponent implements OnInit, AfterViewInit {
+export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     map: mapboxgl.Map;
     currentUser: any;
     geocoder: any;
     eventName: string;
     location: Array<any>;
-    isPublic: boolean;
-    links: Observable<any>;
+    isPrivate: boolean;
+    links: Array<string>;
     eventDes: string;
     eventType: string;
     @Input() eventID: string;
@@ -31,12 +32,14 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
     isCreator: boolean;
     eventCreator: any;
     eventCreatorName: string;
+    eventsSub: Subscription;
+    linksSub: Subscription;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController, 
         private utils: UtilsService,
                 private us: UsersService, private auth: AuthHandler, private es: EventsService) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        this.isPublic = false;
+        this.isPrivate = false;
     }
 
 
@@ -51,15 +54,30 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
         }
     }
 
+
+    ngAfterViewInit() {
+        this.buildMap();
+        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
+        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
+    }
+
+    ngOnDestroy() {
+        this.eventsSub?.unsubscribe();
+        this.linksSub?.unsubscribe();
+    }
+
     renderNewMode(){
         this.isCreator = true;
         this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
             this.eventCreatorName = userRef.data.name;
         });
+        this.links = [];
     }
 
     renderEditMode(){
-           this.es.getEventDetails(this.eventID).subscribe((ref:any) => {
+        this.links = [];
+
+        this.eventsSub = this.es.getEventDetails(this.eventID).subscribe((ref:any) => {
             const data = ref.data;
             (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
             (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
@@ -67,28 +85,25 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
             this.eventCreator = data.creator.id;
             this.eventCreatorName = data.creator.name;
             this.eventDes = data.description;
-            this.isPublic = data.isPrivate;
+            this.isPrivate = data.isPrivate;
             this.eventType = data.type;
             this.location = [data.location.latitude,data.location.longitude];
             this.map.flyTo({
                 center: this.location,
                 essential: true
             });
-            // if (this.isPublic) {
-            //     this.members = data.members;
-            // }
             this.isCreator = data.creator.uid === this.auth.getUID();
             new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
-        }, () => {
+        }, (error) => console.error(error));
 
-        }, () => {
-        });
-    }
-
-    ngAfterViewInit() {
-        this.buildMap();
-        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
-        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
+        if(!this.isPrivate){
+            this.linksSub = this.es.getEventShares(this.eventID, 0).subscribe((ref:any) => {
+                for(const object of ref.data){
+                    this.links.push(object.uid);
+                }
+                console.log(this.links);
+            }, (error) => console.error(error));
+        }
     }
 
     buildMap() {
@@ -118,33 +133,21 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
     }
 
     async showLinks() {
-        if (!this.isPublic) {
-            const modal = await this.modalController.create({
-                component: LinkSelectorPage,
-                componentProps: {
-                    ids: this.links
-                }
-            });
+        const modal = await this.modalController.create({
+            component: LinkSelectorPage,
+            componentProps: {
+                ids: this.links
+            }
+        });
 
-            modal.onDidDismiss().then(data => {
-                this.links = data.data;
-            });
+        modal.onDidDismiss().then(data => {
+            this.links = data.data;
+        });
 
-            return await modal.present();
-        }
+        return await modal.present();
     }
 
-    // isChecked(id: string){
-    //     for(const member of this.members) {
-    //         if(member.id === id) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
-
     async manageEvent() {
-        const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
         if (this.eventName === '' || (document.getElementById('startTime') as HTMLInputElement).value === '' || (document.getElementById('endTime') as HTMLInputElement).value === '' || this.eventDes === '' || this.eventType === ''
             || typeof this.location === 'undefined') {
             this.utils.presentToast('Whoops! You have an empty entry');
@@ -165,32 +168,17 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                 endTime: (document.getElementById('endTime') as HTMLInputElement).value,
                 description: this.eventDes,
                 type: this.eventType,
-                isPrivate: this.isPublic
+                isPrivate: this.isPrivate
             };
 
-            // const userArray = [];
-            // if (this.isPublic) {
-            //     for (const element of toggle) {
-            //         if (element.checked) {
-            //             userArray.push(element.id);
-            //         }
-            //         if (userArray.length > 15) {
-            //             this.utils.presentToast('Whoops! You have more than 15 people');
-            //             return;
-            //         }
-            //     }
-
-            //     // @ts-ignore
-            //     data.members = userArray;
-            // } else if (this.editMode) {
-            //     // @ts-ignore
-            //     data.members = firebase.firestore.FieldValue.delete();
-            // }
-
-            // TODO Share
-
             if (!this.editMode) {
-                this.es.createEvent(data).subscribe(val => {
+                this.es.createEvent(data).pipe(switchMap((output:any) => {
+                    if(this.isPrivate){
+                        return this.es.inviteAttendee(output.data.id, this.links);
+                    }else{
+                        return of();
+                    }
+                })).subscribe(() => {
                     this.utils.presentToast('Event Created!');
                     this.closeModal();
                 }, err => {
@@ -198,12 +186,18 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                     this.utils.presentToast('Whoops! Problem making event');
                 });
             } else {
-                this.es.editEvent(this.eventID, data).subscribe(val => {
-                    this.utils.presentToast('Event Created!');
+                this.es.editEvent(this.eventID, data).subscribe(() => {
+                    if(this.isPrivate){
+                        this.es.inviteAttendee(this.eventID, this.links).subscribe(() => {
+                            this.utils.presentToast('Event Updated!');
+                            this.closeModal();
+                        }, (error)=>console.error(error));
+                    }
+                    this.utils.presentToast('Event Updated!');
                     this.closeModal();
                 }, err => {
                     console.error(err);
-                    this.utils.presentToast('Whoops! Problem making event');
+                    this.utils.presentToast('Whoops! Problem updating event');
                 });
             }
         }
@@ -234,7 +228,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                         }, (err) => {
                             console.error(err);
                             this.utils.presentToast('Whoops! Event Delete Failed');
-                        })
+                        });
                     }
                 }
             ]
@@ -259,11 +253,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
     }
 
     closeModal() {
-        // using the injected ModalController this page
-        // can "dismiss" itself and optionally pass back data
-        this.modalController.dismiss({
-            dismissed: true
-        });
+        this.modalController.dismiss();
     }
 
 }

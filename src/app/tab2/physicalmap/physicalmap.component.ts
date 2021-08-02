@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
-import {IonSearchbar, ModalController, Platform} from '@ionic/angular';
+import {ModalController, Platform} from '@ionic/angular';
 import {environment} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
 import {Geolocation, Position} from '@capacitor/geolocation'
@@ -67,9 +67,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit() {
+        let pos = null;
         Geolocation.getCurrentPosition().then((resp) => {
             this.buildMap(resp.coords);
-            // this.updateLocation(resp.coords);
+            this.updateLocation(resp.coords);
+            pos = [resp.coords.latitude, resp.coords.longitude];
         }).then(() => {
             this.map.on('load', () => {
                 this.presentCurrentLocation();
@@ -77,28 +79,42 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
                 },(position, err) => {
+                    if(this.getDistance(pos[0], pos[1], position.coords.latitude, position.coords.longitude) >= 0.005){
+                        this.updateLocation(position.coords);
+                    }
+
                     this.renderCurrent(position);
+
+                    pos = [position.coords.latitude, position.coords.longitude];
+
+                    if(err){
+                        console.error(err);
+                    }
                 });
             });
         }).catch((error) => {
-            console.log('Error getting location', error);
+            console.error('Error getting location', error);
         });
     }
 
+
+    // TODO call on page kill or logout
+    // https://blog.devgenius.io/where-ngondestroy-fails-you-54a8c2eca0e0
     ngOnDestroy() {
         this.linksSub.unsubscribe();
         this.markersSub.unsubscribe();
+        this.currentLocationMarker.remove();
     }
 
     refreshContent(reset = false) {
-        // this.renderLinks(reset);
+        this.renderLinks(reset);
 
         const coords = this.map.getCenter();
 
 		// TODO adjust radius
         const sub = forkJoin({
-            events: this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
-            geoPings: this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
+            events: this.ms.getRelevantEvents(coords.lat, coords.lng, this.getRadius(), reset),
+            geoPings: this.ms.getRelevantGeoPings(coords.lat, coords.lng, this.getRadius(), reset)
         });
         this.markersSub = sub.subscribe((markersSet:any) => {
             // markersSet.events.data
@@ -115,17 +131,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
             this.location = [lng, lat];
 
-            // const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
-            // this.updateStatus(locationRef);
-
             // use api to get location
             this.renderUser(this.currentLocationMarker, lng, lat);
-
-            // just to fly to current user on map
-            this.map.flyTo({
-                center: [lng, lat],
-                essential: true
-            });
     }
 
     getRadius(){
@@ -139,7 +146,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
-            res.forEach(doc => {
+            res.data.features.forEach(doc => {
                 // create marker and style it
                 const el = this.createMarker();
                 el.style.width = '30px';
@@ -200,27 +207,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.us.setUserLocation({
             longitude: coords.longitude,
             latitude: coords.latitude,
-        }).subscribe((val: any) => console.log(val) ,(err: any) => console.error(err));
-    }
-
-    updateStatus(lRef) {
-        const offline = {
-            isOnline: false,
-            lastOnline: Date.now(),
-        };
-        const online = {
-            isOnline: true,
-            lastOnline: Date.now(),
-        };
-
-        // checks connection and sets values accordingly
-        this.rtdb.database.ref('.info/connected').on('value', (snapshot) => {
-            if (snapshot.val()) {
-                lRef.onDisconnect().update(offline).then(() => {
-                    lRef.update(online);
-                });
-            }
-        });
+        }).subscribe((val: any) => console.log(val.data) ,(err: any) => console.error(err));
     }
 
     renderPings(doc) {
@@ -259,14 +246,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         el.setAttribute('data-name', eventInfo.name);
         el.setAttribute('data-private', eventInfo.isPrivate);
         el.setAttribute('data-type', eventInfo.type);
-        // if (eventInfo.creator.id === this.currentUserId || eventInfo.isPrivate) {
-        //     el.setAttribute('data-link', 'true');
-        // } else {
-        //     this.currentUserRef.collection('links', ref => ref.where('otherUser', '==', eventInfo.creator)
-        //         .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(val => {
-        //         el.setAttribute('data-link', val.empty ? 'false' : 'true');
-        //     });
-        // }
         el.setAttribute('data-time', eventInfo.startTime);
         el.id = doc.id;
         if (!!document.getElementById(el.id)) {
@@ -328,13 +307,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.otherUserId = 'currentLocation';
                 this.otherUserLocation = 'Here';
                 this.checkedIn = val.data.checkedIn;
+                this.es.checkedInEvent.next(val.data.checkedIn);
             });
             el.id = 'currentLocation';
             this.currentLocationMarker = new mapboxgl.Marker(el);
         })
     }
 
-    buildMap(coords: any) {
+    private buildMap(coords): void {
         this.map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
@@ -352,58 +332,58 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    async presentFilter() {
-        this.showFilter = !this.showFilter;
-        if (!this.showFilter) {
-            const elements = document.getElementsByClassName('mapboxgl-marker');
-            // tslint:disable-next-line:prefer-for-of
-            for (let i = 0; i < elements.length; i++) {
-                (elements[i] as HTMLElement).style.display = 'block';
-            }
-        }
-    }
+    // async presentFilter() {
+    //     this.showFilter = !this.showFilter;
+    //     if (!this.showFilter) {
+    //         const elements = document.getElementsByClassName('mapboxgl-marker');
+    //         // tslint:disable-next-line:prefer-for-of
+    //         for (let i = 0; i < elements.length; i++) {
+    //             (elements[i] as HTMLElement).style.display = 'block';
+    //         }
+    //     }
+    // }
 
-    filterMarkers() {
-        const elements = document.getElementsByClassName('mapboxgl-marker');
-        // tslint:disable-next-line:prefer-for-of
-        for (let i = 0; i < elements.length; i++) {
-            (elements[i] as HTMLElement).style.display = 'block';
-            if (elements[i].id === 'currentLocation') {
-                continue;
-            }
-            let elementStatus = elements[i].getAttribute('data-private');
-            const elementType = elements[i].getAttribute('data-type');
-            const elementTime = new Date(elements[i].getAttribute('data-time'));
-            const currentDate = new Date();
+    // filterMarkers() {
+    //     const elements = document.getElementsByClassName('mapboxgl-marker');
+    //     // tslint:disable-next-line:prefer-for-of
+    //     for (let i = 0; i < elements.length; i++) {
+    //         (elements[i] as HTMLElement).style.display = 'block';
+    //         if (elements[i].id === 'currentLocation') {
+    //             continue;
+    //         }
+    //         let elementStatus = elements[i].getAttribute('data-private');
+    //         const elementType = elements[i].getAttribute('data-type');
+    //         const elementTime = new Date(elements[i].getAttribute('data-time'));
+    //         const currentDate = new Date();
 
-            if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
-                elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
-                (elements[i] as HTMLElement).style.display = 'none';
-                continue;
-            }
+    //         if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
+    //             elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
+    //             (elements[i] as HTMLElement).style.display = 'none';
+    //             continue;
+    //         }
 
-            if (this.queryLink) {
-                (elements[i] as HTMLElement).style.display = elements[i].getAttribute('data-link') === 'false' ? 'none' : null;
-                continue;
-            }
+    //         if (this.queryLink) {
+    //             (elements[i] as HTMLElement).style.display = elements[i].getAttribute('data-link') === 'false' ? 'none' : null;
+    //             continue;
+    //         }
 
-            if (this.queryStatus !== 'All') {
-                elementStatus = elementStatus === 'false' ? 'Public' : ' Private';
-            } else {
-                elementStatus = 'All';
-            }
+    //         if (this.queryStatus !== 'All') {
+    //             elementStatus = elementStatus === 'false' ? 'Public' : ' Private';
+    //         } else {
+    //             elementStatus = 'All';
+    //         }
 
-            if (elementType !== this.queryType && this.queryType !== 'All' || this.queryStatus !== elementStatus) {
-                (elements[i] as HTMLElement).style.display = 'none';
-                continue;
-            }
+    //         if (elementType !== this.queryType && this.queryType !== 'All' || this.queryStatus !== elementStatus) {
+    //             (elements[i] as HTMLElement).style.display = 'none';
+    //             continue;
+    //         }
 
-            (document.getElementById('searchbar') as unknown as IonSearchbar).getInputElement().then((input) => {
-                const shouldShow = elements[i].getAttribute('data-name').toLowerCase().indexOf(input.value.toLowerCase()) > -1;
-                (elements[i] as HTMLElement).style.display = !shouldShow ? 'none' : (elements[i] as HTMLElement).style.display;
-            });
-        }
-    }
+    //         (document.getElementById('searchbar') as unknown as IonSearchbar).getInputElement().then((input) => {
+    //             const shouldShow = elements[i].getAttribute('data-name').toLowerCase().indexOf(input.value.toLowerCase()) > -1;
+    //             (elements[i] as HTMLElement).style.display = !shouldShow ? 'none' : (elements[i] as HTMLElement).style.display;
+    //         });
+    //     }
+    // }
 
     async presentEventCreatorModal(data: string) {
         const modal = await this.modalController.create({
@@ -412,7 +392,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 eventID: data
             }
         });
-        // TODO Auto Refresh on Create Marker
+        modal.onDidDismiss().then(() => this.refreshContent());
         return await modal.present();
     }
 
@@ -450,7 +430,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
                 Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return earthRadiusKm * c;
+        return earthRadiusKm * c; // KM
     }
 
     degreesToRadians(degrees) {

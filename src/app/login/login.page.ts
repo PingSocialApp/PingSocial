@@ -35,19 +35,14 @@ export class LoginPage implements OnInit {
         if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
             this.auth.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
                 this.us.createUser().subscribe(async success => {
-                    this.auth.auth.signInWithEmailAndPassword(this.newEmail, this.newPass).then(async (val) => {
-                        await this.router.navigate(['/registration']);
-                    }).catch(async (error) => {
-                        this.utils.presentToast(error.message);
-                        console.log(error.message);
-                    });
+                    await this.router.navigate(['/registration']);
                 }, fail => {
                     this.utils.presentToast(fail.error);
-                    console.log(fail.error);
+                    console.error(fail.error);
                 });
             }).catch(async (error) => {
                 this.utils.presentToast(error.message);
-                console.log(error.message);
+                console.error(error.message);
             });
         }
     }

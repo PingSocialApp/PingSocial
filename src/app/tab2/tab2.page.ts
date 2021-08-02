@@ -19,7 +19,6 @@ import { AuthHandler } from '../services/authHandler.service';
 export class Tab2Page implements OnInit, OnDestroy {
     unreadPings: any;
     private unreadPingSub: Subscription;
-    private notifToken: Subscription;
 
     constructor(private pm: PhysicalmapComponent, private auth: AuthHandler,
                 private modalController: ModalController, private db: AngularFireDatabase) {
@@ -28,14 +27,13 @@ export class Tab2Page implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.unreadPingSub = this.db.object('numPings/' + this.auth.getUID()).valueChanges().subscribe(res => {
+        this.unreadPingSub = this.db.object('userNumerics/numPings/' + this.auth.getUID()).valueChanges().subscribe(res => {
             this.unreadPings = res;
-        });
+        },(error) => console.error(error));
     }
 
     ngOnDestroy() {
         this.unreadPingSub.unsubscribe();
-        // this.notifToken.unsubscribe();
     }
 
     async presentQRModal() {

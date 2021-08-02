@@ -7,7 +7,6 @@ import {concatMap, first, retry} from 'rxjs/operators';
 import { UtilsService } from './utils.service';
 import { AuthHandler } from './authHandler.service';
 import { from } from 'rxjs';
-import { AngularFireAuth } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +15,7 @@ export class UsersService {
   fileName: string;
   latestPhoto: string | ArrayBuffer;
 
-  constructor(private http: HttpClient, private auth: AuthHandler, private fAuth: AngularFireAuth,
+  constructor(private http: HttpClient, private auth: AuthHandler,
     private firestore: AngularFirestore, private storage: AngularFireStorage, private utils: UtilsService) {
   }
 
@@ -55,23 +54,23 @@ export class UsersService {
       const userObject = {
           name: 'User' + uid,
           bio: 'New to Ping!',
-          userType: 'Independent',
           profilepic: 'https://picsum.photos/seed/' + seed + '/300'
       };
 
       return this.http.post(environment.apiURL.users, userObject).pipe(retry(3));
   }
 
-  setNotifToken(notifToken){
+  setNotifToken(notifToken: string){
     return this.http.post(environment.apiURL.users + '/notification', notifToken).pipe(retry(3));
   }
 
   updateProfile() {
-      const uid = this.fAuth.auth.currentUser.uid;
+      const uid = this.auth.getUID();
 
         const userObject = {
             name: (document.getElementById('username') as HTMLInputElement).value,
             bio: (document.getElementById('bio') as HTMLInputElement).value,
+            profilepic: '',
         };
 
         const socialsPromise = this.firestore.collection('socials').doc(uid).update({
@@ -86,27 +85,26 @@ export class UsersService {
             venmo: (document.getElementById('ve') as HTMLInputElement).value,
             website: (document.getElementById('ws') as HTMLInputElement).value,
             phone: (document.getElementById('ph') as HTMLInputElement).value,
-
-        });
+        }).catch(e => console.error(e));
 
         const ref = this.storage.ref(uid);
 
-        if (this.fileName != null) {
-            if (typeof this.latestPhoto === 'string') {
-                ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
-                }).catch((er) => {
-                  this.utils.presentToast('Whoops! Profile pic had a problem')
-                  console.error(er);
-                })
-            }
-        }
-
-        // TODO only send profilepic on new update
-        return from(this.storage.storage.refFromURL('gs://circles-4d081.appspot.com/' + uid).getDownloadURL()).pipe(concatMap(val => {
-          // @ts-ignore
-          userObject.profilepic = val;
+        if (this.fileName != null && typeof this.latestPhoto === 'string') {
+            ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
+            }).catch((er) => {
+              this.utils.presentToast('Whoops! Profile pic had a problem');
+              console.error(er);
+            })
+             // TODO only send profilepic on new update
+            return from(this.storage.storage.refFromURL('gs://circles-4d081.appspot.com/' + uid).getDownloadURL()).pipe(concatMap(val => {
+              // @ts-ignore
+              userObject.profilepic = val;
+              return this.http.put(environment.apiURL.users, userObject
+                ).pipe(retry(3));
+            }));
+        }else{
           return this.http.put(environment.apiURL.users, userObject
             ).pipe(retry(3));
-        }));
+        }
     }
 }

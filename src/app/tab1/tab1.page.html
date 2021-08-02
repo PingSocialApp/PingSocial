@@ -7,52 +7,14 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-    <ion-img *ngIf="eventId == ''" class="emptyRequests" src="assets/undraw_Waiting__for_you_ldha.svg">
-    </ion-img>
-    <h2 *ngIf="eventId == ''" class="emptyRequestsLabel">
-        <ion-label>Check In to an Event</ion-label>
-    </h2>
-
-    <ion-card *ngIf="eventId != ''">
-        <ion-card-header>
-            <ion-card-title>{{this.eventName}}</ion-card-title>
-            <ion-card-subtitle>By {{this.eventCreator}}</ion-card-subtitle>
-        </ion-card-header>
-        <ion-card-content style="text-align: center">
-            <ion-button (click)="checkOut()">
-                <ion-icon name="log-out"></ion-icon>
-            </ion-button>
-            <ion-button (click)="openEventModal()">
-                <ion-icon [name]="this.eventCreatorId !== this.currentUserId ? 'expand' : 'create'"></ion-icon>
-            </ion-button>
-            <ion-button (click)="this.eventCreatorId !== this.currentUserId ? messageUser(eventCreatorId) : messageUser()">
-                <ion-icon name="send"></ion-icon>
-            </ion-button>
-        </ion-card-content>
-    </ion-card>
-    <ion-card *ngIf="eventId != ''">
-        <ion-card-content>
-            <ion-list>
-                <ion-item-sliding *ngFor="let attendee of attendees | async">
-                    <ion-item>
-                        <ion-avatar slot="start">
-                            <ion-img src="{{attendee.img | async}}"></ion-img>
-                        </ion-avatar>
-                        <ion-label>
-                            <h2>{{attendee.name}}</h2>
-                            <p>{{attendee.bio}}</p>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item-options *ngIf="attendee.id !== this.currentUserId">
-                        <ion-item-option (click)="messageUser(attendee.id)">
-                            <ion-icon name="send"></ion-icon>
-                        </ion-item-option>
-                        <ion-item-option style="--background: #7ec3ca;" (click)="sendRequest(attendee.id)">
-                            <ion-icon name="person-add"></ion-icon>
-                        </ion-item-option>
-                    </ion-item-options>
-                </ion-item-sliding>
-            </ion-list>
-        </ion-card-content>
-    </ion-card>
-</ion-content>
+        <ion-slides [options]="slideOptions" pager="true">
+            <ion-slide>
+                <app-activity-status>
+                </app-activity-status>
+            </ion-slide>
+            <ion-slide>
+                <app-in-event [eventId]="eventID">
+                </app-in-event>
+            </ion-slide>
+        </ion-slides>
+ </ion-content>

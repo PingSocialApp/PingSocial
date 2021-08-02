@@ -19,13 +19,21 @@ export class LinksService {
     params = params.set('offset', offset.toString());
     return this.http.get(environment.apiURL.links,{
         params
-    }).pipe(retry(3), share(), scan((all,current) => {
-            if(offset === 0){
-                all = [];
-            }
-            // @ts-ignore
-            return all.concat(current.data);
-    }, []));
+    }).pipe(retry(3), share(), scan((all:any,current:any) => {
+      if(offset === 0){
+        all = {
+          isDone: false,
+          data: [],
+        };
+    }
+    if(current.data.length < limit){
+      all.isDone = true;
+    }
+
+    all.data = [...all.data,...current.data];
+
+    return all;
+    }, {isDone: false, data: []}));
   }
 
   getToSocials(id: string){
@@ -57,12 +65,20 @@ export class LinksService {
     params = params.set('offset', offset.toString());
     return this.http.get(environment.apiURL.links + 'location',{
         params
-    }).pipe(retry(3), share(), scan((all,current) => {
-            if(offset === 0){
-                all = [];
-            }
-            // @ts-ignore
-            return all.concat(current.data);
-    }, []));
+    }).pipe(retry(3), share(), scan((all:any,current:any) => {
+      if(offset === 0){
+        all = {
+          isDone: false,
+          data: [],
+        };
+    }
+    if(current.data.length < limit){
+      all.isDone = true;
+    }
+
+    all.data = [...all.data,...current.data];
+
+    return all;
+    }, {isDone: false, data: []}));
   }
 }

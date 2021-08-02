@@ -3,11 +3,12 @@ import {AngularFirestore} from '@angular/fire/firestore';
 import {ModalController} from '@ionic/angular';
 import {firestore} from 'firebase/app';
 import {AngularFireAuth} from '@angular/fire/auth';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Subscription} from 'rxjs';
 import { UtilsService } from 'src/app/services/utils.service';
 import { AuthHandler } from 'src/app/services/authHandler.service';
 import { v4 as uuidv4 } from 'uuid';
 import { LinksService } from 'src/app/services/links.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
     selector: 'app-new-ping',
@@ -21,19 +22,27 @@ export class NewPingPage implements OnInit, OnDestroy {
     offset: number;
     linksBS: BehaviorSubject<number>;
     pingMessage: string;
+    myInfoSubscription: Subscription;
+    myName: any;
+    myPic: any;
 
     constructor(private fs: AngularFirestore,  private modalCtrl: ModalController,
-                private utils: UtilsService, private ls: LinksService, private auth: AuthHandler) {
+                private utils: UtilsService, private ls: LinksService, private auth: AuthHandler, private us: UsersService) {
     }
 
     ngOnInit() {
         this.offset = 0;
         this.linksBS = new BehaviorSubject(this.offset);
         this.linksBS.subscribe(() => this.getLinks());
+        this.myInfoSubscription = this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
+            this.myName = val.data.name;
+            this.myPic = val.data.profilepic;
+        }, (error)=>console.error(error));
     }
 
     ngOnDestroy() {
         this.links.unsubscribe();
+        this.myInfoSubscription.unsubscribe();
     }
 
     getLinks() {
@@ -63,11 +72,17 @@ export class NewPingPage implements OnInit, OnDestroy {
             if (toggle.checked) {
                 batch.set(this.fs.collection('pings').doc(uuidv4()).ref, {
                     responseMessage: this.pingMessage,
-                    userSent: this.auth.getUID(),
-                    userRec: toggle.id,
+                    userSent: {
+                        id: this.auth.getUID(),
+                        name: this.myName,
+                        profilepic: this.myPic,
+                    },
+                    userRec: {
+                        id: toggle.id
+                    },
                     timeStamp: firestore.FieldValue.serverTimestamp(),
                     sentMessage: 'New Message!'
-                })
+                });
             }
         }
         batch.commit().then(() => this.closeModal()).catch(e => {
