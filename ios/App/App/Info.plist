@@ -2,8 +2,21 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleLocalizations</key>
+    <array>
+    <string>en</string>
+    <string>de</string>
+    <string>nl</string>
+    <string>fr</string>
+    <string>it</string>
+    <string>pt-BR</string>
+    </array>
+	<key>NSContactsUsageDescription</key>
+    <string>Ping Needs Access To Your Contacts To Connect With Friends That Are Also Using Ping</string>
+	<key>NSCalendarsUsageDescription</key>
+    <string>Ping Needs Access To Your Calendar To Save Events To Your Personal Calendar</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location Permission Required to See Events Happening Around You</string>
+	<string>Ping Needs Access To Your Location To See Events Happening Around You</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
