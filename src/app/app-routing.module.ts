@@ -59,6 +59,7 @@ const routes: Routes = [
   },
   {
     path: 'rating',
+    canActivate: [AngularFireAuthGuard],
     loadChildren: () => import('./rating/rating.module').then( m => m.RatingPageModule)
   }
 ];

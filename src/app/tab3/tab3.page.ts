@@ -2,31 +2,32 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {SettingsPage} from '../settings/settings.page';
 import {ModalController} from '@ionic/angular';
 import {RequestsPage} from '../requests/requests.page';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import { LinksService } from '../services/links.service';
+import { RequestsService } from '../services/requests.service';
+import { AngularFireDatabase } from '@angular/fire/database';
 
 @Component({
     selector: 'app-tab3',
     templateUrl: 'tab3.page.html',
     styleUrls: ['tab3.page.scss'],
-    providers: []
+    providers: [AngularFireDatabase]
 })
 
 export class Tab3Page implements OnInit, OnDestroy {
-    requestAmount: number;
+    requestAmount: Observable<number | any>;
     links: any;
     offset: number;
     linksBS: BehaviorSubject<number>;
 
-    constructor(private modalController: ModalController, private ls: LinksService) {
+    constructor(private modalController: ModalController, private ls: LinksService, private rs: RequestsService) {
     }
 
     ngOnInit() {
         this.offset = 0;
         this.linksBS = new BehaviorSubject(this.offset);
         this.linksBS.subscribe(() => this.getLinks());
-        this.requestAmount = 0;
-        // TODO get requestAmount from RTDB
+        this.requestAmount = this.rs.getTotalNumRequests();
     }
 
     ngOnDestroy() {

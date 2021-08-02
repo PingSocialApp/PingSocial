@@ -1,7 +1,7 @@
 {
   "name": "PingSocial",
   "integrations": {
-    "cordova": {}
+    "capacitor": {}
   },
   "type": "angular",
   "id": "c2dc9cb1"

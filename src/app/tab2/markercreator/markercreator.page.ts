@@ -1,12 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {EventcreatorComponent} from './eventcreator/eventcreator.component';
 import {Calendar} from '@ionic-native/calendar/ngx';
+import { ModalController } from '@ionic/angular';
 
 @Component({
     selector: 'app-markercreator',
     templateUrl: './markercreator.page.html',
     styleUrls: ['./markercreator.page.scss'],
-    providers: [Calendar, EventcreatorComponent]
+    providers: [Calendar]
 })
 
 export class MarkercreatorPage implements OnInit {
@@ -14,7 +14,7 @@ export class MarkercreatorPage implements OnInit {
     segmentShown: string;
     editMode: boolean;
 
-    constructor(private eventCreator: EventcreatorComponent) {
+    constructor(private modalController: ModalController) {
     }
 
     ngOnInit() {
@@ -23,7 +23,7 @@ export class MarkercreatorPage implements OnInit {
     }
 
     closeModal(){
-        this.eventCreator.closeModal();
+        this.modalController.dismiss();
     }
 
     segmentChanged($event: any) {

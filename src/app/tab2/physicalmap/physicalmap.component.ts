@@ -5,9 +5,8 @@ import {
 	OnInit
 } from '@angular/core';
 import {
-	IonSearchbar,
+    // IonSearchbar,
 	ModalController,
-	Platform
 } from '@ionic/angular';
 import {
 	environment
@@ -21,9 +20,6 @@ import {
 	combineLatest,
 	Subscription
 } from 'rxjs';
-import {
-	AngularFireDatabase
-} from '@angular/fire/database';
 import {
 	MarkercreatorPage
 } from '../markercreator/markercreator.page';
@@ -88,13 +84,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	location: any;
 	checkedIn: string;
 
-	constructor(private rtdb: AngularFireDatabase, private ms: MarkersService, private us: UsersService, private platform: Platform,
-		private modalController: ModalController, public auth: AuthHandler, private es: EventsService,
-		private utils: UtilsService) {
+	constructor(private ms: MarkersService, private us: UsersService, private modalController: ModalController,
+        public auth: AuthHandler, private es: EventsService, private utils: UtilsService) {
 		mapboxgl.accessToken = environment.mapbox.accessToken;
 	}
 
-	async ngOnInit() {
+	ngOnInit() {
 		this.allUserMarkers = [];
 		this.location = [];
 		this.showFilter = false;
@@ -105,37 +100,52 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.checkedIn = null;
 	}
 
-	ngAfterViewInit() {
-		Geolocation.getCurrentPosition().then((resp) => {
-			this.buildMap(resp.coords);
-			this.map.resize();
-			// this.updateLocation(resp.coords);
-		}).then(() => {
-			this.map.on('load', () => {
-				this.presentCurrentLocation();
-				this.refreshContent(true);
-				Geolocation.watchPosition({
-					enableHighAccuracy: true,
-				}, (position, err) => {
-					this.renderCurrent(position);
-				});
-			});
-		}).catch((error) => {
-			console.error('Error getting location', error);
-		});
-		//setTimeout(() => this.map.invalidateSize(), 0);
-	}
+    ngAfterViewInit() {
+        let pos = null;
+        Geolocation.getCurrentPosition().then((resp) => {
+            this.buildMap(resp.coords);
+            this.updateLocation(resp.coords);
+            pos = [resp.coords.latitude, resp.coords.longitude];
+        }).then(() => {
+            this.map.on('load', () => {
+                this.presentCurrentLocation();
+                this.refreshContent(true);
+                Geolocation.watchPosition({
+                    enableHighAccuracy: true,
+                },(position, err) => {
+                    if(this.getDistance(pos[0], pos[1], position.coords.latitude, position.coords.longitude) >= 0.005){
+                        this.updateLocation(position.coords);
+                    }
 
-	ngOnDestroy() {
-		this.linksSub.unsubscribe();
-		this.markersSub.unsubscribe();
-	}
+                    this.renderCurrent(position);
+
+                    pos = [position.coords.latitude, position.coords.longitude];
+
+                    if(err){
+                        console.error(err);
+                    }
+                });
+            });
+        }).catch((error) => {
+            console.error('Error getting location', error);
+        });
+    }
+
+
+    // TODO call on page kill or logout
+    // https://blog.devgenius.io/where-ngondestroy-fails-you-54a8c2eca0e0
+    ngOnDestroy() {
+        this.linksSub.unsubscribe();
+        this.markersSub.unsubscribe();
+        this.currentLocationMarker.remove();
+    }
 
 	refreshContent(reset = false) {
 		// this.renderLinks(reset);
 
 		const coords = this.map.getCenter();
 
+        // TODO change radius
 		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
 			this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
 		]);
@@ -151,65 +161,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		}, err => console.error(err));
 	}
 
-	renderCurrent(pos: Position) {
-		// update current user location
-		const lng = pos.coords.longitude;
-		const lat = pos.coords.latitude;
-
-		this.location = [lng, lat];
-
-		// const locationRef = this.rtdb.database.ref('/location/' + this.currentUserId);
-		// this.updateStatus(locationRef);
-
-		// use api to get location
-		// this.renderUser(this.currentLocationMarker, lng, lat);
-
-		// just to fly to current user on map
-		this.map.flyTo({
-			center: [lng, lat],
-			essential: true
-		});
-	}
-
 	getRadius() {
 		return (78271 / (2 ** this.map.getZoom())) * 256;
-	}
-
-	renderLinks(reset) {
-		const coords = this.map.getCenter();
-
-		this.linksSub = this.ms.getLinks(coords.lat, coords.lng, this.getRadius(), reset).subscribe((res: any) => {
-			this.allUserMarkers.forEach(tempMarker => {
-				tempMarker.remove();
-			});
-			res.data.features.forEach(doc => {
-				// create marker and style it
-				const el = this.createMarker();
-				el.style.width = '30px';
-				el.style.height = '30px';
-				el.style.backgroundImage = 'url(' + doc.profilepic + ')';
-				// get other users longitude, latitude, and lastOnline vals
-				const longi = doc.geometry[0];
-				const latid = doc.geometry[1];
-				// const locat = vals.place;
-
-				// const lastOn = vals.lastOnline;
-				// const oStat = vals.isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
-
-				el.id = doc.id;
-				const oMark = new mapboxgl.Marker(el);
-				this.allUserMarkers.push(oMark);
-				el.addEventListener('click', async (e) => {
-					this.showUserDetails = true;
-					this.showEventDetails = false;
-					this.otherUserName = doc.properties.name;
-					// this.otherUserStatus = oStat;
-					// this.otherUserLocation = locat;
-					this.otherUserId = doc.id
-				});
-				this.renderUser(oMark, longi, latid);
-			});
-		});
 	}
 
 	renderUser(marker, lng, lat) {
@@ -237,13 +190,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		} else {
 			return 'Just Now';
 		}
-	}
-
-	updateLocation(coords) {
-		this.us.setUserLocation({
-			longitude: coords.longitude,
-			latitude: coords.latitude,
-		}).subscribe((val: any) => console.log(val), (err: any) => console.error(err));
 	}
 
 	presentCollectedData(pointData) {
@@ -285,7 +231,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			tempThis.renderClusters(feat, data, eventH);
 			for (const html of eventH) {
 				for (const cluster of feat) {
-					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false') || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster') && (parseInt(html.id) === cluster.id))) {
+					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false')
+                    || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster')
+                    && (parseInt(html.id,10) === cluster.id))) {
 						document.getElementById(html.id).style.display = 'inline';
 						break;
 					} else {
@@ -364,11 +312,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 	// renders clusters
 	renderClusters(clusters, data, events) {
-		let currentPoint;
 		// array for point distances from cluster, smallest to largest
-		const distArr = new Array(data.length);
+		let distArr = new Array(data.length);
 		// array for points based on distances from cluster, smallest to largest (using above numbers)
-		const pointArr = new Array(data.length);
+		let pointArr = new Array(data.length);
 		// finding points within cluster to color correctly
 		for (const feature of clusters) {
 			// creation of new cluster marker html
@@ -384,23 +331,23 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				if(this.map.getZoom() >= 10.5){
 					const srcElem = e.srcElement;
 					const idValue = srcElem.id;
-					for(var i = 0; i < this.clusterArray.length; i++){
-						if(this.clusterArray[i].id === parseInt(idValue)){
-							const distArr = new Array(markerArray.length);
-							const pointArr = new Array(markerArray.length);
-							this.getClusterDistances(this.clusterArray[i], markerArray, distArr, pointArr);
-							pointArr.length = this.clusterArray[i].properties.point_count;
+					for(const cluster of this.clusterArray){
+						if(cluster.id === parseInt(idValue,10)){
+							distArr = new Array(markerArray.length);
+							pointArr = new Array(markerArray.length);
+							this.getClusterDistances(cluster, markerArray, distArr, pointArr);
+							pointArr.length = cluster.properties.point_count;
 							this.markerArray = pointArr;
-							this.clusterArray = this.clusterArray[i];
+							this.clusterArray = cluster;
 							this.showEventDetails = false;
 							this.showUserDetails = false;
 							this.showPing = false;
 							this.showClusterDetails = true;
-							for(var j = 0; j < this.markerArray.length; j++){
-								const startTime = new Date(this.markerArray[j].properties.startTime);
+							for(const element of this.markerArray){
+								const startTime = new Date(element.properties.startTime);
 								let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
 								startMinutes += startTime.getMinutes();
-								this.markerArray[j].properties.startTime = startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes;
+								element.properties.startTime = startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes;
 							}
 							break;
 						}
@@ -643,34 +590,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.showClusterDetails = false;
 	}
 
-	presentCurrentLocation() {
-		const el = this.createMarker();
-		el.style.width = '30px';
-		el.style.height = '30px';
-
-		this.us.getUserBasic(this.auth.getUID()).subscribe((val: any) => {
-			el.style.backgroundImage = 'url(' + val.data.profilepic + ')';
-			el.addEventListener('click', (e) => {
-				this.showUserDetails = true;
-				this.showEventDetails = false;
-				this.showPing = false;
-				this.showClusterDetails = false;
-				this.otherUserName = val.data.name;
-				this.otherUserStatus = 'Online';
-				this.otherUserId = 'currentLocation';
-				this.otherUserLocation = 'Here';
-				this.checkedIn = val.data.checkedIn;
-			});
-			el.id = 'currentLocation';
-			this.currentLocationMarker = new mapboxgl.Marker(el);
-		})
-	}
-
 	buildMap(coords: any) {
 		this.map = new mapboxgl.Map({
 			container: 'map',
 			style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
 			zoom: 18,
+            minZoom: 10,
 			center: [coords.longitude, coords.latitude]
 		});
 		this.map.on('dragstart', () => {
@@ -684,71 +609,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		});
 	}
 
-	async presentFilter() {
-		this.showFilter = !this.showFilter;
-		if (!this.showFilter) {
-			const elements = document.getElementsByClassName('mapboxgl-marker');
-			// tslint:disable-next-line:prefer-for-of
-			for (let i = 0; i < elements.length; i++) {
-				(elements[i] as HTMLElement).style.display = 'block';
-			}
-		}
-	}
-
-	filterMarkers() {
-		const elements = document.getElementsByClassName('mapboxgl-marker');
-		// tslint:disable-next-line:prefer-for-of
-		for (let i = 0; i < elements.length; i++) {
-			(elements[i] as HTMLElement).style.display = 'block';
-			if (elements[i].id === 'currentLocation') {
-				continue;
-			}
-			let elementStatus = elements[i].getAttribute('data-private');
-			const elementType = elements[i].getAttribute('data-type');
-			const elementTime = new Date(elements[i].getAttribute('data-time'));
-			const currentDate = new Date();
-
-			if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
-					elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
-				(elements[i] as HTMLElement).style.display = 'none';
-				continue;
-			}
-
-			if (this.queryLink) {
-				(elements[i] as HTMLElement).style.display = elements[i].getAttribute('data-link') === 'false' ? 'none' : null;
-				continue;
-			}
-
-			if (this.queryStatus !== 'All') {
-				elementStatus = elementStatus === 'false' ? 'Public' : ' Private';
-			} else {
-				elementStatus = 'All';
-			}
-
-			if (elementType !== this.queryType && this.queryType !== 'All' || this.queryStatus !== elementStatus) {
-				(elements[i] as HTMLElement).style.display = 'none';
-				continue;
-			}
-
-			(document.getElementById('searchbar') as unknown as IonSearchbar).getInputElement().then((input) => {
-				const shouldShow = elements[i].getAttribute('data-name').toLowerCase().indexOf(input.value.toLowerCase()) > -1;
-				(elements[i] as HTMLElement).style.display = !shouldShow ? 'none' : (elements[i] as HTMLElement).style.display;
-			});
-		}
-	}
-
-	async presentEventCreatorModal(data: string) {
-		const modal = await this.modalController.create({
-			component: MarkercreatorPage,
-			componentProps: {
-				eventID: data
-			}
-		});
-		// TODO Auto Refresh on Create Marker
-		return await modal.present();
-	}
-
-	async checkIn(currentEventId, currentEventTitle) {
+	async checkIn(currentEventId:string, currentEventTitle:string) {
 		if (this.checkedIn) {
 			if ((await this.checkOut(currentEventId, currentEventTitle)).data.isSuccesful) {
 				this.es.checkin(currentEventId).subscribe((val) => {
@@ -758,7 +619,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		}
 	}
 
-	async checkOut(currentEventId, currentEventTitle) {
+	async checkOut(currentEventId:string, currentEventTitle:string) {
 		const modal = await this.modalController.create({
 			component: RatingPage,
 			componentProps: {
@@ -770,22 +631,164 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		return modal.onDidDismiss();
 	}
 
-	getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-		const earthRadiusKm = 6371;
+    renderCurrent(pos: Position) {
+        // update current user location
+            const lng = pos.coords.longitude;
+            const lat = pos.coords.latitude;
 
-		const dLat = this.degreesToRadians(lat2 - lat1);
-		const dLon = this.degreesToRadians(lon2 - lon1);
+            this.location = [lng, lat];
 
-		lat1 = this.degreesToRadians(lat1);
-		lat2 = this.degreesToRadians(lat2);
+            // use api to get location
+            this.renderUser(this.currentLocationMarker, lng, lat);
+    }
 
-		const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-			Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		return earthRadiusKm * c;
-	}
+    renderLinks(reset) {
+        const coords = this.map.getCenter();
 
-	degreesToRadians(degrees) {
-		return degrees * Math.PI / 180;
-	}
+        this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
+            this.allUserMarkers.forEach(tempMarker => {
+                tempMarker.remove();
+            });
+            res.data.features.forEach(doc => {
+                // create marker and style it
+                const el = this.createMarker();
+                el.style.width = '30px';
+                el.style.height = '30px';
+                el.style.backgroundImage = 'url(' + doc.profilepic + ')';
+                // get other users longitude, latitude, and lastOnline vals
+                const longi = doc.geometry[0];
+                const latid = doc.geometry[1];
+                // const locat = vals.place;
+
+                // const lastOn = vals.lastOnline;
+                // const oStat = vals.isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
+
+                el.id = doc.id;
+                const oMark = new mapboxgl.Marker(el);
+                this.allUserMarkers.push(oMark);
+                el.addEventListener('click', async (e) => {
+                    this.showUserDetails = true;
+                    this.showEventDetails = false;
+                    this.otherUserName = doc.properties.name;
+                    // this.otherUserStatus = oStat;
+                    // this.otherUserLocation = locat;
+                    this.otherUserId = doc.id
+                });
+                this.renderUser(oMark, longi, latid);
+            });
+        });
+    }
+
+    updateLocation(coords) {
+        this.us.setUserLocation({
+            longitude: coords.longitude,
+            latitude: coords.latitude,
+        }).subscribe((val: any) => console.log(val.data) ,(err: any) => console.error(err));
+    }
+
+    presentCurrentLocation() {
+        const el = this.createMarker();
+        el.style.width = '30px';
+        el.style.height = '30px';
+
+        this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
+            el.style.backgroundImage = 'url(' + val.data.profilepic + ')';
+            el.addEventListener('click', (e) => {
+                this.showUserDetails = true;
+                this.showEventDetails = false;
+                this.showPing = false;
+                this.otherUserName = val.data.name;
+                this.otherUserStatus = 'Online';
+                this.otherUserId = 'currentLocation';
+                this.otherUserLocation = 'Here';
+                this.checkedIn = val.data.checkedIn;
+                this.es.checkedInEvent.next(val.data.checkedIn);
+            });
+            el.id = 'currentLocation';
+            this.currentLocationMarker = new mapboxgl.Marker(el);
+        })
+    }
+
+    // async presentFilter() {
+    //     this.showFilter = !this.showFilter;
+    //     if (!this.showFilter) {
+    //         const elements = document.getElementsByClassName('mapboxgl-marker');
+    //         // tslint:disable-next-line:prefer-for-of
+    //         for (let i = 0; i < elements.length; i++) {
+    //             (elements[i] as HTMLElement).style.display = 'block';
+    //         }
+    //     }
+    // }
+
+    // filterMarkers() {
+    //     const elements = document.getElementsByClassName('mapboxgl-marker');
+    //     // tslint:disable-next-line:prefer-for-of
+    //     for (let i = 0; i < elements.length; i++) {
+    //         (elements[i] as HTMLElement).style.display = 'block';
+    //         if (elements[i].id === 'currentLocation') {
+    //             continue;
+    //         }
+    //         let elementStatus = elements[i].getAttribute('data-private');
+    //         const elementType = elements[i].getAttribute('data-type');
+    //         const elementTime = new Date(elements[i].getAttribute('data-time'));
+    //         const currentDate = new Date();
+
+    //         if (this.queryDate && !(elementTime.getFullYear() === currentDate.getFullYear() &&
+    //             elementTime.getMonth() === currentDate.getMonth() && elementTime.getDate() === currentDate.getDate())) {
+    //             (elements[i] as HTMLElement).style.display = 'none';
+    //             continue;
+    //         }
+
+    //         if (this.queryLink) {
+    //             (elements[i] as HTMLElement).style.display = elements[i].getAttribute('data-link') === 'false' ? 'none' : null;
+    //             continue;
+    //         }
+
+    //         if (this.queryStatus !== 'All') {
+    //             elementStatus = elementStatus === 'false' ? 'Public' : ' Private';
+    //         } else {
+    //             elementStatus = 'All';
+    //         }
+
+    //         if (elementType !== this.queryType && this.queryType !== 'All' || this.queryStatus !== elementStatus) {
+    //             (elements[i] as HTMLElement).style.display = 'none';
+    //             continue;
+    //         }
+
+    //         (document.getElementById('searchbar') as unknown as IonSearchbar).getInputElement().then((input) => {
+    //             const shouldShow = elements[i].getAttribute('data-name').toLowerCase().indexOf(input.value.toLowerCase()) > -1;
+    //             (elements[i] as HTMLElement).style.display = !shouldShow ? 'none' : (elements[i] as HTMLElement).style.display;
+    //         });
+    //     }
+    // }
+
+    async presentEventCreatorModal(data: string) {
+        const modal = await this.modalController.create({
+            component: MarkercreatorPage,
+            componentProps: {
+                eventID: data
+            }
+        });
+        modal.onDidDismiss().then(() => this.refreshContent());
+        return await modal.present();
+    }
+
+    getDistance(lat1, lon1, lat2, lon2) {
+        const earthRadiusKm = 6371;
+
+        const dLat = this.degreesToRadians(lat2-lat1);
+        const dLon = this.degreesToRadians(lon2-lon1);
+
+        lat1 = this.degreesToRadians(lat1);
+        lat2 = this.degreesToRadians(lat2);
+
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return earthRadiusKm * c; // KM
+    }
+
+    degreesToRadians(degrees) {
+        return degrees * Math.PI / 180;
+    }
 }
