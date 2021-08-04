@@ -159,7 +159,10 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         //this.gs.createGeoPing(geoPing).pipe(concatMap((val:any) => {
         this.gs.createGeoPing(geoPing).pipe(concatMap((val:any) => {
             if(this.isPublic){
-                return new Observable<any>();
+                const ob = Observable.create((observer) => {
+                  observer.next(42);
+                })
+                return ob;
             }
             return this.gs.shareGeoPing(val.data.id, this.links);
         })).subscribe(() => {
