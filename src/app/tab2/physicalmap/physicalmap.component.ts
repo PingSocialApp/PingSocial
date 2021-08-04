@@ -210,9 +210,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		// }
 		// geojson format
 		const data = pointData.data;
-		for(const e in eventH){
-			if(data.indexOf)
-		}
 		// sets up source and cluster layer
 		tempThis.clusterSetUp(data);
 		// rendering individual events and geopings
@@ -382,12 +379,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 							this.showClusterDetails = true;
 							for(const element of this.markerArray){
 								if(element.properties.sentMessage){
-									let timeBetween = new Date(element.properties.timeExpire) - new Date();
+									let timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
 									let timeBetweenString = null;
 									if(timeBetween <= 360000){
-										timeBetweenString = parseInt(Math.floor(timeBetween/60000)) + ' minutes remaining';
+										timeBetweenString = (Math.floor(timeBetween/60000)).toString() + ' minutes remaining';
 									}else{
-										timeBetweenString = parseInt(Math.floor(timeBetween/3600000)) + ' hours remaining';
+										timeBetweenString = (Math.floor(timeBetween/3600000)).toString() + ' hours remaining';
 									}
 									element.properties.timeCreate = timeBetweenString;
 								}else{
@@ -530,12 +527,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			document.getElementById(el.id).remove();
 		}
 
-		let timeBetween = new Date(pingInfo.timeExpire) - new Date();
+		let timeBetween = (new Date(pingInfo.timeExpire)).getTime() - (new Date()).getTime();
 		let timeBetweenString = null;
 		if(timeBetween <= 360000){
-			timeBetweenString = parseInt(Math.floor(timeBetween/60000)) + ' minutes remaining';
+			timeBetweenString = (Math.floor(timeBetween/60000)).toString() + ' minutes remaining';
 		}else{
-			timeBetweenString = parseInt(Math.floor(timeBetween/3600000)) + ' hours remaining';
+			timeBetweenString = (Math.floor(timeBetween/3600000)).toString() + ' hours remaining';
 		}
 
 		el.addEventListener('click', (e) => {
