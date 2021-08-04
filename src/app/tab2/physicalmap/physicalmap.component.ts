@@ -109,6 +109,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }).then(() => {
             this.map.on('load', () => {
                 this.presentCurrentLocation();
+								this.map.resize();
                 this.refreshContent(true);
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
@@ -142,7 +143,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		refreshContent(reset = false) {
 			// this.renderLinks(reset);
-			console.log(this);
 			const coords = this.map.getCenter();
 
 	        // TODO change radius
@@ -168,7 +168,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					 			}
 					 		}
 					 		if(!flag){
-					 			console.log("removed ", this.markerArray[i].properties.id);
 								document.getElementById(this.markerArray[i].properties.id).style.display = "none";
 					 			document.getElementById(this.markerArray[i].properties.id).remove();
 					 		}
@@ -457,8 +456,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	// el.classList.contains(className);
 	// el.classList.remove(className)
 	setClusterImage(el, element) {
-		console.log(element.getAttribute('data-type'));
-		console.log(el.classList);
 		if (element.getAttribute('data-type') === 'party') {
 			// set marker
 			if (el.classList.contains('ping')) {

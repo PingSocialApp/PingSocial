@@ -8,7 +8,7 @@ import { AuthHandler } from 'src/app/services/authHandler.service';
 import { GeopingsService } from 'src/app/services/geopings.service';
 import { concatMap } from 'rxjs/operators';
 import { UtilsService } from 'src/app/services/utils.service';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 @Component({
     selector: 'app-geo-ping',
@@ -159,10 +159,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         //this.gs.createGeoPing(geoPing).pipe(concatMap((val:any) => {
         this.gs.createGeoPing(geoPing).pipe(concatMap((val:any) => {
             if(this.isPublic){
-                const ob = Observable.create((observer) => {
-                  observer.next(42);
-                })
-                return ob;
+              return of("");
             }
             return this.gs.shareGeoPing(val.data.id, this.links);
         })).subscribe(() => {
