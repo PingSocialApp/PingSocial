@@ -129,7 +129,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }).catch((error) => {
             console.error('Error getting location', error);
         });
-				this.map.resize();
     }
 
 
@@ -141,53 +140,47 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentLocationMarker.remove();
     }
 
-	refreshContent(reset = false) {
-		// this.renderLinks(reset);
-		console.log(this);
-		const coords = this.map.getCenter();
+		refreshContent(reset = false) {
+			// this.renderLinks(reset);
+			console.log(this);
+			const coords = this.map.getCenter();
 
-        // TODO change radius
-		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
-			this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
-		]);
-		this.markersSub = sub.subscribe((markerSet: any) => {
-			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
-			console.log(this.markerArray, "marker array");
-			console.log(newSet, "new set");
-			if (newSet.length !== 0) {
-				 if(this.markerArray){
-					 let dummyNewSet = newSet;
-				 	for(var i = 0; i < this.markerArray.length; i++){
-				 		let flag = false;
-				 		for(var j = 0; j < dummyNewSet.length; j++){
-							//console.log(dummyNewSet[j].properties.id);
-							//NEELEY TODO: should work when stops sending old events; need to check
-				 			if((this.markerArray[i].properties.id === dummyNewSet[j].properties.id)){
-								console.log("found", this.markerArray[i].properties.id, i);
-								if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
-									console.log("found and removed", newSet[j].properties.id);
-									document.getElementById(this.markerArray[i].properties.id).style.display = "none";
-						 			document.getElementById(this.markerArray[i].properties.id).remove();
-									newSet.splice(j, 1);
-								}
-				 				flag = true;
-								break;
-				 			}
-				 		}
-				 		if(!flag){
-				 			console.log("removed ", this.markerArray[i].properties.id);
-							document.getElementById(this.markerArray[i].properties.id).style.display = "none";
-				 			document.getElementById(this.markerArray[i].properties.id).remove();
-				 		}
-				 	}
-				 }
-				this.markerArray = newSet;
-				this.presentCollectedData({
-					data: newSet
-				});
-			}
-		}, err => console.error(err));
-	}
+	        // TODO change radius
+			const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
+				this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
+			]);
+			this.markersSub = sub.subscribe((markerSet: any) => {
+				const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
+				if (newSet.length !== 0) {
+					 if(this.markerArray){
+						 let dummyNewSet = newSet;
+					 	for(var i = 0; i < this.markerArray.length; i++){
+					 		let flag = false;
+					 		for(var j = 0; j < dummyNewSet.length; j++){
+								//NEELEY TODO: should work when stops sending old events; need to check
+					 			if((this.markerArray[i].properties.id === dummyNewSet[j].properties.id)){
+					 				flag = true;
+									if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
+										flag = false;
+										newSet.splice(j, 1);
+									}
+									break;
+					 			}
+					 		}
+					 		if(!flag){
+					 			console.log("removed ", this.markerArray[i].properties.id);
+								document.getElementById(this.markerArray[i].properties.id).style.display = "none";
+					 			document.getElementById(this.markerArray[i].properties.id).remove();
+					 		}
+					 	}
+					 }
+					this.markerArray = newSet;
+					this.presentCollectedData({
+						data: newSet
+					});
+				}
+			}, err => console.error(err));
+		}
 
 	getRadius() {
 		return (78271 / (2 ** this.map.getZoom())) * 256;
@@ -227,15 +220,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (!pointData.data) {
 			return;
 		}
-		const cc = this.map.getContainer();
-		// all html of event objects
-		// let eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
-		// console.log(eventH);
-		// for(event in eventH){
-		// 	if(event.id){
-		// 		document.getElementById(event.id).remove();
-		// 	}
-		// }
 		// geojson format
 		const data = pointData.data;
 		// sets up source and cluster layer
@@ -261,9 +245,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			tempThis.clusterArray = feat;
 			const cc = this.getContainer();
 			// all html of event objects
-			let eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
-			//removes dead events
-			//eventH = tempThis.removeFinishedHTML(eventH, data);
+			const eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
 			// removes duplicate html objects
 			tempThis.htmlDataSetUp(eventH);
 			// current point to find distance from clusters
@@ -276,10 +258,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 				for (const cluster of feat) {
 					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false')
-                    || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster')
-                    && (parseInt(html.id) === cluster.id))) {
-						document.getElementById(html.id).style.display = 'inline';
-						break;
+							|| ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster')
+							&& (parseInt(html.id) === cluster.id))) {
+								document.getElementById(html.id).style.display = 'inline';
+								break;
 					} else {
 						document.getElementById(html.id).style.display = 'none';
 					}
@@ -296,24 +278,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	// start of subfunctions
-	//removes events that have finished without full refresh from map
-	// removeFinishedHTML(events, data){
-	// 	let dummyEvents = events;
-	// 	for(const de of dummyEvents){
-	// 		let flag = false;
-	// 		for(const d of data){
-	// 			if(de.id === d.id){
-	// 				console.log("belongs", d.id);
-	// 				flag = true;
-	// 				break;
-	// 			}
-	// 		}
-	// 		if(!flag){
-	// 			document.getElementById(de.id).remove();
-	// 		}
-	// 	}
-	// 	return dummyEvents;
-	// }
 	// sets up map for sources, clusters, and cluster click functions
 	clusterSetUp(data) {
 		// creates or updates source
@@ -354,7 +318,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 	// removes any duplicate html markers, prep to cluster
 	htmlDataSetUp(events) {
-		// removes duplicate html objects and empty events
+		// removes duplicate html objects
 		for (let i = 0; i < events.length; i++) {
 			for (let j = 0; j < events.length; j++) {
 				if (events[i] && events[j]) {
@@ -493,6 +457,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	// el.classList.contains(className);
 	// el.classList.remove(className)
 	setClusterImage(el, element) {
+		console.log(element.getAttribute('data-type'));
+		console.log(el.classList);
 		if (element.getAttribute('data-type') === 'party') {
 			// set marker
 			if (el.classList.contains('ping')) {
@@ -545,6 +511,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	renderPings(doc) {
+		if (document.getElementById(doc.properties.id)) {
+			return;
+		}
 		const pingInfo = doc.properties;
 		let el = null;
 		if (document.getElementById(pingInfo.id)) {
@@ -597,7 +566,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el = this.createMarker();
 		}
 		el.setAttribute('in-cluster', 'false');
-		el.setAttribute('data-name', eventInfo.name);
+		el.setAttribute('data-name', eventInfo.eventName);
 		el.setAttribute('data-private', eventInfo.isPrivate);
 		el.setAttribute('data-type', eventInfo.type);
 		el.id = eventInfo.id;
@@ -636,7 +605,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.className += ' quarter';
 		} else {
 			el.className += ' empty';
-			el.style.display = 'none';
 		}
 		el.addEventListener('click', (e) => {
 			this.showEventDetails = true;
