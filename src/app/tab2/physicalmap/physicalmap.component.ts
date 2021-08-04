@@ -143,7 +143,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	refreshContent(reset = false) {
 		// this.renderLinks(reset);
-
+		console.log(this);
 		const coords = this.map.getCenter();
 
         // TODO change radius
@@ -152,7 +152,35 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		]);
 		this.markersSub = sub.subscribe((markerSet: any) => {
 			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
+			console.log(this.markerArray, "marker array");
+			console.log(newSet, "new set");
 			if (newSet.length !== 0) {
+				 if(this.markerArray){
+					 let dummyNewSet = newSet;
+				 	for(var i = 0; i < this.markerArray.length; i++){
+				 		let flag = false;
+				 		for(var j = 0; j < dummyNewSet.length; j++){
+							//console.log(dummyNewSet[j].properties.id);
+							//NEELEY TODO: should work when stops sending old events; need to check
+				 			if((this.markerArray[i].properties.id === dummyNewSet[j].properties.id)){
+								console.log("found", this.markerArray[i].properties.id, i);
+								if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
+									console.log("found and removed", newSet[j].properties.id);
+									document.getElementById(this.markerArray[i].properties.id).style.display = "none";
+						 			document.getElementById(this.markerArray[i].properties.id).remove();
+									newSet.splice(j, 1);
+								}
+				 				flag = true;
+								break;
+				 			}
+				 		}
+				 		if(!flag){
+				 			console.log("removed ", this.markerArray[i].properties.id);
+							document.getElementById(this.markerArray[i].properties.id).style.display = "none";
+				 			document.getElementById(this.markerArray[i].properties.id).remove();
+				 		}
+				 	}
+				 }
 				this.markerArray = newSet;
 				this.presentCollectedData({
 					data: newSet
@@ -381,10 +409,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 								if(element.properties.sentMessage){
 									let timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
 									let timeBetweenString = null;
-									if(timeBetween <= 360000){
-										timeBetweenString = (Math.floor(timeBetween/60000)).toString() + ' minutes remaining';
+									if(timeBetween <= 3600000){
+										let temp = Math.ceil(timeBetween/60000) + 1;
+										timeBetweenString = (temp).toString() + ' minutes remaining';
 									}else{
-										timeBetweenString = (Math.floor(timeBetween/3600000)).toString() + ' hours remaining';
+										let temp = Math.ceil(timeBetween/3600000) + 1;
+										timeBetweenString = (temp).toString() + ' hours remaining';
 									}
 									element.properties.timeCreate = timeBetweenString;
 								}else{
@@ -529,12 +559,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		let timeBetween = (new Date(pingInfo.timeExpire)).getTime() - (new Date()).getTime();
 		let timeBetweenString = null;
-		if(timeBetween <= 360000){
-			timeBetweenString = (Math.floor(timeBetween/60000)).toString() + ' minutes remaining';
+		if(timeBetween <= 3600000){
+			let temp = Math.ceil(timeBetween/60000) + 1;
+			timeBetweenString = (temp).toString() + ' minutes remaining';
 		}else{
-			timeBetweenString = (Math.floor(timeBetween/3600000)).toString() + ' hours remaining';
+			let temp = Math.ceil(timeBetween/3600000) + 1;
+			timeBetweenString = (temp).toString() + ' hours remaining';
 		}
-
 		el.addEventListener('click', (e) => {
 			this.showEventDetails = false;
 			this.showUserDetails = false;
