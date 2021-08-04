@@ -99,7 +99,7 @@
 
     <div *ngIf="showClusterDetails" class="clusterList">
       <ion-card style="z-index: 3" *ngFor="let event of markerArray; let place = index">
-          <ion-card-content>
+          <ion-card-content *ngIf="!event.properties.sentMessage; else geoPing">
             <ion-card-title>{{event.properties.name}}</ion-card-title>
             <ion-card-subtitle>{{event.properties.type}} @ {{event.properties.startTime}}</ion-card-subtitle>
             <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
@@ -112,6 +112,18 @@
                 <ion-icon name="log-out"></ion-icon>
             </ion-button>
           </ion-card-content>
+          <ng-template #geoPing>
+            <ion-avatar style="margin: 0 auto;  border: solid 3px var(--ion-color-primary);" >
+                <img [src]="this.pingImg">
+            </ion-avatar>
+            <ion-label>
+                <h1 style="text-align: center;">{{event.properties.creator.name}}</h1>
+                <h3 style="margin: 3%">{{event.properties.sentMessage}}</h3>
+            </ion-label>
+            <ion-chip>
+              <ion-label>{{event.properties.timeCreate}}</ion-label>
+            </ion-chip>
+          </ng-template>
       </ion-card>
     </div>
 </div>

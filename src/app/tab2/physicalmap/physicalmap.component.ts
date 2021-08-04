@@ -129,6 +129,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         }).catch((error) => {
             console.error('Error getting location', error);
         });
+				this.map.resize();
     }
 
 
@@ -151,7 +152,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		]);
 		this.markersSub = sub.subscribe((markerSet: any) => {
 			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
-
 			if (newSet.length !== 0) {
 				this.markerArray = newSet;
 				this.presentCollectedData({
@@ -199,14 +199,26 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (!pointData.data) {
 			return;
 		}
+		const cc = this.map.getContainer();
+		// all html of event objects
+		// let eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+		// console.log(eventH);
+		// for(event in eventH){
+		// 	if(event.id){
+		// 		document.getElementById(event.id).remove();
+		// 	}
+		// }
 		// geojson format
 		const data = pointData.data;
+		for(const e in eventH){
+			if(data.indexOf)
+		}
 		// sets up source and cluster layer
 		tempThis.clusterSetUp(data);
 		// rendering individual events and geopings
 		if (data) {
 			data.forEach(event => {
-				if (event.properties.rating) {
+				if (!event.properties.sentMessage) {
 					this.renderEvent(event);
 				} else {
 					this.renderPings(event);
@@ -224,16 +236,23 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			tempThis.clusterArray = feat;
 			const cc = this.getContainer();
 			// all html of event objects
-			const eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+			let eventH = cc.getElementsByClassName('marker-style mapboxgl-marker mapboxgl-marker-anchor-center');
+			//removes dead events
+			//eventH = tempThis.removeFinishedHTML(eventH, data);
 			// removes duplicate html objects
 			tempThis.htmlDataSetUp(eventH);
 			// current point to find distance from clusters
 			tempThis.renderClusters(feat, data, eventH);
 			for (const html of eventH) {
+				if(html.id === undefined){
+					document.getElementById(html.id).style.display = 'none';
+					eventH.remove(html);
+					break;
+				}
 				for (const cluster of feat) {
 					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false')
                     || ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster')
-                    && (parseInt(html.id,10) === cluster.id))) {
+                    && (parseInt(html.id) === cluster.id))) {
 						document.getElementById(html.id).style.display = 'inline';
 						break;
 					} else {
@@ -252,6 +271,24 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	// start of subfunctions
+	//removes events that have finished without full refresh from map
+	// removeFinishedHTML(events, data){
+	// 	let dummyEvents = events;
+	// 	for(const de of dummyEvents){
+	// 		let flag = false;
+	// 		for(const d of data){
+	// 			if(de.id === d.id){
+	// 				console.log("belongs", d.id);
+	// 				flag = true;
+	// 				break;
+	// 			}
+	// 		}
+	// 		if(!flag){
+	// 			document.getElementById(de.id).remove();
+	// 		}
+	// 	}
+	// 	return dummyEvents;
+	// }
 	// sets up map for sources, clusters, and cluster click functions
 	clusterSetUp(data) {
 		// creates or updates source
@@ -292,7 +329,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 	// removes any duplicate html markers, prep to cluster
 	htmlDataSetUp(events) {
-		// removes duplicate html objects
+		// removes duplicate html objects and empty events
 		for (let i = 0; i < events.length; i++) {
 			for (let j = 0; j < events.length; j++) {
 				if (events[i] && events[j]) {
@@ -344,10 +381,21 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 							this.showPing = false;
 							this.showClusterDetails = true;
 							for(const element of this.markerArray){
-								const startTime = new Date(element.properties.startTime);
-								let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
-								startMinutes += startTime.getMinutes();
-								element.properties.startTime = startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes;
+								if(element.properties.sentMessage){
+									let timeBetween = new Date(element.properties.timeExpire) - new Date();
+									let timeBetweenString = null;
+									if(timeBetween <= 360000){
+										timeBetweenString = parseInt(Math.floor(timeBetween/60000)) + ' minutes remaining';
+									}else{
+										timeBetweenString = parseInt(Math.floor(timeBetween/3600000)) + ' hours remaining';
+									}
+									element.properties.timeCreate = timeBetweenString;
+								}else{
+									const startTime = new Date(element.properties.startTime);
+									let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
+									startMinutes += startTime.getMinutes();
+									element.properties.startTime = startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes;
+								}
 							}
 							break;
 						}
@@ -418,8 +466,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	// el.classList.contains(className);
 	// el.classList.remove(className)
 	setClusterImage(el, element) {
-		console.log(element.getAttribute('data-type'));
-		console.log(el.classList);
 		if (element.getAttribute('data-type') === 'party') {
 			// set marker
 			if (el.classList.contains('ping')) {
@@ -472,9 +518,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	renderPings(doc) {
-		if (document.getElementById(doc.properties.id)) {
-			return;
-		}
 		const pingInfo = doc.properties;
 		let el = null;
 		if (document.getElementById(pingInfo.id)) {
@@ -482,9 +525,17 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		} else {
 			el = this.createMarker();
 		}
-		el.id = doc.id;
+		el.id = pingInfo.id;
 		if (!!document.getElementById(el.id)) {
 			document.getElementById(el.id).remove();
+		}
+
+		let timeBetween = new Date(pingInfo.timeExpire) - new Date();
+		let timeBetweenString = null;
+		if(timeBetween <= 360000){
+			timeBetweenString = parseInt(Math.floor(timeBetween/60000)) + ' minutes remaining';
+		}else{
+			timeBetweenString = parseInt(Math.floor(timeBetween/3600000)) + ' hours remaining';
 		}
 
 		el.addEventListener('click', (e) => {
@@ -493,13 +544,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showPing = true;
 			this.showClusterDetails = false;
 			this.pingMessage = pingInfo.sentMessage;
-			// this.pingDate = this.convertTime(Date.now() - pingInfo.timeCreate.toDate());
-			this.pingImg = pingInfo.creatorProfilePic;
-			this.pingAuthor = pingInfo.creatorName;
+			this.pingDate = timeBetweenString;
+			this.pingImg = pingInfo.creator.profilepic;
+			this.pingAuthor = pingInfo.creator.name;
 		});
 
 		el.className += ' ping-marker';
-		el.setAttribute('is-event', doc.entity);
 		el.setAttribute('in-cluster', 'false');
 		try {
 			const marker = new mapboxgl.Marker(el);
@@ -519,10 +569,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el = this.createMarker();
 		}
 		el.setAttribute('in-cluster', 'false');
-		el.setAttribute('data-name', eventInfo.eventName);
+		el.setAttribute('data-name', eventInfo.name);
 		el.setAttribute('data-private', eventInfo.isPrivate);
 		el.setAttribute('data-type', eventInfo.type);
-		el.setAttribute('is-event', eventInfo.entity);
 		el.id = eventInfo.id;
 
 		const startTime = new Date(eventInfo.startTime);
@@ -559,13 +608,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			el.className += ' quarter';
 		} else {
 			el.className += ' empty';
+			el.style.display = 'none';
 		}
 		el.addEventListener('click', (e) => {
 			this.showEventDetails = true;
 			this.showUserDetails = false;
 			this.showPing = false;
 			this.showClusterDetails = false;
-			this.currentEventTitle = 'Filler name';
+			this.currentEventTitle = eventInfo.name;
 			// this.currentEventTitle = eventInfo.name;
 			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
 				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.toDateString() + ' ' +

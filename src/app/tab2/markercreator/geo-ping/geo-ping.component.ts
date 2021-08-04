@@ -161,7 +161,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
                 return new Observable<any>();
             }
             return this.gs.shareGeoPing(val.data.id, this.links);
-        })).subscribe(val => {
+        })).subscribe(() => {
             this.utils.presentToast('GeoPing Made!');
             this.closeModal();
         }, err => {
