@@ -70,8 +70,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	// Neeley
 	showClusterDetails: boolean;
 	markerArray: Array<any>;
+	markerArrayForCluster: Array<any>;
 	clusterArray: Array<any>;
-	startTimeArray: Array<any>;
 
 	// puts marker on the map with user info
 	pingMessage: string;
@@ -174,6 +174,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					 	}
 					 }
 					this.markerArray = newSet;
+					console.log(newSet);
 					this.presentCollectedData({
 						data: newSet
 					});
@@ -360,15 +361,15 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 						if(cluster.id === parseInt(idValue,10)){
 							distArr = new Array(markerArray.length);
 							pointArr = new Array(markerArray.length);
-							this.getClusterDistances(cluster, markerArray, distArr, pointArr);
+							this.markerArrayForCluster = this.getClusterDistances(cluster, markerArray, distArr, pointArr);
 							pointArr.length = cluster.properties.point_count;
-							this.markerArray = pointArr;
+							//this.markerArray = pointArr;
 							this.clusterArray = cluster;
 							this.showEventDetails = false;
 							this.showUserDetails = false;
 							this.showPing = false;
 							this.showClusterDetails = true;
-							for(const element of this.markerArray){
+							for(const element of this.markerArrayForCluster){
 								if(element.properties.sentMessage){
 									let timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
 									let timeBetweenString = null;
@@ -451,6 +452,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
+		return pointArr;
 	}
 	// sets background image of cluster
 	// el.classList.contains(className);
@@ -572,8 +574,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		const endTime = new Date(eventInfo.endTime);
 		let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
 		startMinutes += startTime.getMinutes();
-		let endMinutes = startTime.getMinutes() < 10 ? '0' : '';
-		endMinutes += startTime.getMinutes();
+		let endMinutes = endTime.getMinutes() < 10 ? '0' : '';
+		endMinutes += endTime.getMinutes();
 
 		el.setAttribute('data-time', eventInfo.startTime);
 		if (!!document.getElementById(el.id)) {

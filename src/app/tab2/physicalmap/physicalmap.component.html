@@ -98,7 +98,7 @@
     </ion-card>
 
     <div *ngIf="showClusterDetails" class="clusterList">
-      <ion-card style="z-index: 3" *ngFor="let event of markerArray; let place = index">
+      <ion-card style="z-index: 3" *ngFor="let event of markerArrayForCluster; let place = index">
           <ion-card-content *ngIf="!event.properties.sentMessage; else geoPing">
             <ion-card-title>{{event.properties.name}}</ion-card-title>
             <ion-card-subtitle>{{event.properties.type}} @ {{event.properties.startTime}}</ion-card-subtitle>
