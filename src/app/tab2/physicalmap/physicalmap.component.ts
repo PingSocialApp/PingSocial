@@ -142,7 +142,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
 		refreshContent(reset = false) {
-			// this.renderLinks(reset);
+			this.renderLinks(reset);
 			const coords = this.map.getCenter();
 
 	        // TODO change radius
@@ -174,7 +174,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					 	}
 					 }
 					this.markerArray = newSet;
-					console.log(newSet);
 					this.presentCollectedData({
 						data: newSet
 					});
@@ -183,7 +182,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		}
 
 	getRadius() {
-		return (78271 / (2 ** this.map.getZoom())) * 256;
+		//return (78271 / (2 ** this.map.getZoom())) * 256;
+		return (78271 / (2 ** this.map.getZoom())) * 2560000;
 	}
 
 	renderUser(marker, lng, lat) {
@@ -640,7 +640,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			container: 'map',
 			style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
 			zoom: 18,
-            minZoom: 10,
+            //minZoom: 10,
 			center: [coords.longitude, coords.latitude]
 		});
 		this.map.on('dragstart', () => {
@@ -689,26 +689,27 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     renderLinks(reset) {
         const coords = this.map.getCenter();
-
         this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
-            this.allUserMarkers.forEach(tempMarker => {
+					console.log(res);
+						this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
             res.data.features.forEach(doc => {
+								console.log(doc);
                 // create marker and style it
                 const el = this.createMarker();
                 el.style.width = '30px';
                 el.style.height = '30px';
-                el.style.backgroundImage = 'url(' + doc.profilepic + ')';
+                el.style.backgroundImage = 'url(' + doc.properties.profilepic + ')';
                 // get other users longitude, latitude, and lastOnline vals
-                const longi = doc.geometry[0];
-                const latid = doc.geometry[1];
-                // const locat = vals.place;
+                const longi = doc.geometry.coordinates[0];
+                const latid = doc.geometry.coordinates[1];
+                //const locat = vals.place;
 
                 // const lastOn = vals.lastOnline;
                 // const oStat = vals.isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
 
-                el.id = doc.id;
+                el.id = doc.properties.uid;
                 const oMark = new mapboxgl.Marker(el);
                 this.allUserMarkers.push(oMark);
                 el.addEventListener('click', async (e) => {
@@ -717,18 +718,21 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.otherUserName = doc.properties.name;
                     // this.otherUserStatus = oStat;
                     // this.otherUserLocation = locat;
-                    this.otherUserId = doc.id
+                    this.otherUserId = doc.properties.uid
                 });
+								console.log("rendering..");
                 this.renderUser(oMark, longi, latid);
             });
         });
     }
 
     updateLocation(coords) {
-        this.us.setUserLocation({
-            longitude: coords.longitude,
-            latitude: coords.latitude,
-        }).subscribe((val: any) => console.log(val.data) ,(err: any) => console.error(err));
+			this.us.setUserLocation({
+					location: {
+							longitude: coords.longitude,
+							latitude: coords.latitude,
+					}
+			}).subscribe((val: any) => console.log(val.data) ,(err: any) => console.error(err));
     }
 
     presentCurrentLocation() {
