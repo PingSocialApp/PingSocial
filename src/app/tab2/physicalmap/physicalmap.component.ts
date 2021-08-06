@@ -698,12 +698,20 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 								console.log(doc);
                 // create marker and style it
                 const el = this.createMarker();
-                el.style.width = '30px';
-                el.style.height = '30px';
+                el.className += ' person-location';
                 el.style.backgroundImage = 'url(' + doc.properties.profilepic + ')';
                 // get other users longitude, latitude, and lastOnline vals
                 const longi = doc.geometry.coordinates[0];
                 const latid = doc.geometry.coordinates[1];
+
+								const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
+            			mapboxgl.accessToken;
+
+        				// get info from api
+        				fetch(reqStr).then(response => response.json())
+            				.then(data => {
+											this.otherUserLocation = data.features[3].text;
+										});
                 //const locat = vals.place;
 
                 // const lastOn = vals.lastOnline;
@@ -716,8 +724,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
                     this.otherUserName = doc.properties.name;
-                    // this.otherUserStatus = oStat;
-                    // this.otherUserLocation = locat;
+										const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
+		            			mapboxgl.accessToken;
+		        				fetch(reqStr).then(response => response.json())
+		            				.then(data => {
+													this.otherUserLocation = data.features[3].text;
+												});
                     this.otherUserId = doc.properties.uid
                 });
 								console.log("rendering..");
@@ -737,8 +749,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     presentCurrentLocation() {
         const el = this.createMarker();
-        el.style.width = '30px';
-        el.style.height = '30px';
+        el.className += ' person-location';
 
         this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
             el.style.backgroundImage = 'url(' + val.data.profilepic + ')';
