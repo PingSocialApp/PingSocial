@@ -123,10 +123,13 @@
 }
 
 :host ::ng-deep .person-location{
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   background-size: cover !important;
   background-position: center !important;
+  border-style: solid;
+  border-color: #8fdee6;
+  border-width: 3px;
 }
 
 .overlaycontainer {
