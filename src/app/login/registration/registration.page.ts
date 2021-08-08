@@ -1,16 +1,16 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {UpdateProfileService} from '../../services/update-profile.service';
+import {UsersService} from '../../services/users.service';
 import {AngularFireStorage} from '@angular/fire/storage';
-import {AngularFirestore} from '@angular/fire/firestore';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {IonSlides, LoadingController} from '@ionic/angular';
 import {Router} from '@angular/router';
+import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
     selector: 'app-registration',
     templateUrl: './registration.page.html',
     styleUrls: ['./registration.page.scss'],
-    providers: [UpdateProfileService, AngularFireStorage, AngularFirestore]
+    providers: [UsersService, AngularFireStorage]
 })
 export class RegistrationPage implements OnInit, OnDestroy {
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
@@ -23,18 +23,13 @@ export class RegistrationPage implements OnInit, OnDestroy {
 
     name: string;
     currentProgress: number;
-    orgType: string;
-    info: string;
 
     constructor(private loadingController: LoadingController, private r: Router,
-                private updateProfileService: UpdateProfileService, public auth: AngularFireAuth) {
-        this.currentProgress = 0.25;
-        this.orgType = 'Independant';
-        this.info = 'per';
+                private us: UsersService, public auth: AngularFireAuth, private utils: UtilsService) {
     }
 
     ngOnInit() {
-
+        this.currentProgress = 1/3;
     }
 
     ngOnDestroy(){
@@ -43,7 +38,7 @@ export class RegistrationPage implements OnInit, OnDestroy {
 
     slideChanged(){
         this.slides.getActiveIndex().then(index => {
-            this.currentProgress = (index + 1) * 0.25;
+            this.currentProgress = (index + 1) * 1/3;
         });
     }
 
@@ -60,30 +55,29 @@ export class RegistrationPage implements OnInit, OnDestroy {
     }
 
     handleFile(files: FileList) {
-        this.updateProfileService.handleFile(files);
+        this.us.handleFile(files);
     }
 
     async createProfile() {
         const loading = await this.loadingController.create({
             message: 'Creating Profile...',
-            duration: 2000
         });
-        await loading.present();
         if ((document.getElementById('username') as HTMLInputElement).value === '') {
-            this.updateProfileService.presentToast('Whoops! Looks like you forgot your name');
+            await this.utils.presentToast('Whoops! Looks like you forgot your name');
             return;
         }
-        this.updateProfileService.updateSettings([''],['']).then(() => {
+        await loading.present();
+        this.us.updateProfile().subscribe(() => {
             loading.dismiss();
             this.r.navigate(['']);
+        }, async (err) => {
+            loading.dismiss();
+            const errorToast = await this.loadingController.create({
+                message: 'Whoops! Something happened. Try again!',
+                duration: 2000
+            });
+            console.error(err);
+            errorToast.present();
         });
-    }
-
-    changeOrg($event: any) {
-        this.orgType = $event.detail.value;
-    }
-
-    changeInfo($event: any) {
-        this.info = $event.detail.value;
     }
 }

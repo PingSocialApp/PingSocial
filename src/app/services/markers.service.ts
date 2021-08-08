@@ -1,0 +1,43 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { retry, share } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+
+@Injectable({
+  providedIn: 'root'
+})
+
+export class MarkersService {
+
+  constructor(private http: HttpClient) { }
+
+  getRelevantEvents(latitude: number, longitude: number, radius:number, reset?:boolean) {
+    let params = new HttpParams();
+        params = params.set('latitude', latitude.toString());
+        params = params.set('longitude', longitude.toString());
+        params = params.set('radius', radius.toString());
+
+    return this.http.get(environment.apiURL.markers + 'events', {params}
+        ).pipe(retry(3));
+  }
+
+  getRelevantGeoPings(latitude: number, longitude: number, radius:number, reset?:boolean) {
+    let params = new HttpParams();
+        params = params.set('latitude', latitude.toString());
+        params = params.set('longitude', longitude.toString());
+        params = params.set('radius', radius.toString());
+
+    return this.http.get(environment.apiURL.markers + 'geopings',{params}
+    ).pipe(retry(3));
+  }
+
+  getLinks(latitude: number, longitude: number, radius:number, reset?:boolean) {
+    let params = new HttpParams();
+        params = params.set('latitude', latitude.toString());
+        params = params.set('longitude', longitude.toString());
+        params = params.set('radius', radius.toString());
+
+    return this.http.get(environment.apiURL.markers + 'links',{params}
+        ).pipe(retry(3), share());
+  }
+}

@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
 import {SettingsPageRoutingModule} from './settings-routing.module';
-import {AngularFireAuthModule} from '@angular/fire/auth';
 import {RouterModule} from '@angular/router';
 import {AngularFireStorageModule} from '@angular/fire/storage';
 
@@ -14,7 +13,6 @@ import {AngularFireStorageModule} from '@angular/fire/storage';
         IonicModule,
         RouterModule,
         AngularFireStorageModule,
-        AngularFireAuthModule,
         SettingsPageRoutingModule
     ],
     // declarations: [SettingsPage]

@@ -11,33 +11,41 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
-    <!-- TODO doesn't work -->
-    <ion-img *ngIf="(links | async)?.length == 0" class="emptyRequests" src="assets/undraw_accept_request_vdsd.svg">
+    <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+    <ion-img *ngIf="(links | async)?.data.length === 0" class="emptyRequests" src="assets/undraw_accept_request_vdsd.svg">
     </ion-img>
-    <h2 *ngIf="(links | async)?.length == 0" class="emptyRequestsLabel">
+    <h2 *ngIf="(links | async)?.data.length === 0" class="emptyRequestsLabel">
         <ion-label>No Pending Requests</ion-label>
     </h2>
-    <ion-list id="memberList">
-        <ion-item-sliding *ngFor="let link of links | async">
+    <ion-list id="memberList" *ngIf="(links | async)?.data.length !== 0">
+        <ion-item-sliding *ngFor="let link of (links | async)?.data">
             <ion-item-options side="start">
-                <ion-item-option (click)="acceptUser(link.id)">
+                <ion-item-option (click)="acceptUser(link.linkId)">
                     <ion-icon name="checkmark-circle"></ion-icon>
                 </ion-item-option>
             </ion-item-options>
             <ion-item>
                 <ion-avatar slot="start">
-                    <img src="{{link.img | async}}">
+                    <img src="{{link.user.profilepic}}">
                 </ion-avatar>
                 <ion-label>
-                    <h2>{{link.name}}</h2>
-                    <p>{{link.bio}}</p>
+                    <h2>{{link.user.name}}</h2>
+                    <p>{{link.user.bio}}</p>
                 </ion-label>
             </ion-item>
             <ion-item-options side="end">
-                <ion-item-option color="danger" (click)="deleteUser(link.id)" expandable>
+                <ion-item-option color="danger" (click)="deleteUser(link.linkId)" expandable>
                     <ion-icon name="trash"></ion-icon>
                 </ion-item-option>
             </ion-item-options>
         </ion-item-sliding>
     </ion-list>
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((links | async)?.isDone)">
+        <ion-infinite-scroll-content
+          loadingSpinner="bubbles"
+          loadingText="Loading more data...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
 </ion-content>

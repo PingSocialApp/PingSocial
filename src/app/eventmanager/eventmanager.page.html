@@ -8,26 +8,84 @@
         </ion-title>
     </ion-toolbar>
 </ion-header>
-
 <ion-content>
-    <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
-    <ion-card *ngFor="let event of myEvents">
-        <ion-card-header>
-            <ion-card-title>{{event.name}}</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-            <ion-label>{{event.des}}</ion-label>
-            <div *ngIf="event.isPrivate">
-                <ion-icon name="lock-closed"></ion-icon>
-                Private Event
-            </div>
-            <div *ngIf="!event.isPrivate">
-                <ion-icon name="lock-open"></ion-icon>
-                Public Event
-            </div>
-            <ion-button expand="block" (click)="presentEventCreatorModal(event.id)"><ion-icon name="expand" *ngIf="!isMe"></ion-icon><ion-icon name="pencil" *ngIf="isMe"></ion-icon></ion-button>
-        </ion-card-content>
-    </ion-card>
+   
+    <ion-slides #mySlides [options]="slideOpts">
+        <ion-slide>
+            <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+                <ion-refresher-content
+                        pullingIcon="chevron-down-circle-outline"
+                        pullingText="Pull to refresh"
+                        refreshingSpinner="circles"
+                        refreshingText="Refreshing...">
+                </ion-refresher-content>
+            </ion-refresher>
+            <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+            <ion-card *ngFor="let event of (createdSub | async)?.data">
+                <ion-card-header>
+                    <ion-card-title>{{event.eventName}}</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    <ion-label>{{event.type}}</ion-label>
+                    <div *ngIf="event.isPrivate">
+                        <ion-icon name="lock-closed"></ion-icon>
+                        Private Event
+                    </div>
+                    <div *ngIf="!event.isPrivate">
+                        <ion-icon name="lock-open"></ion-icon>
+                        Public Event
+                    </div>
+                    <ion-button expand="block" (click)="presentEventCreatorModal(event.id)">
+                        <ion-icon name="expand" *ngIf="!isMe"></ion-icon>
+                        <ion-icon name="pencil" *ngIf="isMe"></ion-icon>
+                    </ion-button>
+                </ion-card-content>
+            </ion-card>
+            <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((createdSub | async)?.isDone)">
+                <ion-infinite-scroll-content
+                  loadingSpinner="bubbles"
+                  loadingText="Loading more events...">
+                </ion-infinite-scroll-content>
+            </ion-infinite-scroll>
+        </ion-slide>
+        <ion-slide>
+            <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+                <ion-refresher-content
+                        pullingIcon="chevron-down-circle-outline"
+                        pullingText="Pull to refresh"
+                        refreshingSpinner="circles"
+                        refreshingText="Refreshing...">
+                </ion-refresher-content>
+            </ion-refresher>
+            <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+            <ion-card *ngFor="let event of (invitedSub | async)?.data">
+                <ion-card-header>
+                    <ion-card-title>{{event.eventName}}</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    <ion-label>{{event.type}}</ion-label>
+                    <div *ngIf="event.isPrivate">
+                        <ion-icon name="lock-closed"></ion-icon>
+                        Private Event
+                    </div>
+                    <div *ngIf="!event.isPrivate">
+                        <ion-icon name="lock-open"></ion-icon>
+                        Public Event
+                    </div>
+                    <ion-button expand="block" (click)="presentEventCreatorModal(event.id)">
+                        <ion-icon name="expand"></ion-icon>
+                    </ion-button>
+                </ion-card-content>
+            </ion-card>
+            <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((invitedSub | async)?.isDone)">
+                <ion-infinite-scroll-content
+                  loadingSpinner="bubbles"
+                  loadingText="Loading more events...">
+                </ion-infinite-scroll-content>
+            </ion-infinite-scroll>
+        </ion-slide>
+    </ion-slides>
+   
     <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="isMe">
         <ion-fab-button (click)="addEvent()">
             <ion-icon name="add"></ion-icon>

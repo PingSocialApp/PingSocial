@@ -1,5 +1,10 @@
 <ion-header>
     <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="presentQRModal()">
+                <ion-icon class="displayIcon" name="qr-code-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
         <ion-title>
             <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
         </ion-title>
@@ -13,21 +18,10 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-   <app-physicalmap></app-physicalmap>
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-<!--        <ion-fab-button>-->
-<!--            <ion-icon name="menu"></ion-icon>-->
-<!--        </ion-fab-button>-->
-        <ion-fab-button>
+    <app-physicalmap></app-physicalmap>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="bottom: 11%">
+        <ion-fab-button (click)="presentEventCreatorModal('')">
             <ion-icon name="add-circle"></ion-icon>
         </ion-fab-button>
-        <ion-fab-list side="start">
-            <ion-fab-button (click)="presentEventCreatorModal('')">
-                <ion-icon name="add-circle"></ion-icon>
-            </ion-fab-button>
-            <ion-fab-button [routerLink]="['/eventmanager/', currentUserId]">
-                <ion-icon name="calendar-outline"></ion-icon>
-            </ion-fab-button>
-        </ion-fab-list>
     </ion-fab>
 </ion-content>

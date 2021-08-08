@@ -1,18 +1,18 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {RequestsProgramService} from '../../services/requests-program.service';
-import {AngularFireAuth} from '@angular/fire/auth';
-import {BarcodeScanner} from '@ionic-native/barcode-scanner/ngx';
-import {AngularFirestore} from '@angular/fire/firestore';
-import {AlertController, ToastController} from '@ionic/angular';
+import {BarcodeScanner} from '@capacitor-community/barcode-scanner';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
-import {SocialSharing} from '@ionic-native/social-sharing/ngx'
-import {first} from 'rxjs/operators';
+import { Share } from '@capacitor/share';
+import { RequestsService } from 'src/app/services/requests.service';
+import { UsersService } from 'src/app/services/users.service';
+import { AuthHandler } from 'src/app/services/authHandler.service';
+import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
     selector: 'app-qrcode',
     templateUrl: './qrcode.page.html',
     styleUrls: ['./qrcode.page.scss'],
-    providers: [RequestsProgramService, AngularFireAuth, BarcodeScanner, SocialSharing]
+    providers: []
 })
 export class QrcodePage implements OnInit {
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
@@ -37,28 +37,30 @@ export class QrcodePage implements OnInit {
     displayScan: boolean;
     location = true;
 
-    constructor(private socialSharing: SocialSharing, private auth: AngularFireAuth, public barcodeScanner: BarcodeScanner,
-                private db: AngularFirestore, private toastCtrl: ToastController, private alertController: AlertController,
-                public rs: RequestsProgramService) {
-        this.userId = this.auth.auth.currentUser.uid;
-        this.updateVals();
+    constructor(private modalController: ModalController, private utils: UtilsService,
+   private toastCtrl: ToastController, private alertController: AlertController,
+                private rs: RequestsService, private us: UsersService, private auth: AuthHandler) {
+
     }
 
     ngOnInit() {
+        this.userId = this.auth.getUID();
+        BarcodeScanner.prepare();
+        this.updateVals();
     }
 
     segmentChanged(ev: any) {
         this.displayScan = ev.detail.value === 'sc';
     }
 
-    scan() {
+    async scan() {
         // Function doesn't work on web version
-        this.barcodeScanner.scan().then(barcodeData => {
-            const dataArray = this.dataReveal(barcodeData.text);
-            this.presentAlertConfirm(dataArray);
-        }).catch(err => {
-            console.log('Error', err);
-        });
+        const result = await BarcodeScanner.startScan();
+        if (result.hasContent) {
+            console.log(result.content); // log the raw scanned content
+            this.presentAlertConfirm(this.dataReveal(result.content));
+
+          }
     }
 
     captureImage() {
@@ -103,11 +105,15 @@ export class QrcodePage implements OnInit {
     }
 
     async presentAlertConfirm(dataArray: Array<string>) {
-        this.db.collection('users').doc(dataArray[0]).get().pipe(first())
-            .subscribe(async (data) => {
+        if (this.userId === dataArray[0]) {
+            this.utils.presentToast('Whoops, this is your code!');
+            return;
+        }
+        this.us.getUserBasic(dataArray[0])
+            .subscribe(async (data:any) => {
             const alert = await this.alertController.create({
                 header: 'Confirm Request!',
-                message: 'Do you want to link with ' + data.get('name'),
+                message: 'Do you want to link with ' + data.data.name,
                 buttons: [
                     {
                         text: 'Cancel',
@@ -118,7 +124,15 @@ export class QrcodePage implements OnInit {
                     }, {
                         text: 'Okay',
                         handler: () => {
-                            this.rs.sendRequest(dataArray[0], parseInt(dataArray[1], 10));
+                            this.rs.sendRequest(dataArray[0], parseInt(dataArray[1], 10)).subscribe({
+                                next: () => {
+                                    this.utils.presentToast('Successfull added ' + data.data.name);
+                                },
+                                error: (error) => {
+                                    console.error(error);
+                                    this.utils.presentToast('Whoops! Unexpected error, try again')
+                                }
+                            });
                         }
                     }
                 ]
@@ -157,11 +171,14 @@ export class QrcodePage implements OnInit {
         this.qrData = code + '/' + this.userId;
     }
 
-    shareQR() {
-        const options = {
-            message: 'Check out my Ping Code!',
-            files: ['https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + this.qrData]
-        }
-        this.socialSharing.shareWithOptions(options);
+    async shareQR() {
+        await Share.share({
+            title: 'Check out my Ping Code!',
+            url: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + this.qrData
+        })
+    }
+
+    closeModal() {
+        this.modalController.dismiss();
     }
 }

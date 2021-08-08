@@ -1,32 +1,26 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AngularFireAuth} from '@angular/fire/auth';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {Subscription} from 'rxjs';
+import { AngularFireDatabase } from '@angular/fire/database';
+import {Observable} from 'rxjs';
+import { RequestsService } from '../services/requests.service';
 
 @Component({
     selector: 'app-tabs',
     templateUrl: 'tabs.page.html',
     styleUrls: ['tabs.page.scss'],
-    providers: [AngularFireAuth]
+    providers: [AngularFireDatabase]
 })
 export class TabsPage implements OnInit, OnDestroy{
     requestAmount: number;
-    currentUserRef: AngularFirestoreDocument;
-    pingLengthRef: Subscription;
+    pingLength: Observable<number | any>;
 
-    constructor(private auth: AngularFireAuth, private db: AngularFirestore) {
-        this.currentUserRef = this.db.collection('users').doc(this.auth.auth.currentUser.uid);
+    constructor(private rs: RequestsService) {
     }
 
     ngOnDestroy(): void {
-        this.pingLengthRef.unsubscribe();
     }
 
     ngOnInit(): void {
-        this.pingLengthRef = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', true))
-            .valueChanges().subscribe(res => {
-            this.requestAmount = res.length;
-        });
+        this.pingLength = this.rs.getTotalNumRequests();
     }
 
 }

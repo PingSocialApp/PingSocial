@@ -1,108 +1,95 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {AngularFirestore, AngularFirestoreDocument, DocumentReference} from '@angular/fire/firestore';
-import {RequestsProgramService} from '../services/requests-program.service';
-import {AngularFireStorage} from '@angular/fire/storage';
+import {RequestsService} from '../services/requests.service';
 import {ActionSheetController, AlertController, ModalController, ToastController} from '@ionic/angular';
-import {AngularFireAuth} from '@angular/fire/auth';
 import {AngularFireDatabase} from '@angular/fire/database';
 import {environment} from '../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import {first} from 'rxjs/operators';
 import {Subscription} from 'rxjs';
+import { UsersService } from '../services/users.service';
+import { LinksService } from '../services/links.service';
+import { UtilsService } from '../services/utils.service';
 
 @Component({
     selector: 'app-userprofile',
     templateUrl: './userprofile.page.html',
     styleUrls: ['./userprofile.page.scss'],
-    providers: [RequestsProgramService, AngularFireStorage, AngularFireAuth, AngularFireDatabase]
+    providers: [RequestsService, AngularFireDatabase]
 })
 export class UserprofilePage implements OnInit, OnDestroy {
+    userObj: any;
     currCode: number;
-    userRef: AngularFirestoreDocument;
-    linkDoc: DocumentReference;
     userId: string;
-    userName: string;
-    userBio: string;
-    userImg: string;
     displayTF: boolean;
     theirInfo: boolean;
     myInfo: boolean;
-    private currentUserRef: AngularFirestoreDocument<unknown>;
     permissions: boolean[];
-    socials: string [];
+    socials: any;
     private userSocialsSub: Subscription;
+    userBasicSub: Subscription;
+    myDataSub: Subscription;
 
     constructor(private actionSheet: ActionSheetController, private modalController: ModalController,
-                private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute,
-                private auth: AngularFireAuth, private firestore: AngularFirestore, private rps: RequestsProgramService,
-                private storage: AngularFireStorage, private toastController: ToastController) {
+                private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, 
+                private ls: LinksService,
+                private rps: RequestsService, private us: UsersService, private utils: UtilsService
+                ) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.displayTF = true;
-        this.userId = this.acr.snapshot.params.id;
-        this.userRef = this.firestore.collection('users').doc(this.userId);
-        this.currentUserRef = this.firestore.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.socials = new Array(12);
     }
 
     async ngOnInit() {
         const isModalOpened = await this.modalController.getTop();
+        this.userId = this.acr.snapshot.params.id;
         // tslint:disable-next-line:no-unused-expression
         isModalOpened ? this.closeModal() : null;
         this.getMyData();
         this.getOtherData();
 
-        this.userRef.get().pipe(first())
-            .subscribe(async res => {
-                // @ts-ignore
-                const userData = res.data();
-                this.userName = userData.name;
-                this.userBio = userData.bio;
-                this.userImg = await this.getImage(userData.profilepic);
-            });
+        this.userBasicSub = this.us.getUserBasic(this.userId).subscribe({
+            next: (data:any) => {
+                this.userObj = data.data;
+        }, error: (err) => {
+            console.error(err.error);
+        }});
     }
 
     ngOnDestroy(){
+        this.myDataSub.unsubscribe();
+        this.userBasicSub.unsubscribe();
         this.userSocialsSub.unsubscribe();
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
-    }
-
     getMyData(){
-        this.currentUserRef.collection('links', ref => ref
-            .where('otherUser', '==', this.userRef.ref)
-            .where('pendingRequest', '==', false)).get().pipe(first()).subscribe(res => {
-            if (!res.empty) {
-                this.linkDoc = res.docs[0].ref;
-                this.permissions = this.getPermission(res.docs[0].get('linkPermissions'));
+        this.myDataSub = this.ls.getToSocials(this.userId).subscribe((res:any) => {
+            if (res.data !== -1) {
+                this.permissions = this.getPermission(res.data);
                 this.myInfo = true;
             } else {
                 this.myInfo = false;
             }
+        }, err => {
+            console.error(err.error);
         });
     }
 
     getOtherData(){
-        this.userSocialsSub = this.userRef.collection('links', ref => ref
-            .where('otherUser', '==', this.currentUserRef.ref).where('pendingRequest', '==', false)
-        ).valueChanges().subscribe(linkData => {
-            if (linkData.length !== 0) {
-                this.firestore.collection('socials').doc(this.userId).valueChanges().
-                subscribe(res => {
-                    this.renderUserPermissions(res, linkData[0].linkPermissions);
-                    this.theirInfo = true;
-                });
-            } else {
+        this.userSocialsSub = this.ls.getFromSocials(this.userId).subscribe((socialsData:any) => {
+            const linkData = socialsData.data;
+            if (linkData != null) {
+                linkData.phone = linkData.phone.replace('(', '').replace(')', '')
+                    .replace('-', '').replace(' ', '');
+                linkData.website = !((linkData.web.includes('http://')) || (linkData.web.includes('https://'))
+                || linkData.web.length <= 0) ?
+                    'http://' + linkData.web : linkData.web;
+
+                this.socials = linkData;
+                this.theirInfo = true;
+            }else{
                 this.theirInfo = false;
             }
+        }, err => {
+            console.error(err.error);
         });
     }
 
@@ -110,34 +97,33 @@ export class UserprofilePage implements OnInit, OnDestroy {
         this.displayTF = ev.detail.value === 'tf';
     }
 
-    // TODO check if request exists
     createRequest(id: string) {
         this.rps.sendRequest(id, 2047);
     }
 
-    async renderUserPermissions(userData: any, userPermissions: any) {
-        const permissions = this.getPermission(userPermissions);
-        this.socials = Object.values(userData);
-        this.socials.push('');
-        for (let i = 0; i < this.socials.length; i++) {
-            this.socials[i] = permissions[i] ? this.socials[i] : '';
-        }
+    // async renderUserPermissions(userData: any, userPermissions: any) {
+    //     const permissions = this.getPermission(userPermissions);
+    //     this.socials = Object.values(userData);
+    //     this.socials.push('');
+    //     for (let i = 0; i < this.socials.length; i++) {
+    //         this.socials[i] = permissions[i] ? this.socials[i] : '';
+    //     }
 
-        this.socials[0] = this.socials[0].replace('(', '').replace(')', '')
-            .replace('-', '').replace(' ', '');
+    //     this.socials[0] = this.socials[0].replace('(', '').replace(')', '')
+    //         .replace('-', '').replace(' ', '');
 
-        this.socials[4] = !((this.socials[4].includes('http://')) || (this.socials[4].includes('https://')) || this.socials[4].length <= 0) ?
-            'http://' + this.socials[4] : this.socials[4];
+    //     this.socials[4] = !((this.socials[4].includes('http://')) || (this.socials[4].includes('https://')) || this.socials[4].length <= 0) ?
+    //         'http://' + this.socials[4] : this.socials[4];
 
-        await this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
-            if (snapshot.val()) {
-                // get other users longitude, latitude, and lastOnline vals
-                const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
-                const oStat = this.convertTime(Date.now() - snapshot.val().lastOnline);
-                this.socials[11] = permissions[0] ? locat + ' ' + oStat : '';
-            }
-        });
-    }
+    //     await this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
+    //         if (snapshot.val()) {
+    //             // get other users longitude, latitude, and lastOnline vals
+    //             const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
+    //             const oStat = this.convertTime(Date.now() - snapshot.val().lastOnline);
+    //             this.socials[11] = permissions[0] ? locat + ' ' + oStat : '';
+    //         }
+    //     });
+    // }
 
     convertTime(t) {
         if (t >= 86_400_000) {
@@ -178,26 +164,16 @@ export class UserprofilePage implements OnInit, OnDestroy {
     }
 
     changePermissions() {
-        let code = 0;
-        for(let i = 0; i < this.permissions.length; i++){
-            // tslint:disable-next-line:no-bitwise
-            code |= +!!this.permissions[i] << (11-i);
-        }
-
-        this.firestore.doc(this.linkDoc).update({
-            linkPermissions: code
-        }).then(async value => {
-            const toast = await this.toastController.create({
-                message: 'User Permissions have been updated!',
-                duration: 2000
-            });
-            if (this.currCode !== code) {
+        this.ls.updatePermissions(this.permissions, this.userId).subscribe(async (val:any) => {
+            if (this.currCode !== val.data.code) {
                 if (this.currCode !== undefined) {
-                    await toast.present();
+                    await this.utils.presentToast('User Permissions have been updated!');
                 }
-                this.currCode = code;
+                this.currCode = val.data.code;
             }
-        });
+        }, async (err)=> {
+            await this.utils.presentToast('Whoops! Update failed');
+        })
     }
 
     async presentActionSheet() {
@@ -226,7 +202,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
 
     async showLocation() {
         const alert = await this.alertController.create({
-            header: this.userName + ' is at ',
+            header: this.userObj.name + ' is at ',
             subHeader: this.socials[11],
             buttons: ['OK']
         });

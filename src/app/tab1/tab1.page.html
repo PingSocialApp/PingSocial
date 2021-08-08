@@ -7,4 +7,14 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-</ion-content>
+        <ion-slides [options]="slideOptions" pager="true">
+            <ion-slide>
+                <app-activity-status>
+                </app-activity-status>
+            </ion-slide>
+            <ion-slide>
+                <app-in-event [eventId]="eventID">
+                </app-in-event>
+            </ion-slide>
+        </ion-slides>
+ </ion-content>

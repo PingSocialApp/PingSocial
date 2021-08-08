@@ -1,17 +1,15 @@
-import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Calendar} from '@ionic-native/calendar/ngx';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {AngularFireAuth} from '@angular/fire/auth';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {GeoFireClient} from 'geofirex';
+import {AlertController, ModalController} from '@ionic/angular';
 import {environment} from '../../../../environments/environment';
-import * as geofirex from 'geofirex';
-import * as firebase from 'firebase';
 import * as mapboxgl from 'mapbox-gl';
-import {firestore} from 'firebase';
-import {first, map, mergeMap} from 'rxjs/operators';
-import {forkJoin, Observable} from 'rxjs';
+import { UsersService } from 'src/app/services/users.service';
+import { AuthHandler } from 'src/app/services/authHandler.service';
+import { UtilsService } from 'src/app/services/utils.service';
+import { EventsService } from 'src/app/services/events.service';
+import { LinkSelectorPage } from '../link-selector/link-selector.page';
+import { of, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
     selector: 'app-eventcreator',
@@ -19,31 +17,29 @@ import {forkJoin, Observable} from 'rxjs';
     styleUrls: ['./eventcreator.component.scss'],
     providers:[]
 })
-export class EventcreatorComponent implements OnInit, AfterViewInit {
+export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     map: mapboxgl.Map;
-    currentUserRef: AngularFirestoreDocument;
     currentUser: any;
     geocoder: any;
     eventName: string;
     location: Array<any>;
-    isPublic: boolean;
-    links: Observable<any>;
+    isPrivate: boolean;
+    links: Array<string>;
     eventDes: string;
     eventType: string;
-    private members: Array<any> = [];
     @Input() eventID: string;
     editMode: boolean;
     isCreator: boolean;
     eventCreator: any;
     eventCreatorName: string;
-    geo: GeoFireClient;
+    eventsSub: Subscription;
+    linksSub: Subscription;
 
-    constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController, private toastController: ToastController,
-                private afs: AngularFirestore, private auth: AngularFireAuth, private storage: AngularFireStorage) {
+    constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
+        private utils: UtilsService,
+                private us: UsersService, private auth: AuthHandler, private es: EventsService) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
-        this.currentUserRef = this.afs.collection('users').doc(this.auth.auth.currentUser.uid);
-        this.isPublic = false;
-        this.geo = geofirex.init(firebase);
+        this.isPrivate = false;
     }
 
 
@@ -58,75 +54,56 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
         }
     }
 
-    renderNewMode(){
-        this.isCreator = true;
-        this.currentUserRef.ref.get().then((userRef) => {
-            this.eventCreatorName = userRef.get('name');
-        });
-        this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-            .pipe(mergeMap(querySnap => forkJoin(
-                querySnap.docs.map(doc => doc.get('otherUser').get())
-            )), map((val: any) => {
-                return val.map(userData => {
-                    return {
-                        id: userData.id,
-                        img: this.getImage(userData.get('profilepic')),
-                        name: userData.get('name'),
-                        bio: userData.get('bio'),
-                        checked: false
-                    };
-                });
-            }));
-    }
-
-    renderEditMode(){
-           this.afs.collection('events').doc(this.eventID).get().pipe(first()).subscribe((ref) => {
-            const data = ref.data();
-            (document.getElementById('startTime') as HTMLInputElement).value = data.startTime.toDate().toISOString();
-            (document.getElementById('endTime') as HTMLInputElement).value = data.endTime.toDate().toISOString();
-            this.eventName = data.name;
-            this.eventCreator = data.creator.id;
-            data.creator.get().then((userRef) => {
-                this.eventCreatorName = userRef.get('name');
-            });
-            this.eventDes = data.description;
-            this.isPublic = data.isPrivate;
-            this.eventType = data.type;
-            this.location = [data.position.geopoint.longitude, data.position.geopoint.latitude];
-            this.map.flyTo({
-                center: this.location,
-                essential: true
-            });
-            if (this.isPublic) {
-                this.members = data.members;
-            }
-            this.isCreator = data.creator.id === this.currentUserRef.ref.id;
-            new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
-        }, () => {
-
-        }, () => {
-            // tslint:disable-next-line:max-line-length
-            this.links = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get()
-                .pipe(mergeMap(querySnap => forkJoin(
-                    querySnap.docs.map(doc => doc.get('otherUser').get())
-                )), map((val: any) => {
-                    return val.map(userData => {
-                        return {
-                            id: userData.id,
-                            img: this.getImage(userData.get('profilepic')),
-                            name: userData.get('name'),
-                            bio: userData.get('bio'),
-                            checked: this.isChecked(userData.id)
-                        };
-                    });
-                }));
-        });
-    }
 
     ngAfterViewInit() {
         this.buildMap();
         (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
         (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
+    }
+
+    ngOnDestroy() {
+        this.eventsSub?.unsubscribe();
+        this.linksSub?.unsubscribe();
+    }
+
+    renderNewMode(){
+        this.isCreator = true;
+        this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
+            this.eventCreatorName = userRef.data.name;
+        });
+        this.links = [];
+    }
+
+    renderEditMode(){
+        this.links = [];
+
+        this.eventsSub = this.es.getEventDetails(this.eventID).subscribe((ref:any) => {
+            const data = ref.data;
+            (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
+            (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
+            this.eventName = data.eventName;
+            this.eventCreator = data.creator.id;
+            this.eventCreatorName = data.creator.name;
+            this.eventDes = data.description;
+            this.isPrivate = data.isPrivate;
+            this.eventType = data.type;
+            this.location = [data.location.latitude,data.location.longitude];
+            this.map.flyTo({
+                center: this.location,
+                essential: true
+            });
+            this.isCreator = data.creator.uid === this.auth.getUID();
+            new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
+        }, (error) => console.error(error));
+
+        if(!this.isPrivate){
+            this.linksSub = this.es.getEventShares(this.eventID, 0).subscribe((ref:any) => {
+                for(const object of ref.data){
+                    this.links.push(object.uid);
+                }
+                console.log(this.links);
+            }, (error) => console.error(error));
+        }
     }
 
     buildMap() {
@@ -155,111 +132,75 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
         });
     }
 
-    isChecked(id: string){
-        for(const member of this.members) {
-            if(member.id === id) {
-                return true;
+    async showLinks() {
+        const modal = await this.modalController.create({
+            component: LinkSelectorPage,
+            componentProps: {
+                ids: this.links
             }
-        }
-        return false;
+        });
+
+        modal.onDidDismiss().then(data => {
+            this.links = data.data;
+        });
+
+        return await modal.present();
     }
 
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
-    }
-
-    manageEvent() {
-        const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
+    async manageEvent() {
         if (this.eventName === '' || (document.getElementById('startTime') as HTMLInputElement).value === '' || (document.getElementById('endTime') as HTMLInputElement).value === '' || this.eventDes === '' || this.eventType === ''
             || typeof this.location === 'undefined') {
-            this.presentToast('Whoops! You have an empty entry');
+            this.utils.presentToast('Whoops! You have an empty entry');
         } else if (new Date((document.getElementById('startTime') as HTMLInputElement).value) > new Date((document.getElementById('startTime') as HTMLInputElement).value)) {
-            this.presentToast('Whoops! Your event ended before it started');
+            this.utils.presentToast('Whoops! Your event ended before it started');
         } else {
-            if (this.editMode) {
-                if (this.isPublic) {
-                    const userArray = [];
-                    for (const element of toggle) {
-                        if (element.checked) {
-                            userArray.push(this.afs.collection('users').doc(element.id).ref);
-                        }
+
+            // TODO propogate changes
+            const data = {
+                eventName: this.eventName,
+                location: {
+                    latitude: this.location[1],
+                    longitude: this.location[0]
+                },
+                // tslint:disable-next-line:max-line-length
+                startTime: (document.getElementById('startTime') as HTMLInputElement).value,
+                // tslint:disable-next-line:max-line-length
+                endTime: (document.getElementById('endTime') as HTMLInputElement).value,
+                description: this.eventDes,
+                type: this.eventType,
+                isPrivate: this.isPrivate
+            };
+
+            if (!this.editMode) {
+                this.es.createEvent(data).pipe(switchMap((output:any) => {
+                    if(this.isPrivate){
+                        return this.es.inviteAttendee(output.data.id, this.links);
+                    }else{
+                        return of("");
                     }
-                    if (userArray.length > 15) {
-                        this.presentToast('Whoops! You have more than 15 people');
-                    } else {
-                        this.afs.collection('events').doc(this.eventID).update({
-                            members: userArray
-                        });
-                    }
-                } else {
-                    this.afs.collection('events').doc(this.eventID).update({
-                        members: firestore.FieldValue.delete()
-                    });
-                }
-                const position = this.geo.point(this.location[1],this.location[0]);
-                this.afs.collection('events').doc(this.eventID).update({
-                    name: this.eventName,
-                    creator: this.currentUserRef.ref,
-                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
-                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
-                    description: this.eventDes,
-                    position,
-                    type: this.eventType,
-                    isPrivate: this.isPublic,
-                }).then(() => {
-                    this.presentToast('Event Updated!');
+                })).subscribe(() => {
+                    this.utils.presentToast('Event Created!');
                     this.closeModal();
+                }, err => {
+                    console.error(err);
+                    this.utils.presentToast('Whoops! Problem making event');
                 });
             } else {
-                const position = this.geo.point(this.location[1],this.location[0]);
-                this.afs.collection('events').add({
-                    name: this.eventName,
-                    position,
-                    creator: this.currentUserRef.ref,
-                    startTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('startTime') as HTMLInputElement).value)),
-                    endTime: firebase.firestore.Timestamp.fromDate(new Date((document.getElementById('endTime') as HTMLInputElement).value)),
-                    description: this.eventDes,
-                    type: this.eventType,
-                    isPrivate: this.isPublic
-                }).then(newEvent => {
-                    if (this.isPublic) {
-                        const userArray = [];
-                        for (const element of toggle) {
-                            if (element.checked) {
-                                userArray.push(this.afs.collection('users').doc(element.id).ref);
-                            }
-                        }
-                        if (userArray.length > 15) {
-                            this.presentToast('Whoops! You have more than 15 people');
-                        } else {
-                            newEvent.update({
-                                members: userArray
-                            }).then(() => {
-                                this.presentToast('Event Created!');
-                                this.closeModal();
-                            })
-                        }
-                    }else{
-                        this.presentToast('Event Created!');
-                        this.closeModal();
+                this.es.editEvent(this.eventID, data).subscribe(() => {
+                    if(this.isPrivate){
+                        this.es.inviteAttendee(this.eventID, this.links).subscribe(() => {
+                            this.utils.presentToast('Event Updated!');
+                            this.closeModal();
+                        }, (error)=>console.error(error));
                     }
+                    this.utils.presentToast('Event Updated!');
+                    this.closeModal();
+                }, err => {
+                    console.error(err);
+                    this.utils.presentToast('Whoops! Problem updating event');
                 });
             }
         }
-    }
-
-    async presentToast(m: string) {
-        const toast = await this.toastController.create({
-            message: m,
-            duration: 2000
-        });
-        await toast.present();
     }
 
     handleInput(event) {
@@ -282,8 +223,12 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                 }, {
                     text: 'Delete',
                     handler: () => {
-                        this.afs.collection('events').doc(this.eventID).delete();
-                        this.modalController.dismiss();
+                        this.es.deleteEvent(this.eventID).subscribe(() => {
+                            this.modalController.dismiss();
+                        }, (err) => {
+                            console.error(err);
+                            this.utils.presentToast('Whoops! Event Delete Failed');
+                        });
                     }
                 }
             ]
@@ -302,17 +247,13 @@ export class EventcreatorComponent implements OnInit, AfterViewInit {
                 this.cal.createEventInteractively(this.eventName, data.features[0].place_name, this.eventDes,
                     new Date((document.getElementById('startTime') as HTMLInputElement).value),
                     new Date((document.getElementById('endTime') as HTMLInputElement).value)).then(r => {
-                    this.presentToast('Event Downloaded!');
+                    this.utils.presentToast('Event Downloaded!');
                 });
             });
     }
 
     closeModal() {
-        // using the injected ModalController this page
-        // can "dismiss" itself and optionally pass back data
-        this.modalController.dismiss({
-            dismissed: true
-        });
+        this.modalController.dismiss();
     }
 
 }

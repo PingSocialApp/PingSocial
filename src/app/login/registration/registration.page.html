@@ -38,41 +38,11 @@
             </ion-card>
         </ion-slide>
         <ion-slide>
-            <h3 class="font-style">Nice to meet you {{name}}!</h3>
-            <h1 class="font-style">What type of profile fits you?</h1>
-            <ion-card>
-                <ion-card-content>
-                    <ion-img [src]="'assets/' + (orgType === 'Independant' ? 'undraw_stand_out_1oag.svg' : 'undraw_team_spirit_hrr4.svg')"></ion-img>
-                    <ion-segment (ionChange)="changeOrg($event)" value="Independant">
-                        <ion-segment-button value="Independant">
-                            <ion-label>Independant</ion-label>
-                        </ion-segment-button>
-                        <ion-segment-button value="Organization">
-                            <ion-label>Organization</ion-label>
-                        </ion-segment-button>
-                    </ion-segment>
-                    <ion-card-header>
-                        <ion-card-title>{{orgType}}</ion-card-title>
-                    </ion-card-header>
-                    <p *ngIf="orgType == 'Independant'">Enjoy the world at it's fullest through events and social sharing</p>
-                    <p *ngIf="orgType == 'Organization'">Do everything a Independant can and also show off your public rating to the world!</p>
-                </ion-card-content>
-            </ion-card>
-        </ion-slide>
-        <ion-slide>
             <h1 class="font-style">Fill out some of your socials</h1>
             <p class="font-style">Optional</p>
-            <ion-segment (ionChange)="changeInfo($event)" value="per">
-                <ion-segment-button value="per">
-                    <ion-label>Personal</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="pro">
-                    <ion-label>Professional</ion-label>
-                </ion-segment-button>
-            </ion-segment>
-            <ion-card>
+            <ion-card style="height: 75%; overflow-y: scroll">
                 <ion-card-content>
-                    <ion-list *ngIf="info == 'per'">
+                    <ion-list>
                         <ion-item>
                             <ion-label position="stacked">Facebook</ion-label>
                             <ion-input id="fb"></ion-input>
@@ -87,7 +57,7 @@
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">Personal Email</ion-label>
-                            <ion-input id="peem" [value]="this.auth.auth.currentUser.email"></ion-input>
+                            <ion-input id="peem" [value]="this.auth.auth.currentUser.email" type="email"></ion-input>
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">Snapchat</ion-label>
@@ -101,19 +71,21 @@
                             <ion-label position="stacked">Venmo</ion-label>
                             <ion-input id="ve"></ion-input>
                         </ion-item>
-                    </ion-list>
-                    <ion-list *ngIf="info == 'pro'">
                         <ion-item>
                             <ion-label position="stacked">Professional Email</ion-label>
-                            <ion-input id="prem"></ion-input>
+                            <ion-input id="prem" type="email"></ion-input>
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">LinkedIn</ion-label>
-                            <ion-input id="li"></ion-input>
+                            <ion-input id="li" placeholder="https://www.linkedin.com/in/williamhgates/"></ion-input>
                         </ion-item>
                         <ion-item>
                             <ion-label position="stacked">Website</ion-label>
-                            <ion-input id="ws"></ion-input>
+                            <ion-input id="ws" type="url"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="stacked">Phone</ion-label>
+                            <ion-input id="ph" type="number"></ion-input>
                         </ion-item>
                     </ion-list>
                 </ion-card-content>
@@ -121,7 +93,7 @@
         </ion-slide>
     </ion-slides>
     <ion-fab vertical="bottom" horizontal="start" slot="fixed">
-        <ion-fab-button (click)="swipeBack()" *ngIf="currentProgress != 0.25">
+        <ion-fab-button (click)="swipeBack()" *ngIf="currentProgress != 0.33">
             <ion-icon name="arrow-back-outline"></ion-icon>
         </ion-fab-button>
     </ion-fab>

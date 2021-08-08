@@ -1,0 +1,13 @@
+ion-slides {
+  height: 100%;
+}
+
+app-in-event, app-activity-status {
+  height: 100%;
+  width: 100%;
+}
+
+// TODO set at top
+.swiper-pagination-bullets {
+  top: 10px !important;
+}

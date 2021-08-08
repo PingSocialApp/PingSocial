@@ -1,5 +1,10 @@
 <ion-header>
     <ion-toolbar>
+        <ion-buttons slot="start">
+        <ion-button (click)="closeModal()">
+            <ion-icon name="arrow-back"></ion-icon>
+        </ion-button>
+        </ion-buttons>
         <ion-title>
             <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
         </ion-title>
@@ -36,7 +41,7 @@
         </ion-img>
         <ion-item style="--background: transparent;">
             <ion-button (click)="shareQR()"
-                        class="downloadButton">Download
+                        class="downloadButton"><ion-icon name="share-social-outline"></ion-icon>
             </ion-button>
         </ion-item>
         <ion-list style="margin-top: 2%">

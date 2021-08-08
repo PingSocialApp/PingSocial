@@ -1,78 +1,41 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AngularFirestore} from '@angular/fire/firestore';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {AngularFireAuth} from '@angular/fire/auth';
 import {SettingsPage} from '../settings/settings.page';
 import {ModalController} from '@ionic/angular';
 import {RequestsPage} from '../requests/requests.page';
-import {first, map, mergeMap} from 'rxjs/operators';
-import {forkJoin, merge, Observable, Subscription} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
+import { LinksService } from '../services/links.service';
+import { RequestsService } from '../services/requests.service';
+import { AngularFireDatabase } from '@angular/fire/database';
 
 @Component({
     selector: 'app-tab3',
     templateUrl: 'tab3.page.html',
     styleUrls: ['tab3.page.scss'],
-    providers: [AngularFireStorage, AngularFireAuth, AngularFireStorage]
+    providers: [AngularFireDatabase]
 })
 
 export class Tab3Page implements OnInit, OnDestroy {
-    currentUserRef: any;
-    requestAmount: number;
-    links: Observable<Array<any>>;
-    private pendingLinkSub: Subscription;
+    requestAmount: Observable<number | any>;
+    links: any;
+    offset: number;
+    linksBS: BehaviorSubject<number>;
 
-    constructor(private modalController: ModalController, private firestore: AngularFirestore, private storage: AngularFireStorage,
-                private auth: AngularFireAuth) {
-        this.currentUserRef = this.firestore.collection('users').doc(
-            this.auth.auth.currentUser.uid);
+    constructor(private modalController: ModalController, private ls: LinksService, private rs: RequestsService) {
     }
 
-    ngOnInit(): void {
-        this.getLinks();
-        this.pendingLinkSub = this.currentUserRef.collection('links', ref => ref
-            .where('pendingRequest', '==', true)).snapshotChanges().subscribe(res => {
-            this.requestAmount = res.length;
-        });
+    ngOnInit() {
+        this.offset = 0;
+        this.linksBS = new BehaviorSubject(this.offset);
+        this.linksBS.subscribe(() => this.getLinks());
+        this.requestAmount = this.rs.getTotalNumRequests();
     }
 
     ngOnDestroy() {
-        this.pendingLinkSub.unsubscribe();
+        this.links.unsubscribe();
     }
 
     getLinks() {
-        const myLinks = this.currentUserRef.collection('links', ref => ref.where('pendingRequest', '==', false)).get().pipe(first());
-        const otherLinks = this.firestore.collectionGroup('links', ref => ref.where('otherUser', '==', this.currentUserRef.ref)
-            .where('pendingRequest', '==', false))
-            .get().pipe(first());
-
-        const links = merge(myLinks, otherLinks);
-
-        this.links = links.pipe(mergeMap((querySnap: any) => forkJoin(
-            querySnap.docs.map(doc =>
-                doc.get('otherUser').id !== this.currentUserRef.ref.id ?
-                    doc.get('otherUser').get() : doc.ref.parent.parent.get()
-            ))), map((val: any) => {
-            return val.map(userData => {
-                return {
-                    id: userData.id,
-                    img: this.getImage(userData.get('profilepic')),
-                    name: userData.get('name'),
-                    bio: userData.get('bio')
-                };
-            });
-        }));
-
-        return Promise.resolve();
-    }
-
-    async getImage(profilePic: string) {
-        if (profilePic.startsWith('h')) {
-            return profilePic;
-        } else {
-            return await this.storage.storage.refFromURL(profilePic).getDownloadURL().then(url => {
-                return url;
-            }).catch((e) => console.log(e));
-        }
+        this.links = this.ls.getAllLinks(this.offset);
     }
 
     handleInput(event) {
@@ -84,9 +47,15 @@ export class Tab3Page implements OnInit, OnDestroy {
     }
 
     doRefresh(event) {
-        this.getLinks().then(() => {
-            event.target.complete();
-        });
+        this.offset = 0;
+        this.linksBS.next(this.offset);
+        event.target.complete();
+    }
+
+    loadData(event){
+        ++this.offset;
+        this.linksBS.next(this.offset);
+        event.target.complete();
     }
 
     async presentRequestsPage() {

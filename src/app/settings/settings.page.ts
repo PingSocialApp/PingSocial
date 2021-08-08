@@ -1,17 +1,19 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {ModalController, ToastController} from '@ionic/angular';
+import {ModalController} from '@ionic/angular';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {Router} from '@angular/router';
 import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
-import {AngularFireStorage} from '@angular/fire/storage';
-import {UpdateProfileService} from '../services/update-profile.service';
-import {first} from 'rxjs/operators';
+import {UsersService} from '../services/users.service';
+import {map} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {UtilsService} from '../services/utils.service'
+import { AuthHandler } from '../services/authHandler.service';
 
 @Component({
     selector: 'app-settings',
     templateUrl: './settings.page.html',
     styleUrls: ['./settings.page.scss'],
-    providers: [AngularFireAuth, UpdateProfileService, AngularFireStorage]
+    providers: [AngularFireAuth, UsersService]
 })
 
 
@@ -20,47 +22,45 @@ export class SettingsPage implements OnInit {
 
     currentUserRef: AngularFirestoreDocument;
     currentUserBasic: any;
-    currentUser: any;
     currentUserId: string;
-    myInterests: Array<string>;
-    myValues: Array<string>;
+    currentUserSocials: Observable<any>;
 
-    constructor(private modalCtrl: ModalController, private auth: AngularFireAuth, private r: Router, private firestore: AngularFirestore
-        , private toastController: ToastController, private storage: AngularFireStorage, private updateProfileService: UpdateProfileService) {
-        this.currentUserId = this.auth.auth.currentUser.uid;
-        this.currentUserRef = this.firestore.collection('users').doc(this.currentUserId);
+    constructor(private modalCtrl: ModalController, private auth: AuthHandler, private afAuth: AngularFireAuth,
+         private r: Router, private firestore: AngularFirestore
+        ,private us: UsersService, private utils: UtilsService) {
+      
     }
 
     ngOnInit() {
-        this.currentUserRef.get().pipe(first())
-            .subscribe(res => {
-                this.currentUserBasic = res.data();
-                if (this.currentUserBasic.profilepic.startsWith('h')) {
-                    document.getElementById('imagePreview').style.backgroundImage = 'url(' + this.currentUserBasic.profilepic + ')';
-                } else {
-                    this.storage.storage.refFromURL(this.currentUserBasic.profilepic).getDownloadURL().then(url => {
-                        document.getElementById('imagePreview').style.backgroundImage = 'url(' + url + ')';
-                    });
-                }
-            });
-        this.firestore.collection('socials').doc(this.currentUserId).get().pipe(first()).subscribe(res => {
-            this.currentUser = res.data();
-        });
-        this.firestore.collection('preferences').doc(this.currentUserId).get().pipe(first()).subscribe(res => {
-            this.myValues = res.get('valueTraits');
-            this.myInterests = res.get('preferences');
-        });
+        this.currentUserId = this.auth.getUID();
+        this.currentUserBasic = new Observable<any>();
+        this.currentUserSocials = new Observable<any>();
+
+        this.currentUserBasic = this.us.getUserBasic(this.currentUserId).pipe(map((ret:any) => {
+            document.getElementById('imagePreview').style.backgroundImage = 'url(' + ret.data.profilepic + ')';
+            return {
+                name: ret.data.name,
+                bio: ret.data.bio
+            }
+        }))
+
+        this.currentUserSocials = this.firestore.collection('socials').doc(this.currentUserId).get().pipe(map(ret => ret.data()));
     }
 
     updateSettings() {
-        this.updateProfileService.updateSettings(this.myInterests, this.myValues);
+        this.us.updateProfile().subscribe(val => {
+            this.utils.presentToast('Profile Updated!');
+        }, err => {
+            this.utils.presentToast('Whoops! Update Failed');
+            console.error(err.error);
+        });
     }
 
     logout() {
-        this.auth.auth.signOut().then(() => {
+        this.afAuth.auth.signOut().then(() => {
             this.closeModal();
             this.r.navigate(['/login']);
-        });
+        }).catch((er) => console.log(er));
     }
 
     closeModal() {
@@ -74,7 +74,7 @@ export class SettingsPage implements OnInit {
     }
 
     handleFile(files: FileList) {
-        this.updateProfileService.handleFile(files);
+        this.us.handleFile(files);
     }
 
 }

@@ -13,6 +13,10 @@
             <ion-icon *ngIf="isPublic" name="lock-open"></ion-icon>
             <ion-label *ngIf="isPublic">Public</ion-label>
     </ion-chip>
+    <ion-chip *ngIf="!isPublic" (click)="showLinks()">
+        <ion-icon name="people-circle-outline"></ion-icon>
+        <ion-label>Links</ion-label>
+    </ion-chip>
     <ion-chip (click)="showLocation()">
         <ion-icon name="navigate"></ion-icon>
         <ion-label>Location</ion-label>
@@ -30,27 +34,6 @@
     <div id="pingmap"></div>
     <div id='geocoder-container-geoping'></div>
 </div>
-<ion-item *ngIf="showPublic">
-    <ion-label>Public Ping?</ion-label>
-    <ion-toggle [(ngModel)]="isPublic"></ion-toggle>
-</ion-item>
-<ion-card *ngIf="!isPublic && showPublic">
-    <ion-card-content>
-        <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
-        <ion-list id="memberList">
-            <ion-item *ngFor="let link of links | async">
-                <ion-avatar slot="start">
-                    <img src="{{link.img | async}}">
-                </ion-avatar>
-                <ion-label>
-                    <h2>{{link.name}}</h2>
-                    <p>{{link.bio}}</p>
-                </ion-label>
-                <ion-checkbox [checked]="link.checked" id="{{link.id}}"></ion-checkbox>
-            </ion-item>
-        </ion-list>
-    </ion-card-content>
-</ion-card>
 
 <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="sendPing()">
     <ion-fab-button>
