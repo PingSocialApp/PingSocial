@@ -35,7 +35,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     eventsSub: Subscription;
     linksSub: Subscription;
 
-    constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController, 
+    constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
                 private us: UsersService, private auth: AuthHandler, private es: EventsService) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
@@ -176,7 +176,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                     if(this.isPrivate){
                         return this.es.inviteAttendee(output.data.id, this.links);
                     }else{
-                        return of();
+                        return of("");
                     }
                 })).subscribe(() => {
                     this.utils.presentToast('Event Created!');
