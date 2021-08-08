@@ -67,6 +67,7 @@
     "@types/jasmine": "~3.5.10",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
+    "@types/uuid": "^8.3.1",
     "codelyzer": "^5.1.2",
     "cordova-plugin-device": "2.0.2",
     "cordova-plugin-statusbar": "2.4.2",

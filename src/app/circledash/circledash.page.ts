@@ -1,9 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
+import {AngularFirestore} from '@angular/fire/firestore';
 import {AlertController, ModalController, PopoverController} from '@ionic/angular';
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
 import {NewPingPage} from './new-ping/new-ping.page';
-import {forkJoin, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {concatMap} from 'rxjs/operators';
 import { UtilsService } from '../services/utils.service';
 import { AuthHandler } from '../services/authHandler.service';
@@ -33,20 +33,16 @@ export class CircledashPage implements OnInit, OnDestroy {
             .get().pipe(concatMap(querySnap =>
                 querySnap.docs.map(doc => {
                     const data = doc;
-                    // @ts-ignore
                         return {
-                            // @ts-ignore
                             id: data.id,
-                            // @ts-ignore
                             sentMessage: data.get('sentMessage'),
-                            // @ts-ignore
                             recMessage: data.get('responseMessage'),
                             userSent: {
                                 id: data.get('userSent'),
                                 profilepic: data.get('userSent').profilepic,
                                 name: data.get('userSent').name,
                             }
-                           
+
                         };
                     })
                 ));
