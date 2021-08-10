@@ -688,6 +688,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderLinks(reset) {
+			console.log("renderin");
         const coords = this.map.getCenter();
         this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
 					console.log(res);
