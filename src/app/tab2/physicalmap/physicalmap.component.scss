@@ -33,87 +33,87 @@
   border-radius: 50%;
   background-position: center;
   box-shadow: 0px 0px 15px #000000;
-  background-image: url('src/assets/ping_markers/geoping/geoping100.png');
+  background-image: url('src/assets/ping_markers/geoping100.png');
 }
 
 :host ::ng-deep .party-marker{
   &.full{
-    background-image: url('src/assets/ping_markers/events/party100.png');
+    background-image: url('src/assets/ping_markers/party100.png');
   }
   &.three-quarters{
-    background-image: url('src/assets/ping_markers/events/party100.png');
+    background-image: url('src/assets/ping_markers/party75.png');
   }
   &.half{
-    background-image: url('src/assets/ping_markers/events/party50.png');
+    background-image: url('src/assets/ping_markers/party50.png');
   }
   &.quarter{
-    background-image: url('src/assets/ping_markers/events/party25.png');
+    background-image: url('src/assets/ping_markers/party25.png');
   }
   &.empty{
-    background-image: url('src/assets/ping_markers/events/party0.png');
+    background-image: url('src/assets/ping_markers/party0.png');
   }
 }
 
 :host ::ng-deep .professional-marker{
   &.full{
-    background-image: url('src/assets/ping_markers/events/networking100.png');
+    background-image: url('src/assets/ping_markers/networking100.png');
   }
   &.three-quarters{
-    background-image: url('src/assets/ping_markers/events/networking75.png');
+    background-image: url('src/assets/ping_markers/networking75.png');
   }
   &.half{
-    background-image: url('src/assets/ping_markers/events/networking50.png');
+    background-image: url('src/assets/ping_markers/networking50.png');
   }
   &.quarter{
-    background-image: url('src/assets/ping_markers/events/networking25.png');
+    background-image: url('src/assets/ping_markers/networking25.png');
   }
   &.empty{
-    background-image: url('src/assets/ping_markers/events/networking0.png');
+    background-image: url('src/assets/ping_markers/networking0.png');
   }
 }
 
 :host ::ng-deep .hangout-marker{
   &.full{
-    background-image: url('src/assets/ping_markers/events/hangout100.png');
+    background-image: url('src/assets/ping_markers/hangout100.png');
   }
   &.three-quarters{
-    background-image: url('src/assets/ping_markers/events/hangout75.png');
+    background-image: url('src/assets/ping_markers/hangout75.png');
   }
   &.half{
-    background-image: url('src/assets/ping_markers/events/hangout50.png');
+    background-image: url('src/assets/ping_markers/hangout50.png');
   }
   &.quarter{
-    background-image: url('src/assets/ping_markers/events/hangout25.png');
+    background-image: url('src/assets/ping_markers/hangout25.png');
   }
   &.empty{
-    background-image: url('src/assets/ping_markers/events/hangout0.png');
+    background-image: url('src/assets/ping_markers/hangout0.png');
   }
 }
 
 :host ::ng-deep .cluster{
   &.ping{
-    background-image: url('https://lh3.googleusercontent.com/zqmJ4Nq4yYFFjPv5laAkk0TmCn8VSyCHiVYG-PEeA2AnM8OCT1H4Zxrkd8AYeGQvjdQ01G3Tsl_7gOedKhQdNz4_A1A5qWTioVIbuc8kJQcKaaOdSR9Jm_BvSFMusetOtjfIhX80tA=w2400');
+    background-image: url('src/assets/ping_markers/geoping100.png');
   }
   &.party{
-    background-image: url('https://lh3.googleusercontent.com/D8S67QwWNF7eTsPexMOtA1ouY2M_4yCwA9tkTPRENNZt065Y9VNgh53jPSLqRTKPuOdOQhurkFJ45ZnoDfNdrd54ZC42quXg5R19A2mX6sUVmiq4W0faltbInNS-va-8PsqmUOTgaA=w2400');
+    background-image: url('src/assets/ping_markers/party100.png');
   }
   &.professional{
-    background-image: url('https://lh3.googleusercontent.com/sNPI9CircqQ0do5-wBNJD9npQdgblVv2-rL41yGw4UwBTY_BOWsc_kXYtYrQnMvlD0JL4tOSOE0TjujwgItL5YhQGMvVX3hzqebV7tm5_ScSCvBxA5sz8l2IKdclFmWBwT11wOn6_Q=w2400');
+    background-image: url('src/assets/ping_markers/networking100.png');
   }
   &.hangout{
-    background-image: url('https://lh3.googleusercontent.com/eOx1U2_GUNNrtpcCszSp0cyXdDZWUGWFCc6XkkR05VKP7qYonD6HeWd8OQDRYUdC8qoMx9ONBXgb_H192XHvvRdJpeklIa5eJF2ZeKHYpUwTIGXAkWcqP8IZh9BnRGjFs4XvELE4sg=w2400');
+    background-image: url('src/assets/ping_markers/hangout100.png');
   }
   &.partyprofessional{
-    background-image: url('https://lh3.googleusercontent.com/b5D-JjEPpnm7J24r_d_lGiC0WVqP7q70qj6p6daDLRvFT8MlFMi1qrGl4nWUShOd7brlDH7pzQ_oIx2MZubxZVWRbhbM_a88O_lOrl-bE-4eFgEnefbg6a8o-SBLfHBguQbA2RAAJQ=w2400');
+    background-image: url('src/assets/ping_markers/partynetwork.png');
   }
   &.partyhangout{
-    background-image: url('https://lh3.googleusercontent.com/WYUFnZCCxln57EIFJIYwuO2ZtshK926bFLHfg6HPEsXO-WlPu22z-pvZdWPqpj59Q625zGZxcSyrb_1Lz9et2QCnsdugM13GQFsNDsh__1kmqOulYvr_3qVV5ojbzQDJ6qe44b85OA=w2400');
+    background-image: url('src/assets/ping_markers/hangoutparty.png');
   }
   &.professionalhangout{
-    background-image: url('https://lh3.googleusercontent.com/2YvgzQe2QhF9VFhsVUCMM41xST5gFmsfyphoKFxfYIGIR6XHGp9iP7Zbx6Xzmrihxz8FWSjk_wSzWQ-SVf3LaHRwYIFJ6Tmnpezl4ikhuDiQ7574-3p7ndzewnIJp2rbIaVSVsLiKg=w2400');
+    background-image: url('src/assets/ping_markers/hangoutnetwork.png');
   }
   &.all{
-    background-image: url('https://lh3.googleusercontent.com/ayMVFp_WBsb5JYEsnzi3m8wOuGMJ5dx-GubOdQ0gPlbAlN2RQn03X_RZxrMrUP8tr-52aAgrHf_mnwmr50wDCpHE-Lzashd9YV17bbtnQPU_EqQSe6Fy-RNigYCpYaqAZVNqzXmsMg=w2400');
+    background-image: url('src/assets/ping_markers/all3.png');
   }
 }
 
