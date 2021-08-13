@@ -32,12 +32,14 @@
         <ion-card-content>
             <ion-item>
                 <ion-label position="stacked">Start Time</ion-label>
-                <ion-datetime displayFormat="D MMM YYYY H:mm" min="2021" max="2022"
+                <ion-datetime displayFormat="D MMM YYYY H:mm"
+                pickerFormat = "D MMM YYYY H:mm" dayValues = {{availableStartDays}} monthValues = {{availableStartMonths}} yearValues = {{availableStartYears}}
                               id='startTime' [readonly]="!isCreator"></ion-datetime>
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">End Time</ion-label>
-                <ion-datetime displayFormat="D MMM YYYY H:mm" min="2021" max="2022"
+                <ion-datetime displayFormat="D MMM YYYY H:mm"
+                pickerFormat = "D MMM YYYY H:mm" dayValues = {{availableEndDays}} monthValues = {{availableEndMonths}} yearValues = {{availableEndYears}}
                               id="endTime" [readonly]="!isCreator"></ion-datetime>
             </ion-item>
         </ion-card-content>
