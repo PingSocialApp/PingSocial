@@ -15,7 +15,7 @@ import { AngularFireDatabase } from '@angular/fire/database';
 @NgModule({
     declarations: [AppComponent],
     entryComponents: [],
-    imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, 
+    imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule,
         HttpClientModule, AngularFireModule.initializeApp(environment.firebase)],
     providers: [
         AngularFirestore,
