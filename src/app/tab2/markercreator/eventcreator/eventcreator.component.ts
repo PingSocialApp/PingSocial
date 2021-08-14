@@ -41,6 +41,10 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     availableEndDays: string;
     availableEndMonths: string;
     availableEndYears: string;
+    minimumStartTime: any;
+    minimumEndTime: any;
+    maximumStartTime: any;
+    maximumEndTime: any;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -51,90 +55,23 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     ngOnInit() {
-        this.createTimeString();
-        this.editMode = this.eventID !== '';
-        (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
-        (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
-        if (this.editMode) {
-           this.renderEditMode();
-        } else {
-            this.renderNewMode();
-        }
+      this.editMode = this.eventID !== '';
+      (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
+      (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
+      this.minimumStartTime = new Date(new Date().getTime() - 18000000).toISOString();
+      this.maximumStartTime = new Date((new Date().getTime() + 604800000 - 18000000)).toISOString();
+      this.minimumEndTime = (new Date()).toISOString();
+      this.maximumEndTime = new Date((new Date().getTime() + 86400000 - 18000000)).toISOString();
+      if (this.editMode) {
+         this.renderEditMode();
+      } else {
+          this.renderNewMode();
+      }
     }
 
-    createTimeString(){
-      let currentDay = (new Date()).getDate();
-      let currentMonth = ((new Date()).getMonth() + 1);
-      let currentYear = (new Date()).getFullYear();
-      let nextDay = 0;
-      let nextMonth = 0;
-      let nextYear = 0;
-      this.availableStartDays = currentDay.toString();
-      this.availableEndDays = currentDay.toString();
-      //year
-      if((currentDay + 7) > 31 && currentMonth === 12){
-        nextYear = currentYear++;
-        this.availableStartYears = currentYear.toString() + ", " + nextYear.toString();
-      }else{
-        this.availableStartYears = currentYear.toString();
-      }
-      if((currentDay + 8) > 31 && currentMonth === 12){
-        nextYear = currentYear++;
-        this.availableEndYears = currentYear.toString() + ", " + nextYear.toString();
-      }else{
-        this.availableEndYears = currentYear.toString();
-      }
-      //month
-      //feb: 28 or 29 && year % 4 = 0; april, june, september, nov: 30
-      if((currentMonth === 2 && (currentDay + 7) > 28 && currentYear % 4 !== 0) ||
-        (currentMonth === 2 && (currentDay + 7) > 29 && currentYear % 4 === 0) ||
-        (currentMonth === 4 || currentMonth === 6 || currentMonth === 9 || currentMonth === 11)
-          && ((currentDay + 7) > 30)){
-        nextMonth = currentMonth++;
-        this.availableStartMonths = currentMonth.toString() + ", " + nextMonth.toString();
-      //december
-      }else if(currentMonth === 12 && (currentDay + 7) > 31){
-        nextMonth = 1;
-        this.availableStartMonths = currentMonth.toString() + ", " + nextMonth.toString();
-      }else{
-        this.availableStartMonths = currentMonth.toString();
-      }
-      if((currentMonth === 2 && (currentDay + 8) > 28 && currentYear % 4 !== 0) ||
-        (currentMonth === 2 && (currentDay + 8) > 29 && currentYear % 4 === 0) ||
-        (currentMonth === 4 || currentMonth === 6 || currentMonth === 9 || currentMonth === 11)
-          && ((currentDay + 8) > 30)){
-        nextMonth = currentMonth++;
-        this.availableEndMonths = currentMonth.toString() + ", " + nextMonth.toString();
-      //december
-      }else if(currentMonth === 12 && (currentDay + 8) > 31){
-        nextMonth = 1;
-        this.availableEndMonths = currentMonth.toString() + ", " + nextMonth.toString();
-      }else{
-        this.availableEndMonths = currentMonth.toString();
-      }
-      //day
-      currentDay++;
-      let currentDayHold = currentDay;
-      for(var i = 0; i < 7; i++){
-        if((currentMonth === 2 && (currentDayHold + 7) > 28 && currentYear % 4 !== 0) ||
-          (currentMonth === 2 && (currentDayHold + 7) > 29 && currentYear % 4 === 0) ||
-          (currentMonth === 4 || currentMonth === 6 || currentMonth === 9 || currentMonth === 11)
-            && ((currentDayHold + 7) > 30)){
-          currentDayHold = 1;
-        }
-        this.availableStartDays += ", " + currentDayHold.toString();
-        currentDayHold++;
-      }
-      for(var i = 0; i < 8; i++){
-        if((currentMonth === 2 && (currentDay + 8) > 28 && currentYear % 4 !== 0) ||
-          (currentMonth === 2 && (currentDay + 8) > 29 && currentYear % 4 === 0) ||
-          (currentMonth === 4 || currentMonth === 6 || currentMonth === 9 || currentMonth === 11)
-            && ((currentDay + 8) > 30)){
-          currentDay = 1;
-        }
-        this.availableEndDays += ", " + currentDay.toString();
-        currentDay++;
-      }
+    updateEndTimeMinimum(){
+      this.minimumEndTime = (document.getElementById('startTime') as HTMLInputElement).value;
+      this.maximumEndTime = new Date((new Date(this.minimumEndTime).getTime() + 86400000 - 18000000)).toISOString();
     }
 
 
@@ -150,6 +87,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderNewMode(){
+      console.log("new");
         this.isCreator = true;
         this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
             this.eventCreatorName = userRef.data.name;
