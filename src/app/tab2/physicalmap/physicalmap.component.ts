@@ -353,6 +353,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			// TODO:
 			// reposition more details button
 			el.addEventListener('click', (e: any) => {
+				if((this.location[0] - 0.5 <= feature.geometry.coordinates[0]) && (this.location[0] + 0.5 >= feature.geometry.coordinates[0])
+					|| (this.location[1] - 0.5 <= feature.geometry.coordinates[1]) && (this.location[1]  - 0.5 >= feature.geometry.coordinates[1])){
+						this.showCheckIn = true;
+				}
 				const markerArray = this.markerArray;
 				if(this.map.getZoom() >= 10.5){
 					const srcElem = e.srcElement;
@@ -452,6 +456,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
+		console.log("poingArr", pointArr);
 		return pointArr;
 	}
 	// sets background image of cluster
@@ -616,6 +621,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.toDateString() + ' ' +
 				endTime.getHours() + ':' + endMinutes;
 			this.currentEventId = el.id;
+			if((this.location[0] - 0.5 <= doc.geometry.coordinates[0]) && (this.location[0] + 0.5 >= doc.geometry.coordinates[0])
+				|| (this.location[1] - 0.5 <= doc.geometry.coordinates[1]) && (this.location[1]  - 0.5 >= doc.geometry.coordinates[1])){
+					this.showCheckIn = true;
+			}
 		});
 		try {
 			const marker = new mapboxgl.Marker(el);
@@ -648,23 +657,33 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showUserDetails = false;
 			this.showPing = false;
 			this.showClusterDetails = false;
+			this.showCheckIn = false;
 		});
 		this.map.on('dragend', () => {
 			this.refreshContent();
 		});
 	}
-
+	//New algorithm
+	//set new current event id currentEventId
+	//set checkedIn to currentEventId
 	async checkIn(currentEventId:string, currentEventTitle:string) {
-		if (this.checkedIn) {
-			if ((await this.checkOut(currentEventId, currentEventTitle)).data.isSuccesful) {
+		if (this.checkedIn === null) {
+			console.log("clear");
+			this.checkedIn = currentEventId;
+			//if ((await this.checkOut(currentEventId, currentEventTitle)).data.isSuccesful) {
+				console.log("again");
 				this.es.checkin(currentEventId).subscribe((val) => {
+					console.log("a third");
 					this.utils.presentToast('Welcome to ' + currentEventTitle);
 				}, (err) => console.error(err));
-			}
+			//}
 		}
 	}
 
 	async checkOut(currentEventId:string, currentEventTitle:string) {
+		console.log("check out");
+		this.checkedIn = null;
+		console.log(this.checkedIn, this.showCheckIn);
 		const modal = await this.modalController.create({
 			component: RatingPage,
 			componentProps: {
@@ -688,7 +707,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderLinks(reset) {
-			console.log("renderin");
         const coords = this.map.getCenter();
         this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
 					console.log(res);
@@ -733,7 +751,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 												});
                     this.otherUserId = doc.properties.uid
                 });
-								console.log("rendering..");
                 this.renderUser(oMark, longi, latid);
             });
         });

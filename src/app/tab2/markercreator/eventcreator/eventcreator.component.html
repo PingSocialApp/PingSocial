@@ -32,12 +32,12 @@
         <ion-card-content>
             <ion-item>
                 <ion-label position="stacked">Start Time</ion-label>
-                <ion-datetime displayFormat="D MMM YYYY H:mm" min="2021" max="2022"
-                              id='startTime' [readonly]="!isCreator"></ion-datetime>
+                <ion-datetime displayFormat="D MMM YYYY H:mm" min={{minimumStartTime}} max={{maximumStartTime}}
+                              id='startTime' [readonly]="!isCreator" (ionChange) = "updateEndTimeMinimum()"></ion-datetime>
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">End Time</ion-label>
-                <ion-datetime displayFormat="D MMM YYYY H:mm" min="2021" max="2022"
+                <ion-datetime displayFormat="D MMM YYYY H:mm" min={{minimumEndTime}} max={{maximumEndTime}}
                               id="endTime" [readonly]="!isCreator"></ion-datetime>
             </ion-item>
         </ion-card-content>

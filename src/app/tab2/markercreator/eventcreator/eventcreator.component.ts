@@ -34,6 +34,17 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     eventCreatorName: string;
     eventsSub: Subscription;
     linksSub: Subscription;
+    //NEELEY
+    availableStartDays: string;
+    availableStartMonths: string;
+    availableStartYears: string;
+    availableEndDays: string;
+    availableEndMonths: string;
+    availableEndYears: string;
+    minimumStartTime: any;
+    minimumEndTime: any;
+    maximumStartTime: any;
+    maximumEndTime: any;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -44,14 +55,23 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     ngOnInit() {
-        this.editMode = this.eventID !== '';
-        (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
-        (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
-        if (this.editMode) {
-           this.renderEditMode();
-        } else {
-            this.renderNewMode();
-        }
+      this.editMode = this.eventID !== '';
+      (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
+      (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
+      this.minimumStartTime = new Date(new Date().getTime() - 18000000).toISOString();
+      this.maximumStartTime = new Date((new Date().getTime() + 604800000 - 18000000)).toISOString();
+      this.minimumEndTime = (new Date()).toISOString();
+      this.maximumEndTime = new Date((new Date().getTime() + 86400000 - 18000000)).toISOString();
+      if (this.editMode) {
+         this.renderEditMode();
+      } else {
+          this.renderNewMode();
+      }
+    }
+
+    updateEndTimeMinimum(){
+      this.minimumEndTime = (document.getElementById('startTime') as HTMLInputElement).value;
+      this.maximumEndTime = new Date((new Date(this.minimumEndTime).getTime() + 86400000 - 18000000)).toISOString();
     }
 
 
@@ -67,6 +87,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderNewMode(){
+      console.log("new");
         this.isCreator = true;
         this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
             this.eventCreatorName = userRef.data.name;
