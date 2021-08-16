@@ -45,6 +45,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     minimumEndTime: any;
     maximumStartTime: any;
     maximumEndTime: any;
+    afterStartTime: boolean;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -56,13 +57,13 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit() {
       this.editMode = this.eventID !== '';
-      (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
-      (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
       this.minimumStartTime = new Date(new Date().getTime() - 18000000).toISOString();
       this.maximumStartTime = new Date((new Date().getTime() + 604800000 - 18000000)).toISOString();
       this.minimumEndTime = (new Date()).toISOString();
       this.maximumEndTime = new Date((new Date().getTime() + 86400000 - 18000000)).toISOString();
       if (this.editMode) {
+         (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
+         (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
          this.renderEditMode();
       } else {
           this.renderNewMode();
@@ -87,7 +88,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     renderNewMode(){
-      console.log("new");
         this.isCreator = true;
         this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
             this.eventCreatorName = userRef.data.name;
@@ -100,6 +100,12 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.eventsSub = this.es.getEventDetails(this.eventID).subscribe((ref:any) => {
             const data = ref.data;
+            console.log("data start time", data.startTime);
+            if(new Date().getTime() - new Date(data.startTime).getTime() >= 300000){
+              this.afterStartTime = true;
+            }else{
+              this.afterEndTime = false;
+            }
             (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
             (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
             this.eventName = data.eventName;

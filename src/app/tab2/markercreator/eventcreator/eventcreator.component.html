@@ -10,11 +10,11 @@
         <ion-card-content>
             <ion-item>
                 <ion-label position="relative">Name</ion-label>
-                <ion-input [(ngModel)]="eventName" [readonly]="!isCreator"></ion-input>
+                <ion-input [(ngModel)]="eventName" [readonly]="!isCreator || afterStartTime"></ion-input>
             </ion-item>
             <ion-item>
                 <ion-label position="floating">Description</ion-label>
-                <ion-textarea [(ngModel)]="eventDes" [readonly]="!isCreator"></ion-textarea>
+                <ion-textarea [(ngModel)]="eventDes" [readonly]="!isCreator || afterStartTime"></ion-textarea>
             </ion-item>
         </ion-card-content>
     </ion-card>
@@ -22,7 +22,7 @@
         <ion-card-content>
             <ion-item>
                 <ion-label>By {{eventCreatorName}}</ion-label>
-                <ion-button *ngIf="!isCreator" [routerLink]="['/userprofile/', this.eventCreator]">
+                <ion-button *ngIf="!isCreator || afterStartTime" [routerLink]="['/userprofile/', this.eventCreator]">
                     <ion-icon name="person"></ion-icon>
                 </ion-button>
             </ion-item>
@@ -33,12 +33,12 @@
             <ion-item>
                 <ion-label position="stacked">Start Time</ion-label>
                 <ion-datetime displayFormat="D MMM YYYY H:mm" min={{minimumStartTime}} max={{maximumStartTime}}
-                              id='startTime' [readonly]="!isCreator" (ionChange) = "updateEndTimeMinimum()"></ion-datetime>
+                              id='startTime' [readonly]="!isCreator || afterStartTime" (ionChange) = "updateEndTimeMinimum()"></ion-datetime>
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">End Time</ion-label>
                 <ion-datetime displayFormat="D MMM YYYY H:mm" min={{minimumEndTime}} max={{maximumEndTime}}
-                              id="endTime" [readonly]="!isCreator"></ion-datetime>
+                              id="endTime" [readonly]="!isCreator || afterStartTime"></ion-datetime>
             </ion-item>
         </ion-card-content>
     </ion-card>
@@ -46,7 +46,7 @@
         <ion-card-content>
             <ion-item>
                 <ion-label>Event Type</ion-label>
-                <ion-select placeholder="Select One" [(ngModel)]="eventType" [disabled]="!isCreator">
+                <ion-select placeholder="Select One" [(ngModel)]="eventType" [disabled]="!isCreator || afterStartTime">
                     <ion-select-option value="party">Party</ion-select-option>
                     <ion-select-option value="professional">Professional</ion-select-option>
                     <ion-select-option value="hangout">Hangout</ion-select-option>
@@ -54,7 +54,7 @@
             </ion-item>
             <ion-item>
                 <ion-label>Private Event</ion-label>
-                <ion-toggle [(ngModel)]="isPrivate" [disabled]="!isCreator"></ion-toggle>
+                <ion-toggle [(ngModel)]="isPrivate" [disabled]="!isCreator || afterStartTime"></ion-toggle>
             </ion-item>
             <ion-button *ngIf="isPrivate && isCreator" expand="block" (click)="showLinks()">
                 <ion-icon name="people"></ion-icon>
