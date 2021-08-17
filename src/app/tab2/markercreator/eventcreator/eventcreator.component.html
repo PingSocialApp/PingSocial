@@ -5,7 +5,7 @@
     </ion-button>
 </div>
 <div class="eventCreateContainer">
-    <div id='geocoder-container'></div>
+    <div id='geocoder-container' *ngIf="isCreator && !afterStartTime"></div>
     <ion-card>
         <ion-card-content>
             <ion-item>

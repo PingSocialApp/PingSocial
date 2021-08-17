@@ -566,7 +566,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		const eventInfo = doc.properties;
 		let el = null;
 		if (document.getElementById(eventInfo.id)) {
-			el = document.getElementById(eventInfo.id)
+			el = document.getElementById(eventInfo.id);
+			el.className = 'marker-style';
+
 		} else {
 			el = this.createMarker();
 		}
@@ -706,12 +708,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     renderLinks(reset) {
         const coords = this.map.getCenter();
         this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
-					console.log(res);
 						this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
             res.data.features.forEach(doc => {
-								console.log(doc);
                 // create marker and style it
                 const el = this.createMarker();
                 el.className += ' person-location';

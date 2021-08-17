@@ -104,7 +104,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             if(new Date().getTime() - new Date(data.startTime).getTime() >= 300000){
               this.afterStartTime = true;
             }else{
-              this.afterEndTime = false;
+              this.afterStartTime = false;
             }
             (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
             (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
