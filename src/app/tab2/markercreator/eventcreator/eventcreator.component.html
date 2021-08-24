@@ -1,9 +1,4 @@
 <div id="choosermap"></div>
-<div class="eventMenu">
-    <ion-button (click)="downloadEvent()">
-        <ion-icon name="cloud-download-outline"></ion-icon>
-    </ion-button>
-</div>
 <div class="eventCreateContainer">
     <div id='geocoder-container' *ngIf="isCreator && !afterStartTime"></div>
     <ion-card>
@@ -67,9 +62,19 @@
             <ion-icon name="checkmark"></ion-icon>
         </ion-fab-button>
     </ion-fab>
-    <ion-fab *ngIf="editMode && isCreator" vertical="bottom" horizontal="start" style="position: fixed">
+    <ion-fab *ngIf="editMode && isCreator && !afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
         <ion-fab-button (click)="deleteEvent()" color="danger">
             <ion-icon name="trash-outline"></ion-icon>
         </ion-fab-button>
     </ion-fab>
+    <ion-fab *ngIf="editMode && isCreator && afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
+        <ion-fab-button (click)="endEvent()" color="danger">
+            <ion-icon name="close-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</div>
+<div class="eventMenu">
+    <ion-button (click)="downloadEvent()">
+        <ion-icon name="cloud-download-outline"></ion-icon>
+    </ion-button>
 </div>

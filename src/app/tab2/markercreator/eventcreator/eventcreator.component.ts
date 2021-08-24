@@ -59,7 +59,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.editMode = this.eventID !== '';
       this.minimumStartTime = new Date(new Date().getTime() - 18000000).toISOString();
       this.maximumStartTime = new Date((new Date().getTime() + 604800000 - 18000000)).toISOString();
-      this.minimumEndTime = (new Date()).toISOString();
+      this.minimumEndTime = new Date(new Date().getTime() + 300000).toISOString();
       this.maximumEndTime = new Date((new Date().getTime() + 86400000 - 18000000)).toISOString();
       if (this.editMode) {
          (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
@@ -71,7 +71,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     updateEndTimeMinimum(){
-      this.minimumEndTime = (document.getElementById('startTime') as HTMLInputElement).value;
+      this.minimumEndTime = new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).getTime() - 18000000 + 300000).toISOString();
       this.maximumEndTime = new Date((new Date(this.minimumEndTime).getTime() + 86400000 - 18000000)).toISOString();
     }
 
@@ -255,6 +255,32 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                         }, (err) => {
                             console.error(err);
                             this.utils.presentToast('Whoops! Event Delete Failed');
+                        });
+                    }
+                }
+            ]
+        });
+
+        await alert.present();
+    }
+
+    async endEvent() {
+        const alert = await this.alertController.create({
+            header: 'Confirm Event End',
+            message: 'Are you sure you want to end this event?',
+            buttons: [
+                {
+                    text: 'Cancel',
+                    role: 'cancel',
+                    cssClass: 'secondary'
+                }, {
+                    text: 'End',
+                    handler: () => {
+                        this.es.endEvent(this.eventID).subscribe(() => {
+                            this.modalController.dismiss();
+                        }, (err) => {
+                            console.error(err);
+                            this.utils.presentToast('Whoops! Event Ending Failed');
                         });
                     }
                 }

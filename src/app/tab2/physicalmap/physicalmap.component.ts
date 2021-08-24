@@ -151,6 +151,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			]);
 			this.markersSub = sub.subscribe((markerSet: any) => {
 				const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
+				console.log("new set", newSet);
 				if (newSet.length !== 0) {
 					 if(this.markerArray){
 						 let dummyNewSet = newSet;
@@ -160,10 +161,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 								//NEELEY TODO: should work when stops sending old events; need to check
 					 			if((this.markerArray[i].properties.id === dummyNewSet[j].properties.id)){
 					 				flag = true;
-									if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
-										flag = false;
-										newSet.splice(j, 1);
-									}
+									// if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
+									// 	flag = false;
+									// 	newSet.splice(j, 1);
+									// }
 									break;
 					 			}
 					 		}
