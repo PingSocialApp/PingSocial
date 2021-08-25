@@ -90,6 +90,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     renderNewMode(){
         this.isCreator = true;
         this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
+            console.log(userRef);
             this.eventCreatorName = userRef.data.name;
         });
         this.links = [];
@@ -265,7 +266,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     async endEvent() {
-        const alert = await this.alertController.create({
+            const alert = await this.alertController.create({
             header: 'Confirm Event End',
             message: 'Are you sure you want to end this event?',
             buttons: [
@@ -276,7 +277,10 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 }, {
                     text: 'End',
                     handler: () => {
+                        console.log(this.es.endEvent(this.eventID));
+                        console.log(this.eventID);
                         this.es.endEvent(this.eventID).subscribe(() => {
+                            console.log("end");
                             this.modalController.dismiss();
                         }, (err) => {
                             console.error(err);

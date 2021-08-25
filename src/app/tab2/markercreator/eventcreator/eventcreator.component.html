@@ -32,7 +32,7 @@
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">End Time</ion-label>
-                <ion-datetime displayFormat="D MMM YYYY H:mm" min={{minimumEndTime}} max={{maximumEndTime}}
+                <ion-datetime displayFormat="D MMM YYYY h:mm a" min={{minimumEndTime}} max={{maximumEndTime}}
                               id="endTime" [readonly]="!isCreator || afterStartTime"></ion-datetime>
             </ion-item>
         </ion-card-content>
@@ -73,8 +73,8 @@
         </ion-fab-button>
     </ion-fab>
 </div>
-<div class="eventMenu">
+<div *ngIf="editMode" class="eventMenu">
     <ion-button (click)="downloadEvent()">
-        <ion-icon name="cloud-download-outline"></ion-icon>
+        <ion-label>Download Event</ion-label>
     </ion-button>
 </div>
