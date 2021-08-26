@@ -112,48 +112,56 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentLocationMarker.remove();
     }
 
-	refreshContent(reset = false) {
-		this.renderLinks(reset);
-		const coords = this.map.getCenter();
 
-		// TODO change radius
-		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
-			this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
-		]);
-		this.markersSub = sub.subscribe((markerSet: any) => {
-			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
+		refreshContent(reset = false) {
+			this.renderLinks(reset);
+			const coords = this.map.getCenter();
+
+	        // TODO change radius
+			const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
+				this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
+			]);
+			this.markersSub = sub.subscribe((markerSet: any) => {
+				const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
+				this.removeEvents(newSet);
+			}, err => console.error(err));
+		}
+
+		removeEvents(newSet){
 			if (newSet.length !== 0) {
-					if(this.markerArray){
-						const dummyNewSet = newSet;
+				 if(this.markerArray){
+					const dummyNewSet = newSet;
 					for(const marker of this.markerArray){
 						let flag = false;
-						for(let j = 0; j < dummyNewSet.length; j++){
-							// TODO: should work when stops sending old events; need to check
-							if((marker.properties.id === dummyNewSet[j].properties.id)){
+						for(const dummyMarker of dummyNewSet){
+							// NEELEY TODO: should work when stops sending old events; need to check
+							if((marker.properties.id === dummyMarker.properties.id)){
 								flag = true;
-								if(document.getElementById(marker.properties.id).classList.contains('empty')){
-									flag = false;
-									newSet.splice(j, 1);
-								}
 								break;
 							}
 						}
 						if(!flag){
-							document.getElementById(marker.properties.id).style.display = 'none';
-							document.getElementById(marker.properties.id).remove();
+							if(document.getElementById(marker.properties.id)){
+								document.getElementById(marker.properties.id).style.display = 'none';
+								document.getElementById(marker.properties.id).remove();
+							}
 						}
 					}
-					}
+				 }
 				this.markerArray = newSet;
 				this.presentCollectedData({
 					data: newSet
 				});
+
+			} else if(this.markerArray.length !== 0){
+				for(const marker of this.markerArray){
+					if(document.getElementById(marker.properties.id)){
+						document.getElementById(marker.properties.id).style.display = 'none';
+						document.getElementById(marker.properties.id).remove();
+					}
+				}
 			}
-		}, err => {
-			console.error(err);
-			this.utils.presentToast('Whoops! Unable to get markers');
-		});
-	}
+		}
 
 	getRadius() {
 		return (78271 / (2 ** this.map.getZoom())) * 2560000;
@@ -264,7 +272,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					features: data
 				},
 				cluster: true,
-				clusterMaxZoom: 14, // Max zoom to cluster points on
+				clusterMaxZoom: 22, // Max zoom to cluster points on
 				clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
 				clusterProperties: {
 					coordinates: ['max', ['get', 'coordinates']]
@@ -326,10 +334,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			// TODO:
 			// reposition more details button
 			el.addEventListener('click', (e: any) => {
-				if((this.location[0] - 0.5 <= feature.geometry.coordinates[0]) && (this.location[0] + 0.5 >= feature.geometry.coordinates[0])
-					|| (this.location[1] - 0.5 <= feature.geometry.coordinates[1]) && (this.location[1]  - 0.5 >= feature.geometry.coordinates[1])){
-						this.showCheckIn = true;
-				}
+				if(((this.location[0] + 0.125 >= feature.geometry.coordinates[0])
+				 && (this.location[0] - 0.125 <= feature.geometry.coordinates[0]))
+						&& ((this.location[1] + 0.125 >= feature.geometry.coordinates[1]) && (this.location[1] - 0.125 <= feature.geometry.coordinates[1]))){
+							this.showCheckIn = true;
+						}
 				const markerArray = this.markerArray;
 				if(this.map.getZoom() >= 10.5){
 					const srcElem = e.srcElement;
@@ -537,7 +546,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		const eventInfo = doc.properties;
 		let el = null;
 		if (document.getElementById(eventInfo.id)) {
-			el = document.getElementById(eventInfo.id)
+			el = document.getElementById(eventInfo.id);
+			el.className = 'marker-style';
+
 		} else {
 			el = this.createMarker();
 		}
@@ -593,10 +604,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.toDateString() + ' ' +
 				endTime.getHours() + ':' + endMinutes;
 			this.currentEventId = el.id;
-			if((this.location[0] - 0.5 <= doc.geometry.coordinates[0]) && (this.location[0] + 0.5 >= doc.geometry.coordinates[0])
-				|| (this.location[1] - 0.5 <= doc.geometry.coordinates[1]) && (this.location[1]  - 0.5 >= doc.geometry.coordinates[1])){
-					this.showCheckIn = true;
-			}
+			if(((this.location[0] + 0.125 >= doc.geometry.coordinates[0])
+			 && (this.location[0] - 0.125 <= doc.geometry.coordinates[0]))
+					&& ((this.location[1] + 0.125 >= doc.geometry.coordinates[1]) && (this.location[1] - 0.125 <= doc.geometry.coordinates[1]))){
+						this.showCheckIn = true;
+					}
 		});
 		try {
 			const marker = new mapboxgl.Marker(el);
@@ -635,28 +647,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.refreshContent();
 		});
 	}
-	// New algorithm
-	// set new current event id currentEventId
-	// set checkedIn to currentEventId
-	// async checkIn(currentEventId:string, currentEventTitle:string) {
-	// 	if (this.checkedIn === null) {
-	// 		console.log('clear');
-	// 		this.checkedIn = currentEventId;
-	// 		// if ((await this.checkOut(currentEventId, currentEventTitle)).data.isSuccesful) {
-	// 			console.log('again');
-	// 			this.es.checkin(currentEventId).subscribe((val) => {
-	// 				console.log('a third');
-	// 				this.utils.presentToast('Welcome to ' + currentEventTitle);
-	// 			}, (err) => console.error(err));
-	// 		// }
-	// 	}
-	// }
-
-
 
 	async checkOut() {
 		this.checkedIn = null;
-
 		const modal = await this.modalController.create({
 			component: RatingPage,
 			componentProps: {
@@ -817,6 +810,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     // }
 
     async presentEventCreatorModal(data: string) {
+				this.showEventDetails = false;
         const modal = await this.modalController.create({
             component: MarkercreatorPage,
             componentProps: {
