@@ -151,35 +151,48 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			]);
 			this.markersSub = sub.subscribe((markerSet: any) => {
 				const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
-				console.log("new set", newSet);
-				if (newSet.length !== 0) {
-					 if(this.markerArray){
-						 let dummyNewSet = newSet;
-					 	for(var i = 0; i < this.markerArray.length; i++){
-					 		let flag = false;
-					 		for(var j = 0; j < dummyNewSet.length; j++){
-								//NEELEY TODO: should work when stops sending old events; need to check
-					 			if((this.markerArray[i].properties.id === dummyNewSet[j].properties.id)){
-					 				flag = true;
-									// if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
-									// 	flag = false;
-									// 	newSet.splice(j, 1);
-									// }
-									break;
-					 			}
-					 		}
-					 		if(!flag){
-								document.getElementById(this.markerArray[i].properties.id).style.display = "none";
-					 			document.getElementById(this.markerArray[i].properties.id).remove();
-					 		}
-					 	}
-					 }
-					this.markerArray = newSet;
-					this.presentCollectedData({
-						data: newSet
-					});
-				}
+				this.removeEvents(newSet);
 			}, err => console.error(err));
+		}
+
+		removeEvents(newSet){
+			console.log("new set", newSet);
+			if (newSet.length !== 0) {
+				 if(this.markerArray){
+					 let dummyNewSet = newSet;
+					for(var i = 0; i < this.markerArray.length; i++){
+						let flag = false;
+						for(var j = 0; j < dummyNewSet.length; j++){
+							//NEELEY TODO: should work when stops sending old events; need to check
+							if((this.markerArray[i].properties.id === dummyNewSet[j].properties.id)){
+								flag = true;
+								// if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
+								// 	flag = false;
+								// 	newSet.splice(j, 1);
+								// }
+								break;
+							}
+						}
+						if(!flag){
+							if(document.getElementById(this.markerArray[i].properties.id)){
+								document.getElementById(this.markerArray[i].properties.id).style.display = "none";
+								document.getElementById(this.markerArray[i].properties.id).remove();
+							}
+						}
+					}
+				 }
+				this.markerArray = newSet;
+				this.presentCollectedData({
+					data: newSet
+				});
+			}else if(this.markerArray.length !== 0){
+				for(var i = 0; i < this.markerArray.length; i++){
+					if(document.getElementById(this.markerArray[i].properties.id)){
+						document.getElementById(this.markerArray[i].properties.id).style.display = "none";
+						document.getElementById(this.markerArray[i].properties.id).remove();
+					}
+				}
+			}
 		}
 
 	getRadius() {
@@ -243,6 +256,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const feat = this.queryRenderedFeatures(e.point, {
 				layers: ['clusters']
 			});
+			console.log(feat, "feat");
 			tempThis.clusterArray = feat;
 			const cc = this.getContainer();
 			// all html of event objects
@@ -292,7 +306,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					features: data
 				},
 				cluster: true,
-				clusterMaxZoom: 14, // Max zoom to cluster points on
+				clusterMaxZoom: 22, // Max zoom to cluster points on
 				clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
 				clusterProperties: {
 					coordinates: ['max', ['get', 'coordinates']]
@@ -839,6 +853,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     // }
 
     async presentEventCreatorModal(data: string) {
+				this.showEventDetails = false;
         const modal = await this.modalController.create({
             component: MarkercreatorPage,
             componentProps: {

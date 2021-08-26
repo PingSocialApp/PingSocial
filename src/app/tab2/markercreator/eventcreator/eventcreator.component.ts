@@ -46,6 +46,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     maximumStartTime: any;
     maximumEndTime: any;
     afterStartTime: boolean;
+    @Input() currentLocation: Array<any>;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -57,29 +58,32 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit() {
       this.editMode = this.eventID !== '';
-      this.minimumStartTime = new Date(new Date().getTime() - 18000000).toISOString();
-      this.maximumStartTime = new Date((new Date().getTime() + 604800000 - 18000000)).toISOString();
-      this.minimumEndTime = new Date(new Date().getTime() + 300000).toISOString();
-      this.maximumEndTime = new Date((new Date().getTime() + 86400000 - 18000000)).toISOString();
+      this.minimumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000).toISOString();
+      this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000 + 604800000 - 500).toISOString();
+      this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 300000).toISOString();
+      this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 82800000).toISOString();
       if (this.editMode) {
          (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
          (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
          this.renderEditMode();
       } else {
+          console.log(this.currentLocation);
           this.renderNewMode();
       }
     }
 
     updateEndTimeMinimum(){
-      this.minimumEndTime = new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).getTime() - 18000000 + 300000).toISOString();
-      this.maximumEndTime = new Date((new Date(this.minimumEndTime).getTime() + 86400000 - 18000000)).toISOString();
+      console.log("updated");
+      this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).toDateString()).getTime() - 18000000 + 300000).toISOString();
+      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000 + 82800000).toISOString();
+      console.log(this.minimumEndTime, this.maximumEndTime);
     }
 
 
     ngAfterViewInit() {
-        this.buildMap();
-        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
-        (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
+      this.buildMap();
+      (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
+      (document.querySelector('#choosermap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
     }
 
     ngOnDestroy() {
@@ -147,6 +151,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 container: 'choosermap',
                 style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
                 zoom: 2,
+                center: this.location
             });
         }
         // @ts-ignore
@@ -251,6 +256,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 }, {
                     text: 'Delete',
                     handler: () => {
+                        console.log(this.es.deleteEvent(this.eventID));
                         this.es.deleteEvent(this.eventID).subscribe(() => {
                             this.modalController.dismiss();
                         }, (err) => {

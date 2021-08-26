@@ -27,7 +27,7 @@
         <ion-card-content>
             <ion-item>
                 <ion-label position="stacked">Start Time</ion-label>
-                <ion-datetime displayFormat="D MMM YYYY H:mm" min={{minimumStartTime}} max={{maximumStartTime}}
+                <ion-datetime displayFormat="D MMM YYYY h:mm a" min={{minimumStartTime}} max={{maximumStartTime}}
                               id='startTime' [readonly]="!isCreator || afterStartTime" (ionChange) = "updateEndTimeMinimum()"></ion-datetime>
             </ion-item>
             <ion-item>
@@ -62,12 +62,12 @@
             <ion-icon name="checkmark"></ion-icon>
         </ion-fab-button>
     </ion-fab>
-    <ion-fab *ngIf="editMode && isCreator && !afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
+    <ion-fab *ngIf="isCreator && !afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
         <ion-fab-button (click)="deleteEvent()" color="danger">
             <ion-icon name="trash-outline"></ion-icon>
         </ion-fab-button>
     </ion-fab>
-    <ion-fab *ngIf="editMode && isCreator && afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
+    <ion-fab *ngIf="isCreator && afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
         <ion-fab-button (click)="endEvent()" color="danger">
             <ion-icon name="close-outline"></ion-icon>
         </ion-fab-button>
