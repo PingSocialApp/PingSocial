@@ -1,46 +1,18 @@
-import {
-	AfterViewInit,
-	Component,
-	OnDestroy,
-	OnInit
-} from '@angular/core';
+import {AfterViewInit,Component,OnDestroy,OnInit} from '@angular/core';
 import {
     // IonSearchbar,
-	ModalController,
-} from '@ionic/angular';
-import {
-	environment
-} from '../../../environments/environment';
+ModalController,} from '@ionic/angular';
+import {environment} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import {
-	Geolocation,
-	Position
-} from '@capacitor/geolocation'
-import {
-	combineLatest,
-	Subscription
-} from 'rxjs';
-import {
-	MarkercreatorPage
-} from '../markercreator/markercreator.page';
-import {
-	RatingPage
-} from '../../rating/rating.page';
-import {
-	MarkersService
-} from 'src/app/services/markers.service';
-import {
-	UsersService
-} from 'src/app/services/users.service';
-import {
-	AuthHandler
-} from 'src/app/services/authHandler.service';
-import {
-	EventsService
-} from 'src/app/services/events.service';
-import {
-	UtilsService
-} from 'src/app/services/utils.service';
+import {Geolocation,Position} from '@capacitor/geolocation'
+import {combineLatest,Subscription} from 'rxjs';
+import {MarkercreatorPage} from '../markercreator/markercreator.page';
+import {RatingPage} from '../../rating/rating.page';
+import {MarkersService} from 'src/app/services/markers.service';
+import {UsersService} from 'src/app/services/users.service';
+import {AuthHandler} from 'src/app/services/authHandler.service';
+import {EventsService} from 'src/app/services/events.service';
+import {UtilsService} from 'src/app/services/utils.service';
 
 @Component({
 	selector: 'app-physicalmap',
@@ -57,17 +29,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	currentEventTitle: string;
 	currentEventDes: string;
 	showEventDetails: any;
-	queryStatus = 'All';
-	queryType = 'All';
-	queryDate: boolean;
-	queryLink: boolean;
+	// queryStatus = 'All';
+	// queryType = 'All';
+	// queryDate: boolean;
+	// queryLink: boolean;
 	currentEventId: string;
 	showUserDetails: boolean;
 	otherUserName = '';
 	otherUserLocation: any;
 	otherUserStatus = '';
 	otherUserId: string;
-	// Neeley
 	showClusterDetails: boolean;
 	markerArray: Array<any>;
 	markerArrayForCluster: Array<any>;
@@ -141,48 +112,50 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentLocationMarker.remove();
     }
 
-		refreshContent(reset = false) {
-			this.renderLinks(reset);
-			const coords = this.map.getCenter();
+	refreshContent(reset = false) {
+		this.renderLinks(reset);
+		const coords = this.map.getCenter();
 
-	        // TODO change radius
-			const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
-				this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
-			]);
-			this.markersSub = sub.subscribe((markerSet: any) => {
-				const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
-				if (newSet.length !== 0) {
-					 if(this.markerArray){
-						 let dummyNewSet = newSet;
-					 	for(var i = 0; i < this.markerArray.length; i++){
-					 		let flag = false;
-					 		for(var j = 0; j < dummyNewSet.length; j++){
-								//NEELEY TODO: should work when stops sending old events; need to check
-					 			if((this.markerArray[i].properties.id === dummyNewSet[j].properties.id)){
-					 				flag = true;
-									if(document.getElementById(this.markerArray[i].properties.id).classList.contains('empty')){
-										flag = false;
-										newSet.splice(j, 1);
-									}
-									break;
-					 			}
-					 		}
-					 		if(!flag){
-								document.getElementById(this.markerArray[i].properties.id).style.display = "none";
-					 			document.getElementById(this.markerArray[i].properties.id).remove();
-					 		}
-					 	}
-					 }
-					this.markerArray = newSet;
-					this.presentCollectedData({
-						data: newSet
-					});
-				}
-			}, err => console.error(err));
-		}
+		// TODO change radius
+		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
+			this.ms.getRelevantGeoPings(coords.lat, coords.lng, 1000000000, reset)
+		]);
+		this.markersSub = sub.subscribe((markerSet: any) => {
+			const newSet = [...markerSet[0].data.features, ...markerSet[1].data.features];
+			if (newSet.length !== 0) {
+					if(this.markerArray){
+						const dummyNewSet = newSet;
+					for(const marker of this.markerArray){
+						let flag = false;
+						for(let j = 0; j < dummyNewSet.length; j++){
+							// TODO: should work when stops sending old events; need to check
+							if((marker.properties.id === dummyNewSet[j].properties.id)){
+								flag = true;
+								if(document.getElementById(marker.properties.id).classList.contains('empty')){
+									flag = false;
+									newSet.splice(j, 1);
+								}
+								break;
+							}
+						}
+						if(!flag){
+							document.getElementById(marker.properties.id).style.display = 'none';
+							document.getElementById(marker.properties.id).remove();
+						}
+					}
+					}
+				this.markerArray = newSet;
+				this.presentCollectedData({
+					data: newSet
+				});
+			}
+		}, err => {
+			console.error(err);
+			this.utils.presentToast('Whoops! Unable to get markers');
+		});
+	}
 
 	getRadius() {
-		//return (78271 / (2 ** this.map.getZoom())) * 256;
 		return (78271 / (2 ** this.map.getZoom())) * 2560000;
 	}
 
@@ -259,7 +232,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				for (const cluster of feat) {
 					if ((document.getElementById(html.id).getAttribute('in-cluster') === 'false')
 							|| ((document.getElementById(html.id).getAttribute('in-cluster') === 'is-cluster')
-							&& (parseInt(html.id) === cluster.id))) {
+							&& (parseInt(html.id, 10) === cluster.id))) {
 								document.getElementById(html.id).style.display = 'inline';
 								break;
 					} else {
@@ -367,7 +340,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 							pointArr = new Array(markerArray.length);
 							this.markerArrayForCluster = this.getClusterDistances(cluster, markerArray, distArr, pointArr);
 							pointArr.length = cluster.properties.point_count;
-							//this.markerArray = pointArr;
+							// this.markerArray = pointArr;
 							this.clusterArray = cluster;
 							this.showEventDetails = false;
 							this.showUserDetails = false;
@@ -375,13 +348,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 							this.showClusterDetails = true;
 							for(const element of this.markerArrayForCluster){
 								if(element.properties.sentMessage){
-									let timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
+									const timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
 									let timeBetweenString = null;
 									if(timeBetween <= 3600000){
-										let temp = Math.ceil(timeBetween/60000) + 1;
+										const temp = Math.ceil(timeBetween/60000) + 1;
 										timeBetweenString = (temp).toString() + ' minutes remaining';
 									}else{
-										let temp = Math.ceil(timeBetween/3600000) + 1;
+										const temp = Math.ceil(timeBetween/3600000) + 1;
 										timeBetweenString = (temp).toString() + ' hours remaining';
 									}
 									element.properties.timeCreate = timeBetweenString;
@@ -407,7 +380,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				const marker = new mapboxgl.Marker(el);
 				marker.setLngLat(feature.geometry.coordinates).addTo(this.map);
 			} catch (e) {
-				console.log(e.message);
+				console.error(e.message);
 			}
 			// puts distance and point into arrays
 			this.getClusterDistances(feature, data, distArr, pointArr);
@@ -456,7 +429,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
-		console.log("poingArr", pointArr);
 		return pointArr;
 	}
 	// sets background image of cluster
@@ -530,13 +502,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			document.getElementById(el.id).remove();
 		}
 
-		let timeBetween = (new Date(pingInfo.timeExpire)).getTime() - (new Date()).getTime();
+		const timeBetween = (new Date(pingInfo.timeExpire)).getTime() - (new Date()).getTime();
 		let timeBetweenString = null;
 		if(timeBetween <= 3600000){
-			let temp = Math.ceil(timeBetween/60000) + 1;
+			const temp = Math.ceil(timeBetween/60000) + 1;
 			timeBetweenString = (temp).toString() + ' minutes remaining';
 		}else{
-			let temp = Math.ceil(timeBetween/3600000) + 1;
+			const temp = Math.ceil(timeBetween/3600000) + 1;
 			timeBetweenString = (temp).toString() + ' hours remaining';
 		}
 		el.addEventListener('click', (e) => {
@@ -630,7 +602,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const marker = new mapboxgl.Marker(el);
 			marker.setLngLat(doc.geometry.coordinates).addTo(this.map);
 		} catch (e) {
-			console.log(e.message);
+			console.error(e.message);
 		}
 	}
 
@@ -647,9 +619,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	buildMap(coords: any) {
 		this.map = new mapboxgl.Map({
 			container: 'map',
-			style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
+			style: environment.mapbox.style,
 			zoom: 18,
-            //minZoom: 10,
+            minZoom: 10,
 			center: [coords.longitude, coords.latitude]
 		});
 		this.map.on('dragstart', () => {
@@ -663,35 +635,36 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.refreshContent();
 		});
 	}
-	//New algorithm
-	//set new current event id currentEventId
-	//set checkedIn to currentEventId
-	async checkIn(currentEventId:string, currentEventTitle:string) {
-		if (this.checkedIn === null) {
-			console.log("clear");
-			this.checkedIn = currentEventId;
-			//if ((await this.checkOut(currentEventId, currentEventTitle)).data.isSuccesful) {
-				console.log("again");
-				this.es.checkin(currentEventId).subscribe((val) => {
-					console.log("a third");
-					this.utils.presentToast('Welcome to ' + currentEventTitle);
-				}, (err) => console.error(err));
-			//}
-		}
-	}
+	// New algorithm
+	// set new current event id currentEventId
+	// set checkedIn to currentEventId
+	// async checkIn(currentEventId:string, currentEventTitle:string) {
+	// 	if (this.checkedIn === null) {
+	// 		console.log('clear');
+	// 		this.checkedIn = currentEventId;
+	// 		// if ((await this.checkOut(currentEventId, currentEventTitle)).data.isSuccesful) {
+	// 			console.log('again');
+	// 			this.es.checkin(currentEventId).subscribe((val) => {
+	// 				console.log('a third');
+	// 				this.utils.presentToast('Welcome to ' + currentEventTitle);
+	// 			}, (err) => console.error(err));
+	// 		// }
+	// 	}
+	// }
 
-	async checkOut(currentEventId:string, currentEventTitle:string) {
-		console.log("check out");
+
+
+	async checkOut() {
 		this.checkedIn = null;
-		console.log(this.checkedIn, this.showCheckIn);
+
 		const modal = await this.modalController.create({
 			component: RatingPage,
 			componentProps: {
-				eventID: currentEventId,
+				eventID: this.checkedIn,
 			}
 		});
 		await modal.present();
-		this.utils.presentToast('Goodbye from ' + currentEventTitle);
+		this.utils.presentToast('Thanks for checking out!');
 		return modal.onDidDismiss();
 	}
 
@@ -709,12 +682,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     renderLinks(reset) {
         const coords = this.map.getCenter();
         this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
-					console.log(res);
-						this.allUserMarkers.forEach(tempMarker => {
+			this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
             });
             res.data.features.forEach(doc => {
-								console.log(doc);
                 // create marker and style it
                 const el = this.createMarker();
                 el.className += ' person-location';
@@ -723,15 +694,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 const longi = doc.geometry.coordinates[0];
                 const latid = doc.geometry.coordinates[1];
 
-								const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
-            			mapboxgl.accessToken;
+						// 		const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
+            			// mapboxgl.accessToken;
 
         				// get info from api
-        				fetch(reqStr).then(response => response.json())
-            				.then(data => {
-											this.otherUserLocation = data.features[3].text;
-										});
-                //const locat = vals.place;
+        				// fetch(reqStr).then(response => response.json())
+            			// 	.then(data => {
+						// 					this.otherUserLocation = data.features[3].text;
+						// 				});
 
                 // const lastOn = vals.lastOnline;
                 // const oStat = vals.isOnline ? 'Online' : this.convertTime(Date.now() - lastOn);
@@ -743,24 +713,27 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
                     this.otherUserName = doc.properties.name;
-										const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
+					const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
 		            			mapboxgl.accessToken;
-		        				fetch(reqStr).then(response => response.json())
-		            				.then(data => {
-													this.otherUserLocation = data.features[3].text;
-												});
+		        	fetch(reqStr).then(response => response.json())
+		        		.then(data => {
+							this.otherUserLocation = data.features[3].text;
+						});
                     this.otherUserId = doc.properties.uid
                 });
                 this.renderUser(oMark, longi, latid);
             });
+        }, error => {
+            console.error(error);
+            this.utils.presentToast('Whoops! Unable to get links');
         });
     }
 
     updateLocation(coords) {
 			this.us.setUserLocation({
 					location: {
-							longitude: coords.longitude,
-							latitude: coords.latitude,
+						longitude: coords.longitude,
+						latitude: coords.latitude,
 					}
 			}).subscribe((val: any) => console.log(val.data) ,(err: any) => console.error(err));
     }
@@ -784,7 +757,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             });
             el.id = 'currentLocation';
             this.currentLocationMarker = new mapboxgl.Marker(el);
-        })
+        }, err => {
+            console.error(err);
+            this.utils.presentToast('Whoops! Unable to get your marker');
+        });
     }
 
     // async presentFilter() {
@@ -849,6 +825,19 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         modal.onDidDismiss().then(() => this.refreshContent());
         return await modal.present();
+    }
+
+    async checkIn() {
+        if (this.checkedIn) {
+            if((await this.checkOut()).data.isSuccesful){
+                this.es.checkin(this.currentEventId).subscribe(() => {
+                    this.utils.presentToast('Welcome to ' + this.currentEventTitle);
+                }, (err) => {
+                    console.error(err);
+                    this.utils.presentToast('Whoops! Unable to checkin');
+                });
+            }
+        }
     }
 
     getDistance(lat1, lon1, lat2, lon2) {
