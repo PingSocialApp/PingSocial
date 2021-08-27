@@ -156,7 +156,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		}
 
 		removeEvents(newSet){
-			console.log("new set", newSet);
 			if (newSet.length !== 0) {
 				 if(this.markerArray){
 					 let dummyNewSet = newSet;
@@ -256,7 +255,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			const feat = this.queryRenderedFeatures(e.point, {
 				layers: ['clusters']
 			});
-			console.log(feat, "feat");
 			tempThis.clusterArray = feat;
 			const cc = this.getContainer();
 			// all html of event objects
@@ -472,7 +470,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
-		console.log("poingArr", pointArr);
 		return pointArr;
 	}
 	// sets background image of cluster
@@ -550,9 +547,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		let timeBetweenString = null;
 		if(timeBetween <= 3600000){
 			let temp = Math.ceil(timeBetween/60000) + 1;
-			timeBetweenString = (temp).toString() + ' minutes remaining';
+			timeBetweenString = (temp).toString() + ' minute(s) remaining';
 		}else{
 			let temp = Math.ceil(timeBetween/3600000) + 1;
+			console.log(temp);
+			if(temp > 24){
+				temp = 24;
+			}
 			timeBetweenString = (temp).toString() + ' hours remaining';
 		}
 		el.addEventListener('click', (e) => {
@@ -667,8 +668,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.map = new mapboxgl.Map({
 			container: 'map',
 			style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
-			zoom: 18,
+			zoom: 16,
             //minZoom: 10,
+			maxZoom: 17,
 			center: [coords.longitude, coords.latitude]
 		});
 		this.map.on('dragstart', () => {
@@ -853,6 +855,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     // }
 
     async presentEventCreatorModal(data: string) {
+				const list = document.getElementsByClassName("clusterList");
+				if(list.length){
+					list[0].parentNode.removeChild(list[0]);
+				}
 				this.showEventDetails = false;
         const modal = await this.modalController.create({
             component: MarkercreatorPage,

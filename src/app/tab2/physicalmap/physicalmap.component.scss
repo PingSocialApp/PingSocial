@@ -24,7 +24,9 @@
 }
   //background-image: url('')
 
-
+:host ::ng-deep .geoping-info{
+  border-top: 10px solid #FFFFFF;
+}
 :host ::ng-deep .ping-marker{
   width: 60px;
   height: 60px;
