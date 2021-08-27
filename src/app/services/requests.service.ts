@@ -1,9 +1,10 @@
 import {Injectable} from '@angular/core';
-import {first, retry, scan, share} from 'rxjs/operators';
+import {catchError, first, retry, scan, share} from 'rxjs/operators';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { AngularFireDatabase } from '@angular/fire/database';
 import { AuthHandler } from './authHandler.service';
+import { of } from 'rxjs';
 
 @Injectable({
     providedIn: 'root',
@@ -43,7 +44,10 @@ export class RequestsService {;
         params = params.set('offset', offset.toString());
         return this.http.get(environment.apiURL.requests + 'pending',{
             params
-        }).pipe(retry(3), share(), scan((all:any,current:any) => {
+        }).pipe(retry(3), catchError(err => {
+            console.error(err);
+            return of({data: []});
+        }),share(), scan((all:any,current:any) => {
             if(offset === 0){
               all = {
                 isDone: false,
@@ -53,9 +57,9 @@ export class RequestsService {;
           if(current.data.length < limit){
             all.isDone = true;
           }
-      
+
           all.data = [...all.data,...current.data];
-      
+
           return all;
           }, {isDone: false, data: []}));
     }
@@ -69,7 +73,10 @@ export class RequestsService {;
         params = params.set('offset', offset.toString());
         return this.http.get(environment.apiURL.requests + 'sent',{
             params
-        }).pipe(retry(3), share(), scan((all:any,current:any) => {
+        }).pipe(retry(3), catchError(err => {
+            console.error(err);
+            return of({data: []});
+        }), share(), scan((all:any,current:any) => {
             if(offset === 0){
               all = {
                 isDone: false,
@@ -79,15 +86,15 @@ export class RequestsService {;
           if(current.data.length < limit){
             all.isDone = true;
           }
-      
+
           all.data = [...all.data,...current.data];
-      
+
           return all;
           }, {isDone: false, data: []}));
     }
 
     acceptRequest(id: string) {
-        return this.http.patch(environment.apiURL.requests + id, {}).pipe(retry(3), first())
+        return this.http.patch(environment.apiURL.requests + id, {}).pipe(retry(3))
     }
 
     getTotalNumRequests(){

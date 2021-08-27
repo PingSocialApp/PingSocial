@@ -6,8 +6,8 @@
 
 <ion-card *ngIf="eventId !== ''">
     <ion-card-header>
-        <ion-card-title>{{(eventDetails | async)?.eventName}}</ion-card-title>
-        <ion-card-subtitle>By {{(eventDetails | async)?.creator.name}}</ion-card-subtitle>
+        <ion-card-title>{{(eventDetails | async)?.data.eventName}}</ion-card-title>
+        <ion-card-subtitle>By {{(eventDetails | async)?.data.creator.name}}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content style="text-align: center">
         <ion-button (click)="checkOut()">
@@ -16,15 +16,31 @@
         <ion-button (click)="openEventModal()">
             <ion-icon [name]="this.eventCreatorId !== this.currentUserId ? 'expand' : 'create'"></ion-icon>
         </ion-button>
-        <ion-button (click)="this.eventCreatorId !== this.currentUserId ? messageUser(eventCreatorId) : messageUser()">
+        <ion-button (click)="this.eventCreatorId !== this.currentUserId ? messageUser(eventCreatorId) : null">
             <ion-icon name="send"></ion-icon>
         </ion-button>
     </ion-card-content>
 </ion-card>
+<ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+            pullingIcon="chevron-down-circle-outline"
+            pullingText="Pull to refresh"
+            refreshingSpinner="circles"
+            refreshingText="Refreshing...">
+    </ion-refresher-content>
+</ion-refresher>
 <ion-card *ngIf="eventId !== ''">
+    <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content
+                pullingIcon="chevron-down-circle-outline"
+                pullingText="Pull to refresh"
+                refreshingSpinner="circles"
+                refreshingText="Refreshing...">
+        </ion-refresher-content>
+    </ion-refresher>
     <ion-card-content>
         <ion-list>
-            <ion-item-sliding *ngFor="let attendee of (attendees | async)">
+            <ion-item-sliding *ngFor="let attendee of (attendees | async)?.data">
                 <ion-item>
                     <ion-avatar slot="start">
                         <ion-img src="{{attendee.profilepic}}"></ion-img>
@@ -35,7 +51,7 @@
                     </ion-label>
                 </ion-item>
                 <ion-item-options *ngIf="attendee.uid !== this.currentUserId">
-                    <ion-item-option (click)="messageUser(attendee.id)">
+                    <ion-item-option (click)="messageUser(attendee)">
                         <ion-icon name="send"></ion-icon>
                     </ion-item-option>
                     <ion-item-option style="--background: #7ec3ca;" (click)="sendRequest(attendee.id)">
@@ -44,5 +60,11 @@
                 </ion-item-options>
             </ion-item-sliding>
         </ion-list>
+        <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((attendees | async)?.isDone)">
+            <ion-infinite-scroll-content
+              loadingSpinner="bubbles"
+              loadingText="Loading more data...">
+            </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
     </ion-card-content>
 </ion-card>

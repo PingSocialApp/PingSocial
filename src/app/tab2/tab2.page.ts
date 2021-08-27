@@ -27,6 +27,7 @@ export class Tab2Page implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        this.unreadPings = 0;
         this.unreadPingSub = this.db.object('userNumerics/numPings/' + this.auth.getUID()).valueChanges().subscribe(res => {
             this.unreadPings = res;
         },(error) => console.error(error));

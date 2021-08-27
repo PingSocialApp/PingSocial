@@ -1,10 +1,17 @@
 <div id="choosermap"></div>
+
+<div class="eventMenu">
+    <!-- TODO this is only for iPhone Release -->
+    <ion-button href="http://maps.apple.com/?daddr={{this.location[0]}},{{this.location[1]}}">
+        <ion-icon name="location"></ion-icon>
+    </ion-button>
+</div>
 <div class="eventCreateContainer">
     <div id='geocoder-container' *ngIf="isCreator && !afterStartTime"></div>
     <ion-card>
         <ion-card-content>
             <ion-item>
-                <ion-label position="relative">Name</ion-label>
+                <ion-label position="floating">Name</ion-label>
                 <ion-input [(ngModel)]="eventName" [readonly]="!isCreator || afterStartTime"></ion-input>
             </ion-item>
             <ion-item>
@@ -17,7 +24,7 @@
         <ion-card-content>
             <ion-item>
                 <ion-label>By {{eventCreatorName}}</ion-label>
-                <ion-button *ngIf="!isCreator || afterStartTime" [routerLink]="['/userprofile/', this.eventCreator]">
+                <ion-button *ngIf="!isCreator" [routerLink]="['/userprofile/', this.eventCreator]">
                     <ion-icon name="person"></ion-icon>
                 </ion-button>
             </ion-item>
@@ -28,7 +35,7 @@
             <ion-item>
                 <ion-label position="stacked">Start Time</ion-label>
                 <ion-datetime displayFormat="D MMM YYYY h:mm a" min={{minimumStartTime}} max={{maximumStartTime}}
-                              id='startTime' [readonly]="!isCreator || afterStartTime" (ionChange) = "updateEndTimeMinimum()"></ion-datetime>
+                              id='startTime' [readonly]="!isCreator || afterStartTime" (ionChange) = "updateEndTimeMinimum()"></ion-datetime>       
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">End Time</ion-label>

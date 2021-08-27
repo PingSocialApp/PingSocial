@@ -9,3 +9,18 @@
 #attendingIcon {
     position: relative; top:25%; font-size: 1.5em;
 }
+
+.emptyRequests {
+    padding-left: 20%;
+    padding-right: 20%;
+    position: relative;
+    top: 30%;
+  }
+  
+  .emptyRequestsLabel {
+    position: relative;
+    top: 30%;
+    text-align: center;
+    color: var(--ion-color-primary);
+    font-family: 'Lobster Two';
+  }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { first, retry, scan, share, tap } from 'rxjs/operators';
+import { BehaviorSubject, of } from 'rxjs';
+import { catchError, first, retry, scan, share, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -24,7 +24,10 @@ export class EventsService {
     params = params.set('offset', offset.toString());
     return this.http.get(environment.apiURL.events + '?action=created&userCreated=' + id,{
         params
-    }).pipe(retry(3), share(), scan((all:any,current:any) => {
+    }).pipe(retry(3), catchError(err => {
+        console.error(err);
+        return of({data: []});
+    }), share(), scan((all:any,current:any) => {
             if(offset === 0){
                 all = {
                   isDone: false,
@@ -50,7 +53,10 @@ export class EventsService {
     params = params.set('offset', offset.toString());
     return this.http.get(environment.apiURL.events + '?action=invited',{
         params
-    }).pipe(retry(3), share(), scan((all:any,current:any) => {
+    }).pipe(retry(3), catchError(err => {
+        console.error(err);
+        return of({data: []});
+    }), share(), scan((all:any,current:any) => {
       if(offset === 0){
         all = {
           isDone: false,
@@ -76,7 +82,7 @@ export class EventsService {
   }
 
   getEventDetails(id: string){
-    return this.http.get(environment.apiURL.events + id).pipe(retry(3), share());
+    return this.http.get(environment.apiURL.events + id).pipe(retry(3));
   }
 
   getEventShares(id: string, offset: number, limit?: number){
@@ -88,7 +94,10 @@ export class EventsService {
     params = params.set('offset', offset.toString());
     return this.http.get(environment.apiURL.events + id + '/invites',{
         params
-    }).pipe(retry(3), share(), scan((all:any,current:any) => {
+    }).pipe(retry(3), catchError(err => {
+      console.error(err);
+        return of({data: []});
+    }), share(), scan((all:any,current:any) => {
       if(offset === 0){
         all = {
           isDone: false,
@@ -140,8 +149,8 @@ export class EventsService {
   }
 
   checkin(id: string){
-    return this.http.post(environment.apiURL.events + id + '/?action=checkin',{}).pipe(retry(3), tap({
-      next: (x) => {
+    return this.http.post(environment.apiURL.events + id + '?action=checkin',{}).pipe(retry(3), tap({
+      next: () => {
         this.checkedInEvent.next(id);
       },
       error: (err) => console.error(err)
@@ -149,11 +158,11 @@ export class EventsService {
   }
 
   checkout(id: string, rating: number, review: string){
-    return this.http.post(environment.apiURL.events + id + '/?action=checkout',{
+    return this.http.post(environment.apiURL.events + id + '?action=checkout',{
       rating,
       review
     }).pipe(retry(3), tap({
-      next: (x) => {
+      next: () => {
         this.checkedInEvent.next('');
       },
       error: (err) => console.error(err)

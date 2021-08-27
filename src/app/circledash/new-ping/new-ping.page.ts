@@ -1,14 +1,12 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AngularFirestore} from '@angular/fire/firestore';
 import {ModalController} from '@ionic/angular';
-import {firestore} from 'firebase/app';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import { UtilsService } from 'src/app/services/utils.service';
 import { AuthHandler } from 'src/app/services/authHandler.service';
-import { v4 as uuidv4 } from 'uuid';
 import { LinksService } from 'src/app/services/links.service';
 import { UsersService } from 'src/app/services/users.service';
+import { PingsService } from 'src/app/services/pings.service';
 
 @Component({
     selector: 'app-new-ping',
@@ -26,8 +24,9 @@ export class NewPingPage implements OnInit, OnDestroy {
     myName: any;
     myPic: any;
 
-    constructor(private fs: AngularFirestore,  private modalCtrl: ModalController,
-                private utils: UtilsService, private ls: LinksService, private auth: AuthHandler, private us: UsersService) {
+    constructor(private modalCtrl: ModalController,
+                private utils: UtilsService, private ls: LinksService, private auth: AuthHandler, private us: UsersService,
+                private ps: PingsService) {
     }
 
     ngOnInit() {
@@ -37,11 +36,13 @@ export class NewPingPage implements OnInit, OnDestroy {
         this.myInfoSubscription = this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
             this.myName = val.data.name;
             this.myPic = val.data.profilepic;
-        }, (error)=>console.error(error));
+        }, (error)=>{
+            console.error(error);
+            this.utils.presentToast('Whoops! Network Error');
+        });
     }
 
     ngOnDestroy() {
-        this.links.unsubscribe();
         this.myInfoSubscription.unsubscribe();
     }
 
@@ -67,25 +68,22 @@ export class NewPingPage implements OnInit, OnDestroy {
             return;
         }
         const toggles = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
-        const batch = this.fs.firestore.batch();
+        const links = [];
+
         for (const toggle of toggles) {
             if (toggle.checked) {
-                batch.set(this.fs.collection('pings').doc(uuidv4()).ref, {
-                    responseMessage: this.pingMessage,
-                    userSent: {
-                        id: this.auth.getUID(),
-                        name: this.myName,
-                        profilepic: this.myPic,
-                    },
-                    userRec: {
-                        id: toggle.id
-                    },
-                    timeStamp: firestore.FieldValue.serverTimestamp(),
-                    sentMessage: 'New Message!'
+                links.push({
+                    uid: toggle.id,
+                    name: toggle.getAttribute('data-name'),
+                    profilepic: toggle.getAttribute('data-pic'),
                 });
             }
         }
-        batch.commit().then(() => this.closeModal()).catch(e => {
+
+        this.ps.sendPing(links, this.pingMessage).then(() => {
+            this.utils.presentToast('Ping Sent!');
+            this.closeModal()
+        }).catch(e => {
             console.error(e);
             this.utils.presentToast('Whoops! Pings not sent');
         })

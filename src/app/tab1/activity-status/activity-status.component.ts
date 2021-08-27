@@ -1,4 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { LinksService } from 'src/app/services/links.service';
+import { MarkercreatorPage } from 'src/app/tab2/markercreator/markercreator.page';
 
 @Component({
   selector: 'app-activity-status',
@@ -6,9 +11,70 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./activity-status.component.scss'],
 })
 export class ActivityStatusComponent implements OnInit {
+  linksBS: BehaviorSubject<number>;
+  offset: any;
+  links: Observable<any>;
 
-  constructor() { }
+  constructor(private modalController: ModalController, private ls: LinksService) { }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.offset = 0;
+    this.linksBS = new BehaviorSubject(this.offset);
+    this.linksBS.subscribe(() => this.getLinks());
+  }
 
+  getLinks(){
+    this.links = this.ls.getLastCheckedInLocations(this.offset).pipe(tap(response => {
+      response.data.map(val => {
+        let pic: string;
+
+        switch (val.eventType) {
+          case 'hangout' : {
+            pic = '../../assets/ping_markers/events/hangout100.png';
+            break;
+          }
+          case 'professional': {
+            pic = '../../assets/ping_markers/events/professional100.png';
+            break;
+          }
+          case 'party': {
+            pic = '../../assets/ping_markers/events/party100.png';
+            break;
+          }
+          default:{
+            break;
+          }
+        }
+
+        return {
+          user: val.user,
+          eventName: val.eventName,
+          eventId: val.eventId,
+          eventType: pic
+        }
+      })
+    }));
+  }
+
+  doRefresh(event) {
+    this.offset = 0;
+    this.linksBS.next(this.offset);
+    event.target.complete();
+  }
+
+  loadData(event){
+      ++this.offset;
+      this.linksBS.next(this.offset);
+      event.target.complete();
+  }
+
+  async openEventModal(id:string) {
+    const modal = await this.modalController.create({
+        component: MarkercreatorPage,
+        componentProps: {
+            eventID: id
+        }
+    });
+    return await modal.present();
+}
 }

@@ -26,24 +26,23 @@ export class ReplypopoverComponent implements OnInit {
             this.utils.presentToast('Whoops! You have an empty message');
             return;
         }
-        this.afs.collection('pings').doc(this.navParams.get('pingId')).get().toPromise().then((ref) => {
-            this.afs.collection('pings').doc(this.navParams.get('pingId')).set({
-                responseMessage: this.responseMessage,
-                // TODO if ref.getUserRec is a string then set the object otherwise switch it
-                userRec: ref.get('userSent'),
-                userSent: ref.get('userRec'),
-                sentMessage: ref.get('responseMessage'),
-                timeStamp: firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                this.utils.presentToast('Reply Sent!');
-                this.popoverController.dismiss();
-            }).catch((error) => {
-                console.error('Error updating document: ', error);
-                this.utils.presentToast('Whoops! Couldn\'t send Ping');
-            });
-        }).catch((error) => {
-            console.error(error);
-            this.utils.presentToast('Whoops! Couldn\'t send Ping');
+
+        this.afs.firestore.runTransaction(transaction => {
+            return transaction.get(this.afs.collection('pings').doc(this.navParams.get('pingId')).ref).then(ref => {
+                transaction.update(this.afs.collection('pings').doc(this.navParams.get('pingId')).ref, {
+                    responseMessage: this.responseMessage,
+                    userRec: ref.get('userSent'),
+                    userSent: ref.get('userRec'),
+                    sentMessage: ref.get('responseMessage'),
+                    timeStamp: firestore.FieldValue.serverTimestamp()
+                });
+            })
+        }).then(() => {
+            this.utils.presentToast('Reply Sent!');
+            this.popoverController.dismiss();
+        }).catch(err => {
+            console.error(err);
+            this.utils.presentToast('Whoops! Unable to Send Ping');
         });
     }
 }

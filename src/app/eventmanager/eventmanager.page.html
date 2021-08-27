@@ -9,8 +9,15 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
-   
-    <ion-slides #mySlides [options]="slideOpts">
+    <ion-segment (ionChange)="segmentChanged($event)" [(ngModel)]="currentSlide">
+        <ion-segment-button value="0">
+          <ion-label>Created</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="1">
+          <ion-label>Invited</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    <ion-slides #mySlides [options]="slideOpts" (ionSlideDidChange)="slideChanged()">
         <ion-slide>
             <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
                 <ion-refresher-content

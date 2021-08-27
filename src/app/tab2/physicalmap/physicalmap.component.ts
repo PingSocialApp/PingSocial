@@ -114,8 +114,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 		refreshContent(reset = false) {
-			this.renderLinks(reset);
 			const coords = this.map.getCenter();
+			this.renderLinks(reset, coords);
 
 	        // TODO change radius
 			const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, 1000000000, reset),
@@ -265,14 +265,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (!this.map.getSource('events')) {
 			this.map.addSource('events', {
 				type: 'geojson',
-				// Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-				// from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
 				data: {
 					type: 'FeatureCollection',
 					features: data
 				},
 				cluster: true,
-				clusterMaxZoom: 22, // Max zoom to cluster points on
+				clusterMaxZoom: 19, // Max zoom to cluster points on
 				clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
 				clusterProperties: {
 					coordinates: ['max', ['get', 'coordinates']]
@@ -599,7 +597,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showPing = false;
 			this.showClusterDetails = false;
 			this.currentEventTitle = eventInfo.name;
-			// this.currentEventTitle = eventInfo.name;
 			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
 				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.toDateString() + ' ' +
 				endTime.getHours() + ':' + endMinutes;
@@ -632,7 +629,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.map = new mapboxgl.Map({
 			container: 'map',
 			style: environment.mapbox.style,
-			zoom: 18,
+			zoom: 17,
+			maxZoom:17,
             minZoom: 10,
 			center: [coords.longitude, coords.latitude]
 		});
@@ -648,16 +646,15 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		});
 	}
 
-	async checkOut() {
-		this.checkedIn = null;
+	async checkOut(id) {
+		this.checkedIn = '';
 		const modal = await this.modalController.create({
 			component: RatingPage,
 			componentProps: {
-				eventID: this.checkedIn,
+				eventID: id,
 			}
 		});
 		await modal.present();
-		this.utils.presentToast('Thanks for checking out!');
 		return modal.onDidDismiss();
 	}
 
@@ -672,8 +669,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             this.renderUser(this.currentLocationMarker, lng, lat);
     }
 
-    renderLinks(reset) {
-        const coords = this.map.getCenter();
+    renderLinks(reset, coords) {
         this.linksSub = this.ms.getLinks(coords.lat,coords.lng,this.getRadius(),reset).subscribe((res:any) => {
 			this.allUserMarkers.forEach(tempMarker => {
                 tempMarker.remove();
@@ -737,6 +733,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
             el.style.backgroundImage = 'url(' + val.data.profilepic + ')';
+			this.checkedIn = val.data.checkedIn;
+
             el.addEventListener('click', (e) => {
                 this.showUserDetails = true;
                 this.showEventDetails = false;
@@ -745,8 +743,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.otherUserStatus = 'Online';
                 this.otherUserId = 'currentLocation';
                 this.otherUserLocation = 'Here';
-                this.checkedIn = val.data.checkedIn;
-                this.es.checkedInEvent.next(val.data.checkedIn);
             });
             el.id = 'currentLocation';
             this.currentLocationMarker = new mapboxgl.Marker(el);
@@ -821,20 +817,19 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         return await modal.present();
     }
 
-    async checkIn() {
-        if (this.checkedIn) {
-            if((await this.checkOut()).data.isSuccesful){
-                this.es.checkin(this.currentEventId).subscribe(() => {
-                    this.utils.presentToast('Welcome to ' + this.currentEventTitle);
-                }, (err) => {
-                    console.error(err);
-                    this.utils.presentToast('Whoops! Unable to checkin');
-                });
-            }
-        }
+    async checkIn(id: string, title: string) {
+		if(this.checkedIn === ''){
+			this.es.checkin(id).subscribe(() => {
+				this.utils.presentToast('Welcome to ' + title);
+				this.checkedIn = id;
+			}, (err) => {
+				console.error(err);
+				this.utils.presentToast('Whoops! Unable to checkin');
+			});
+		}
     }
 
-    getDistance(lat1, lon1, lat2, lon2) {
+    getDistance(lat1:number, lon1:number, lat2:number, lon2:number) {
         const earthRadiusKm = 6371;
 
         const dLat = this.degreesToRadians(lat2-lat1);

@@ -22,7 +22,7 @@ export class LoginPage implements OnInit {
     rePass: string;
 
     // tslint:disable-next-line:no-shadowed-variable
-    constructor(private alertController: AlertController, public router: Router, private auth: AngularFireAuth, 
+    constructor(private alertController: AlertController, public router: Router, private auth: AngularFireAuth,
         private utils: UtilsService, private us: UsersService) {
         this.loginScreen = true;
     }
@@ -34,13 +34,13 @@ export class LoginPage implements OnInit {
     createAccount() {
         if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
             this.auth.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
-                this.us.createUser().subscribe(async success => {
-                    await this.router.navigate(['/registration']);
+                this.us.createUser().subscribe(success => {
+                    this.router.navigate(['/registration']);
                 }, fail => {
                     this.utils.presentToast(fail.error);
                     console.error(fail.error);
                 });
-            }).catch(async (error) => {
+            }).catch((error) => {
                 this.utils.presentToast(error.message);
                 console.error(error.message);
             });
@@ -49,11 +49,11 @@ export class LoginPage implements OnInit {
 
     login() {
         if (this.email !== '' && this.password !== '') {
-            this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then(async (value) => {
+            this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then(value => {
                 this.email = '';
                 this.password = '';
-                await this.router.navigate(['/tabs']);
-            }).catch(async (error) => {
+                this.router.navigate(['/tabs']);
+            }).catch((error) => {
                 this.utils.presentToast(error.message);
                 console.log(error.message);
             });

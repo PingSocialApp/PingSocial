@@ -1,6 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EventsService } from '../services/events.service';
+import { UtilsService } from '../services/utils.service';
 
 @Component({
     selector: 'app-tab1',
@@ -14,7 +15,7 @@ export class Tab1Page implements OnInit, OnDestroy {
     eventSub: Subscription;
 
 
-    constructor(private es: EventsService) {
+    constructor(private es: EventsService, private utils: UtilsService) {
         this.eventID = '';
     }
 
@@ -26,7 +27,10 @@ export class Tab1Page implements OnInit, OnDestroy {
                 this.slideOptions.initialSlide = val === '' ? 0 : 1;
                 this.eventID = val;
             },
-            error: (err) => console.error(err)
+            error: (err) => {
+                console.error(err);
+                this.utils.presentToast('whoops! Unable to get Event Details');
+            }
         });
     }
 

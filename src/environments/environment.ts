@@ -16,6 +16,7 @@ export const environment = {
             measurementId: 'G-LE1HC0KW0F'
         },
     mapbox: {
+        style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
         accessToken: 'pk.eyJ1Ijoic3JlZWdyYW5kaGUiLCJhIjoiY2thanhpaDByMDBxZDJybGdxMnQ5ZnNxaiJ9.mkcuMoDmiPapnplpJ_lgaQ'
     },
     apiURL: {

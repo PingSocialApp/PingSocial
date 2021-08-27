@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ModalController} from '@ionic/angular';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { RequestsService } from '../services/requests.service';
 import { UtilsService } from '../services/utils.service';
 
@@ -30,7 +30,7 @@ export class RequestsPage implements OnInit {
     }
 
     acceptUser(linkId: string) {
-        this.rs.acceptRequest(linkId).subscribe(val => {
+        this.rs.acceptRequest(linkId).subscribe(() => {
             this.utils.presentToast('Accepted!');
         }, err => {
             this.utils.presentToast('Whoops! Try again');
@@ -39,7 +39,7 @@ export class RequestsPage implements OnInit {
     }
 
     deleteUser(linkId: string) {
-        this.rs.cancelRequest(linkId).subscribe(val => {
+        this.rs.cancelRequest(linkId).subscribe(() => {
             this.utils.presentToast('Declined!');
         }, err => {
             this.utils.presentToast('Whoops! Try again');

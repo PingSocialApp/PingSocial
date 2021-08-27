@@ -31,7 +31,6 @@ export class Tab3Page implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.links.unsubscribe();
     }
 
     getLinks() {

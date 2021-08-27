@@ -30,7 +30,7 @@
                 <h2>{{link.name}}</h2>
                 <p>{{link.bio}}</p>
             </ion-label>
-            <ion-checkbox id="{{link.uid}}"></ion-checkbox>
+            <ion-checkbox id="{{link.uid}}" [attr.data-name]="link.name" [attr.data-pic]="link.profilepic"></ion-checkbox>
         </ion-item>
     </ion-list>
     <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((links | async)?.isDone)">

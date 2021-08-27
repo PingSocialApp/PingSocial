@@ -4,7 +4,7 @@ import {AlertController, ModalController, PopoverController} from '@ionic/angula
 import {ReplypopoverComponent} from './replypopover/replypopover.component';
 import {NewPingPage} from './new-ping/new-ping.page';
 import {Observable} from 'rxjs';
-import {concatMap} from 'rxjs/operators';
+import {concatMap, map, tap} from 'rxjs/operators';
 import { UtilsService } from '../services/utils.service';
 import { AuthHandler } from '../services/authHandler.service';
 import { UsersService } from '../services/users.service';
@@ -20,7 +20,6 @@ import { UsersService } from '../services/users.service';
 export class CircledashPage implements OnInit, OnDestroy {
     pingArray: Observable<any>;
 
-
     // tslint:disable-next-line:max-line-length
     constructor(private alertController: AlertController, private firestore: AngularFirestore, public popoverController: PopoverController, public modalController: ModalController,
                 private utils: UtilsService, private auth: AuthHandler, private us: UsersService) {
@@ -28,21 +27,16 @@ export class CircledashPage implements OnInit, OnDestroy {
 
     ngOnInit() {
         // TODO Paginate
-        this.pingArray = this.firestore.collection('pings', ref => ref.where('userRec', '==',
+        this.pingArray = this.firestore.collection('pings', ref => ref.where('userRec.id', '==',
             this.auth.getUID()).orderBy('timeStamp','desc'))
-            .get().pipe(concatMap(querySnap =>
+            .get().pipe(map(querySnap =>
                 querySnap.docs.map(doc => {
                     const data = doc;
                         return {
                             id: data.id,
                             sentMessage: data.get('sentMessage'),
                             recMessage: data.get('responseMessage'),
-                            userSent: {
-                                id: data.get('userSent'),
-                                profilepic: data.get('userSent').profilepic,
-                                name: data.get('userSent').name,
-                            }
-
+                            userSent: data.get('userSent')
                         };
                     })
                 ));

@@ -1,22 +1,42 @@
-<ion-card>
+<ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+  <ion-refresher-content
+          pullingIcon="chevron-down-circle-outline"
+          pullingText="Pull to refresh"
+          refreshingSpinner="circles"
+          refreshingText="Refreshing...">
+  </ion-refresher-content>
+</ion-refresher>
+<ion-img *ngIf="(links | async)?.data.length === 0" class="emptyRequests" src="assets/undraw_adventure_4hum.svg">
+</ion-img>
+<h2 *ngIf="(links | async)?.data.length === 0" class="emptyRequestsLabel">
+    <ion-label>No Link Activity!</ion-label>
+</h2>
+
+<ion-card *ngFor="let link of (links | async)?.data">
   <ion-card-content>
     <div style="display: flex;" >
       <div class="entityWrapper">
         <ion-avatar>
-          <img src="https://gravatar.com/avatar/dba6bae8c566f9d4041fb9cd9ada7741?d=identicon&f=y">
+          <img src="{{link.user.profilepic}}">
         </ion-avatar>
-        <ion-label>User Name</ion-label>
+        <ion-label>{{link.user.name}}</ion-label>
       </div>
       <div style="width: 20%;">
         <ion-icon name="arrow-forward" id="attendingIcon"></ion-icon>
       </div>
       <div class="entityWrapper">
         <ion-avatar>
-          <img src="https://gravatar.com/avatar/dba6bae8c566f9d4041fb9cd9ada7741?d=identicon&f=y">
+          <img src="{{link.eventType}}">
         </ion-avatar>
-        <ion-label>Event Name</ion-label>
+        <ion-label>{{link.eventName}}</ion-label>
       </div>
     </div>
-    <ion-button expand="block"><ion-icon name="expand"></ion-icon></ion-button>
+    <ion-button expand="block" (click)="openEventModal(link.eventId)"><ion-icon name="expand"></ion-icon></ion-button>
   </ion-card-content>
 </ion-card>
+<ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" *ngIf="!((links | async)?.isDone)">
+  <ion-infinite-scroll-content
+    loadingSpinner="bubbles"
+    loadingText="Loading more data...">
+  </ion-infinite-scroll-content>
+</ion-infinite-scroll>

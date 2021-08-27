@@ -138,7 +138,10 @@ export class QrcodePage implements OnInit {
                 ]
             });
             await alert.present();
-        });
+        }, err => {
+            console.error(err);
+            this.utils.presentToast('Whoops! Unable to get link data');
+        })
     }
 
     updateVals() {

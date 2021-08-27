@@ -8,7 +8,6 @@
         </ion-title>
     </ion-toolbar>
 </ion-header>
-
 <ion-content>
     <ion-avatar><img src="{{this.userObj?.profilepic}}"></ion-avatar>
     <ion-label style="text-align: center"><h1>{{this.userObj?.name}}</h1></ion-label>
@@ -41,7 +40,7 @@
                     *ngIf="this.socials.facebook.length !== 0">
             <ion-icon name="logo-facebook"></ion-icon>
         </ion-button>
-        <ion-button expand="block" class="ttbutton" href="https://tiktok.com/{{this.socials.tiktok}}"
+        <ion-button expand="block" class="ttbutton" href="https://tiktok.com/@{{this.socials.tiktok}}"
                     *ngIf="this.socials.tiktok.length !== 0">
             <ion-icon class="displayIcon" name="logo-tiktok"></ion-icon>
         </ion-button>
@@ -53,7 +52,7 @@
                     *ngIf="this.socials.venmo.length !== 0">
             <ion-icon class="displayIcon" name="logo-venmo"></ion-icon>
         </ion-button>
-        <ion-button expand="block" class="linkedinbutton" href="{{this.socials.linkedIn}}" *ngIf="this.socials.linkedIn.length !== 0">
+        <ion-button expand="block" class="linkedinbutton" href="https://linkedin.com/in/{{this.socials.linkedIn}}" *ngIf="this.socials.linkedIn.length !== 0">
             <ion-icon name="logo-linkedin"></ion-icon>
         </ion-button>
         <ion-button expand="block" color="medium" href="mailto:{{this.socials.professionalEmail}}"

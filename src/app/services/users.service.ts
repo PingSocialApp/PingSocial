@@ -3,10 +3,11 @@ import {AngularFirestore} from '@angular/fire/firestore';
 import {AngularFireStorage} from '@angular/fire/storage';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {concatMap, first, retry} from 'rxjs/operators';
+import {concatMap, first, retry, tap} from 'rxjs/operators';
 import { UtilsService } from './utils.service';
 import { AuthHandler } from './authHandler.service';
 import { from } from 'rxjs';
+import { EventsService } from './events.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +15,11 @@ import { from } from 'rxjs';
 export class UsersService {
   fileName: string;
   latestPhoto: string | ArrayBuffer;
+  myObj: any;
 
-  constructor(private http: HttpClient, private auth: AuthHandler,
+  constructor(private http: HttpClient, private auth: AuthHandler, private es: EventsService,
     private firestore: AngularFirestore, private storage: AngularFireStorage, private utils: UtilsService) {
+      this.myObj = null;
   }
 
   handleFile(files: FileList) {
@@ -34,7 +37,14 @@ export class UsersService {
   }
 
   getUserBasic(id:string) {
-    return this.http.get(environment.apiURL.users + id).pipe(retry(3), first());
+    return this.http.get(environment.apiURL.users + id).pipe(retry(3), first(), tap({
+      next: (val:any) => {
+        if(id === this.auth.getUID()){
+          this.myObj = val.data;
+          this.es.checkedInEvent.next(this.myObj.checkedIn);
+        }
+      }
+    }));
   }
 
   getUserLocation() {
@@ -54,6 +64,7 @@ export class UsersService {
       const userObject = {
           name: 'User' + uid,
           bio: 'New to Ping!',
+          checkedIn: '',
           profilepic: 'https://picsum.photos/seed/' + seed + '/300'
       };
 
@@ -73,7 +84,7 @@ export class UsersService {
             profilepic: '',
         };
 
-        const socialsPromise = this.firestore.collection('socials').doc(uid).update({
+        this.firestore.collection('socials').doc(uid).set({
             facebook: (document.getElementById('fb') as HTMLInputElement).value,
             instagram: (document.getElementById('ig') as HTMLInputElement).value,
             twitter: (document.getElementById('tw') as HTMLInputElement).value,

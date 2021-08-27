@@ -18,6 +18,7 @@ export class EventmanagerPage implements OnInit, OnDestroy {
     createdOffset: number;
     invitedOffset: number;
     private eventsBS: Subject<any>;
+    currentSlide: any;
 
     @ViewChild('mySlides') slides: IonSlides;
 
@@ -30,6 +31,7 @@ export class EventmanagerPage implements OnInit, OnDestroy {
         private es: EventsService, private auth: AuthHandler) {    }
 
     ngOnInit() {
+        this.currentSlide = 0;
         this.isMe = this.acr.snapshot.params.id === this.auth.getUID();
         this.createdOffset = 0;
         this.invitedOffset = 0;
@@ -87,6 +89,10 @@ export class EventmanagerPage implements OnInit, OnDestroy {
         return await modal.present();
     }
 
+    segmentChanged(event){
+        this.slides.slideTo(event.detail.value);
+    }
+
     handleInput(event) {
         const query = event.target.value.toLowerCase();
         for (let i = 0; i < document.getElementsByTagName('ion-card').length; i++) {
@@ -106,5 +112,11 @@ export class EventmanagerPage implements OnInit, OnDestroy {
         modal.onDidDismiss().then(() => this.eventsBS.next());
 
         return await modal.present();
+    }
+
+    slideChanged(){
+        this.slides.getActiveIndex().then(index => {
+            this.currentSlide = index.toString();
+        });
     }
 }

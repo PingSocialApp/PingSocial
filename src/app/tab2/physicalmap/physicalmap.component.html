@@ -81,7 +81,7 @@
             <ion-button *ngIf='showCheckIn && (checkedIn === null)' (click)="checkIn(currentEventId, currentEventTitle)" style="width: 79%">
                 <ion-icon name="log-in"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut(currentEventId, currentEventTitle)" style="width: 79%">
+            <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut(currentEventId)" style="width: 79%">
                 <ion-icon name="log-out"></ion-icon>
             </ion-button>
         </ion-card-content>
@@ -102,13 +102,13 @@
           <ion-card-content *ngIf="!event.properties.sentMessage; else geoPing">
             <ion-card-title>{{event.properties.name}}</ion-card-title>
             <ion-card-subtitle>{{event.properties.type}} @ {{event.properties.startTime}}</ion-card-subtitle>
-            <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
+            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='showCheckIn && (checkedIn === null)' (click)="checkIn(event.properties.id, event.properties.name)" style="width: 79%">
+            <ion-button *ngIf="showCheckIn && (checkedIn === '')" (click)="checkIn(event.properties.id, event.properties.name)" style="width: 79%">
                 <ion-icon name="log-in"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='checkedIn == event.properties.id' (click)="checkOut(event.properties.id, event.properties.name)" style="width: 79%">
+            <ion-button *ngIf='checkedIn == event.properties.id' (click)="checkOut(event.properties.id)" style="width: 79%">
                 <ion-icon name="log-out"></ion-icon>
             </ion-button>
           </ion-card-content>

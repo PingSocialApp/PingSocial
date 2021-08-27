@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http'
 import { environment } from 'src/environments/environment';
-import {retry, scan, share } from 'rxjs/operators';
+import {catchError, retry, scan, share } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,10 @@ export class LinksService {
     params = params.set('offset', offset.toString());
     return this.http.get(environment.apiURL.links,{
         params
-    }).pipe(retry(3), share(), scan((all:any,current:any) => {
+    }).pipe(retry(3), catchError(err => {
+      console.error(err);
+      return of({data: []});
+  }),share(), scan((all:any,current:any) => {
       if(offset === 0){
         all = {
           isDone: false,
@@ -65,7 +69,10 @@ export class LinksService {
     params = params.set('offset', offset.toString());
     return this.http.get(environment.apiURL.links + 'location',{
         params
-    }).pipe(retry(3), share(), scan((all:any,current:any) => {
+    }).pipe(retry(3), catchError(err => {
+      console.error(err);
+      return of({data: []});
+  }),share(), scan((all:any,current:any) => {
       if(offset === 0){
         all = {
           isDone: false,

@@ -50,6 +50,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
             next: (data:any) => {
                 this.userObj = data.data;
         }, error: (err) => {
+            this.utils.presentToast('Whoops! Unable to get profile info');
             console.error(err.error);
         }});
     }
@@ -69,6 +70,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
                 this.myInfo = false;
             }
         }, err => {
+            this.utils.presentToast('Whoops! Unable to get you socials');
             console.error(err.error);
         });
     }
@@ -90,6 +92,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
             }
         }, err => {
             console.error(err.error);
+            this.utils.presentToast('Whoops! Unable to get their socials');
         });
     }
 
@@ -98,32 +101,11 @@ export class UserprofilePage implements OnInit, OnDestroy {
     }
 
     createRequest(id: string) {
-        this.rps.sendRequest(id, 2047);
+        this.rps.sendRequest(id, 2047).subscribe(() => this.utils.presentToast('Request Sent!'), (err) => {
+            console.error(err);
+            this.utils.presentToast('Whoops! Unable to send request');
+        });
     }
-
-    // async renderUserPermissions(userData: any, userPermissions: any) {
-    //     const permissions = this.getPermission(userPermissions);
-    //     this.socials = Object.values(userData);
-    //     this.socials.push('');
-    //     for (let i = 0; i < this.socials.length; i++) {
-    //         this.socials[i] = permissions[i] ? this.socials[i] : '';
-    //     }
-
-    //     this.socials[0] = this.socials[0].replace('(', '').replace(')', '')
-    //         .replace('-', '').replace(' ', '');
-
-    //     this.socials[4] = !((this.socials[4].includes('http://')) || (this.socials[4].includes('https://')) || this.socials[4].length <= 0) ?
-    //         'http://' + this.socials[4] : this.socials[4];
-
-    //     await this.rtdb.database.ref('/location/' + this.userId).on('value', snapshot => {
-    //         if (snapshot.val()) {
-    //             // get other users longitude, latitude, and lastOnline vals
-    //             const locat = snapshot.val().place == null ? 'Unavailable' : snapshot.val().place;
-    //             const oStat = this.convertTime(Date.now() - snapshot.val().lastOnline);
-    //             this.socials[11] = permissions[0] ? locat + ' ' + oStat : '';
-    //         }
-    //     });
-    // }
 
     convertTime(t) {
         if (t >= 86_400_000) {
@@ -172,6 +154,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
                 this.currCode = val.data.code;
             }
         }, async (err)=> {
+            console.error(err);
             await this.utils.presentToast('Whoops! Update failed');
         })
     }

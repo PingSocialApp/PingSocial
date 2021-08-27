@@ -71,7 +71,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     buildMap() {
         this.map = new mapboxgl.Map({
             container: 'pingmap',
-            style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
+            style: environment.mapbox.style,
             zoom: 7,
             center: [this.location[1], this.location[0]]
         });

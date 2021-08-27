@@ -9,7 +9,7 @@ import { UtilsService } from 'src/app/services/utils.service';
 import { EventsService } from 'src/app/services/events.service';
 import { LinkSelectorPage } from '../link-selector/link-selector.page';
 import { of, Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 
 @Component({
     selector: 'app-eventcreator',
@@ -17,6 +17,7 @@ import { switchMap } from 'rxjs/operators';
     styleUrls: ['./eventcreator.component.scss'],
     providers:[]
 })
+
 export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     map: mapboxgl.Map;
     currentUser: any;
@@ -34,7 +35,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     eventCreatorName: string;
     eventsSub: Subscription;
     linksSub: Subscription;
-    //NEELEY
     availableStartDays: string;
     availableStartMonths: string;
     availableStartYears: string;
@@ -53,8 +53,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 private us: UsersService, private auth: AuthHandler, private es: EventsService) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.isPrivate = false;
-    }
 
+    }
 
     ngOnInit() {
       this.editMode = this.eventID !== '';
@@ -62,21 +62,21 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000 + 604800000 - 500).toISOString();
       this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 300000).toISOString();
       this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 82800000).toISOString();
+
+      this.location = [0,0];
+
       if (this.editMode) {
          (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
          (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
          this.renderEditMode();
       } else {
-          console.log(this.currentLocation);
           this.renderNewMode();
       }
     }
 
     updateEndTimeMinimum(){
-      console.log("updated");
       this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).toDateString()).getTime() - 18000000 + 300000).toISOString();
       this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000 + 82800000).toISOString();
-      console.log(this.minimumEndTime, this.maximumEndTime);
     }
 
 
@@ -93,8 +93,14 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     renderNewMode(){
         this.isCreator = true;
-        this.us.getUserBasic(this.auth.getUID()).subscribe((userRef: any) => {
-            console.log(userRef);
+        this.us.getUserBasic(this.auth.getUID()).pipe(catchError(err => {
+            console.error(err);
+            return of({
+                data:{
+                    name: 'Unable To Get Name',
+                }
+            })
+        })).subscribe((userRef: any) => {
             this.eventCreatorName = userRef.data.name;
         });
         this.links = [];
@@ -105,7 +111,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.eventsSub = this.es.getEventDetails(this.eventID).subscribe((ref:any) => {
             const data = ref.data;
-            console.log("data start time", data.startTime);
             if(new Date().getTime() - new Date(data.startTime).getTime() >= 300000){
               this.afterStartTime = true;
             }else{
@@ -126,34 +131,31 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             });
             this.isCreator = data.creator.uid === this.auth.getUID();
             new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
-        }, (error) => console.error(error));
+        }, (error) => {
+            this.utils.presentToast('Whoops! Unable to get Event Details');
+            console.error(error)
+        });
 
         if(!this.isPrivate){
             this.linksSub = this.es.getEventShares(this.eventID, 0).subscribe((ref:any) => {
                 for(const object of ref.data){
                     this.links.push(object.uid);
                 }
-                console.log(this.links);
-            }, (error) => console.error(error));
+            }, (error) => {
+                console.error(error);
+                this.utils.presentToast('Whoops! Unable to get links');
+            });
         }
     }
 
     buildMap() {
-        if (this.editMode) {
-            this.map = new mapboxgl.Map({
-                container: 'choosermap',
-                style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
-                zoom: 15,
-                center: this.location
-            });
-        } else {
-            this.map = new mapboxgl.Map({
-                container: 'choosermap',
-                style: 'mapbox://styles/sreegrandhe/ckak2ig0j0u9v1ipcgyh9916y?optimize=true',
-                zoom: 2,
-                center: this.location
-            });
-        }
+        this.map = new mapboxgl.Map({
+            container: 'choosermap',
+            style: environment.mapbox.style,
+            zoom: this.editMode ? 15 : 2,
+            center: this.location
+        });
+
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
@@ -188,16 +190,13 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             this.utils.presentToast('Whoops! Your event ended before it started');
         } else {
 
-            // TODO propogate changes
             const data = {
                 eventName: this.eventName,
                 location: {
                     latitude: this.location[1],
                     longitude: this.location[0]
                 },
-                // tslint:disable-next-line:max-line-length
                 startTime: (document.getElementById('startTime') as HTMLInputElement).value,
-                // tslint:disable-next-line:max-line-length
                 endTime: (document.getElementById('endTime') as HTMLInputElement).value,
                 description: this.eventDes,
                 type: this.eventType,
@@ -209,7 +208,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                     if(this.isPrivate){
                         return this.es.inviteAttendee(output.data.id, this.links);
                     }else{
-                        return of("");
+                        return of('');
                     }
                 })).subscribe(() => {
                     this.utils.presentToast('Event Created!');
@@ -224,7 +223,10 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.es.inviteAttendee(this.eventID, this.links).subscribe(() => {
                             this.utils.presentToast('Event Updated!');
                             this.closeModal();
-                        }, (error)=>console.error(error));
+                        }, (error)=> {
+                            console.error(error);
+                            this.utils.presentToast('Whoops! Problem sharing event');
+                        });
                     }
                     this.utils.presentToast('Event Updated!');
                     this.closeModal();
@@ -286,7 +288,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                         console.log(this.es.endEvent(this.eventID));
                         console.log(this.eventID);
                         this.es.endEvent(this.eventID).subscribe(() => {
-                            console.log("end");
                             this.modalController.dismiss();
                         }, (err) => {
                             console.error(err);
@@ -311,7 +312,13 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                     new Date((document.getElementById('startTime') as HTMLInputElement).value),
                     new Date((document.getElementById('endTime') as HTMLInputElement).value)).then(r => {
                     this.utils.presentToast('Event Downloaded!');
+                }).catch(error => {
+                    console.error(error);
+                    this.utils.presentToast('Whoops! Unable to create calendar event');
                 });
+            }).catch(error => {
+                console.error(error);
+                this.utils.presentToast('Whoops! Unable to create calendar event');
             });
     }
 
