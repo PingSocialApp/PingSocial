@@ -52,6 +52,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	location: any;
 	checkedIn: string;
 	locationSub: Subscription;
+	loading: HTMLIonLoadingElement;
 
 	constructor(private ms: MarkersService, private loadingController: LoadingController, 
 		private us: UsersService, private modalController: ModalController,
@@ -126,7 +127,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnDestroy() {
     }
 
-	refreshContent() {
+	async refreshContent() {
+		this.loading = await this.loadingController.create({
+			message: 'Please wait...',
+			duration: 1000000000
+		});
+
+		await this.loading.present();
+
 		const coords = this.map.getCenter();
 		// TODO change radius
 		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, this.getRadius()),
@@ -272,6 +280,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		});
+
+		this.loading.dismiss();
 	}
 
 	// start of subfunctions
@@ -835,14 +845,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		await modal.present();
 
 		modal.onDidDismiss().then(async () => {
-			const loading = await this.loadingController.create({
-				message: 'Please wait...',
-				duration: 1500
-			  });
-			  await loading.present();
-
-			  return loading.onDidDismiss();
-		}).then((val) => {
 			this.refreshContent();
 		});
     }
