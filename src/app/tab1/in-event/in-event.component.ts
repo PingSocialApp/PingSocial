@@ -8,6 +8,7 @@ import { AuthHandler } from '../../services/authHandler.service';
 import { EventsService } from '../../services/events.service';
 import { PingsService } from 'src/app/services/pings.service';
 import { UtilsService } from 'src/app/services/utils.service';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-in-event',
@@ -19,10 +20,10 @@ export class InEventComponent implements OnInit, OnChanges {
     @Input() eventId: string;
     attendees: Observable<any>;
     attendeesBS: BehaviorSubject<number>;
-    eventCreatorId: string;
     offset: any;
     eventDetails: any;
     currentUserId: string;
+    eventCreatorId: string;
 
     constructor(private modalController: ModalController,private utils: UtilsService,
                 private alertController: AlertController, private requestService: RequestsService,
@@ -38,6 +39,11 @@ export class InEventComponent implements OnInit, OnChanges {
 
     ngOnChanges(_changes: SimpleChanges){
         this.eventDetails = this.eventId === '' ? null : this.es.getEventDetails(this.eventId);
+        if(this.eventId !== ''){
+            this.eventDetails.subscribe((val:any) => {
+                this.eventCreatorId = val?.data.creator.uid;
+            });
+        }
     }
 
     async checkOut() {
