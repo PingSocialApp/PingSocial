@@ -1,4 +1,4 @@
-import {AfterViewInit,Component,DoCheck,OnDestroy,OnInit} from '@angular/core';
+import {AfterViewInit,Component,OnDestroy,OnInit} from '@angular/core';
 import {
 	LoadingController,
     // IonSearchbar,
@@ -14,7 +14,6 @@ import {UsersService} from 'src/app/services/users.service';
 import {AuthHandler} from 'src/app/services/authHandler.service';
 import {EventsService} from 'src/app/services/events.service';
 import {UtilsService} from 'src/app/services/utils.service';
-import { Router } from '@angular/router';
 
 @Component({
 	selector: 'app-physicalmap',
@@ -25,7 +24,7 @@ import { Router } from '@angular/router';
 export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	showPing: boolean;
 	map: mapboxgl.Map;
-	currentLocationMarker: any;
+	currentLocationMarker: mapboxgl.Marker;
 	showFilter: boolean;
 	allUserMarkers: any;
 	currentEventTitle: string;
@@ -54,9 +53,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	locationSub: Subscription;
 	loading: HTMLIonLoadingElement;
 
-	constructor(private ms: MarkersService, private loadingController: LoadingController, 
+	constructor(private ms: MarkersService, private loadingController: LoadingController,
 		private us: UsersService, private modalController: ModalController,
-        public auth: AuthHandler, private es: EventsService, private utils: UtilsService, private router: Router) {
+        public auth: AuthHandler, private es: EventsService, private utils: UtilsService,) {
 		mapboxgl.accessToken = environment.mapbox.accessToken;
 	}
 
@@ -130,7 +129,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	async refreshContent() {
 		this.loading = await this.loadingController.create({
 			message: 'Please wait...',
-			duration: 1000000000
+			duration: 1000000
 		});
 
 		await this.loading.present();
@@ -182,13 +181,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
+		this.loading.dismiss();
 	}
 
 	getRadius() {
 		return (78271 / (2 ** (this.map === undefined ? 10 : this.map.getZoom()))) * 2560000;
 	}
 
-	renderUser(marker, lng, lat) {
+	renderUser(marker: mapboxgl.Marker, lng: number, lat: number) {
 		if(!marker){
 			return;
 		}
@@ -280,8 +280,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		});
-
-		this.loading.dismiss();
 	}
 
 	// start of subfunctions
