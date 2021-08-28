@@ -523,9 +523,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		let timeBetweenString = null;
 		if(timeBetween <= 3600000){
 			const temp = Math.ceil(timeBetween/60000) + 1;
-			timeBetweenString = (temp).toString() + ' minutes remaining';
+			timeBetweenString = (temp).toString() + ' minute(s) remaining';
 		}else{
-			const temp = Math.ceil(timeBetween/3600000) + 1;
+			let temp = Math.ceil(timeBetween/3600000) + 1;
+			console.log(temp);
+			if(temp > 24){
+				temp = 24;
+			}
 			timeBetweenString = (temp).toString() + ' hours remaining';
 		}
 		el.addEventListener('click', (e) => {
@@ -817,7 +821,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     // }
 
     async presentEventCreatorModal(data: string) {
-		this.showEventDetails = false;
+			const list = document.getElementsByClassName('clusterList');
+			if(list.length){
+				list[0].parentNode.removeChild(list[0]);
+			}
+			this.showEventDetails = false;
         const modal = await this.modalController.create({
             component: MarkercreatorPage,
             componentProps: {
