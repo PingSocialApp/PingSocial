@@ -32,6 +32,7 @@ export class RequestsPage implements OnInit {
     acceptUser(linkId: string) {
         this.rs.acceptRequest(linkId).subscribe(() => {
             this.utils.presentToast('Accepted!');
+            this.refreshContent();
         }, err => {
             this.utils.presentToast('Whoops! Try again');
             console.error(err);
@@ -41,6 +42,7 @@ export class RequestsPage implements OnInit {
     deleteUser(linkId: string) {
         this.rs.cancelRequest(linkId).subscribe(() => {
             this.utils.presentToast('Declined!');
+            this.refreshContent();
         }, err => {
             this.utils.presentToast('Whoops! Try again');
             console.error(err);
@@ -52,9 +54,13 @@ export class RequestsPage implements OnInit {
     }
 
     doRefresh(event) {
+        this.refreshContent();
+        event.target.complete();
+    }
+
+    refreshContent(){
         this.offset = 0;
         this.pendingRequestsBS.next(this.offset);
-        event.target.complete();
     }
 
     loadData(event){

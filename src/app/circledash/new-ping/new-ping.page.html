@@ -21,6 +21,8 @@
         </ion-refresher-content>
     </ion-refresher>
     <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
+    <ion-img *ngIf="(links | async)?.data.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
+    <h1 *ngIf="(links | async)?.data.length === 0" class="addLinkDisplay">No Links Yet!</h1>
     <ion-list id="memberList">
         <ion-item *ngFor="let link of (links | async)?.data">
             <ion-avatar slot="start">

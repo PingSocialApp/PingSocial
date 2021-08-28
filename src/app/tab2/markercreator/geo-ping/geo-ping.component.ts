@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import {environment} from '../../../../environments/environment';
 import {ModalController} from '@ionic/angular';
@@ -26,6 +26,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     map: mapboxgl.Map;
     geocoder: any;
     private location: any;
+    @Input() currentLocation: Array<number>;
     customAlertOptions: any = {
         header: 'Geo-Ping Duration',
         translucent: true
@@ -54,28 +55,20 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit() {
-        Geolocation.getCurrentPosition().then((resp) => {
-            // resp.coords.latitude
-            // resp.coords.longitude
-            this.location = [resp.coords.latitude, resp.coords.longitude];
-        }).catch((error) => {
-            console.error('Error getting location', error);
-            this.location = [0,0];
-        }).finally(() => {
-            this.buildMap();
-            (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
-            (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
-        });
+        this.location = [this.currentLocation[1],this.currentLocation[0]];
+        this.buildMap();
+        (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
+        (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
     }
 
     buildMap() {
         this.map = new mapboxgl.Map({
             container: 'pingmap',
             style: environment.mapbox.style,
-            zoom: 7,
-            center: [this.location[1], this.location[0]]
+            zoom: 15,
+            center: this.location
         });
-        new mapboxgl.Marker().setLngLat([this.location[1], this.location[0]]).addTo(this.map);
+        new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
@@ -83,18 +76,8 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         document.getElementById('geocoder-container-geoping').appendChild(this.geocoder.onAdd(this.map));
         this.geocoder.on('result', (res) => {
-            this.location = [res.result.geometry.coordinates[1], res.result.geometry.coordinates[0]];
+            this.location = res.result.geometry.coordinates;
         });
-    }
-
-    showLocation() {
-        if (document.getElementById('mapContainer').style.display === 'none'
-            || document.getElementById('mapContainer').style.display === '') {
-            document.getElementById('mapContainer').style.display = 'block';
-        } else {
-            document.getElementById('mapContainer').style.display = 'none';
-        }
-        this.showPublic = false;
     }
 
     setValue($event: any) {
@@ -149,8 +132,8 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         const geoPing = {
             sentMessage: this.message,
             location: {
-                latitude: this.location[0],
-                longitude: this.location[1]
+                latitude: this.location[1],
+                longitude: this.location[0]
             },
             isPrivate: !this.isPublic,
             timeLimit: duration

@@ -75,10 +75,10 @@
         <ion-card-content>
             <ion-card-title>{{currentEventTitle}}</ion-card-title>
             <ion-card-subtitle>{{currentEventDes}}</ion-card-subtitle>
-            <ion-button [expand]="(showCheckIn && checkedIn === null) || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(currentEventId)">
+            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(currentEventId)">
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
-            <ion-button *ngIf='showCheckIn && (checkedIn === null)' (click)="checkIn(currentEventId, currentEventTitle)" style="width: 79%">
+            <ion-button *ngIf="showCheckIn && (checkedIn === '')" (click)="checkIn(currentEventId, currentEventTitle)" style="width: 79%">
                 <ion-icon name="log-in"></ion-icon>
             </ion-button>
             <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut(currentEventId)" style="width: 79%">
@@ -89,7 +89,6 @@
     <ion-card style="z-index: 3" *ngIf="showUserDetails">
         <ion-card-content>
             <ion-card-title>{{otherUserName}}</ion-card-title>
-            <!-- <ion-card-subtitle>{{otherUserStatus + ' in ' + otherUserLocation}}</ion-card-subtitle> -->
             <ion-button expand="block" *ngIf='otherUserId !== "currentLocation"'
                         [routerLink]="['/userprofile/', otherUserId]">
                 <ion-icon name="expand-outline"></ion-icon>
@@ -102,7 +101,7 @@
           <ion-card-content *ngIf="!event.properties.sentMessage; else geoPing">
             <ion-card-title>{{event.properties.name}}</ion-card-title>
             <ion-card-subtitle>{{event.properties.type}} @ {{event.properties.startTime}}</ion-card-subtitle>
-            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
+            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? '' : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
             <ion-button *ngIf="showCheckIn && (checkedIn === '')" (click)="checkIn(event.properties.id, event.properties.name)" style="width: 79%">
@@ -113,18 +112,25 @@
             </ion-button>
           </ion-card-content>
           <ng-template #geoPing>
-            <ion-avatar style="margin: 0 auto;  border: solid 3px var(--ion-color-primary);" >
-                <img [src]="this.pingImg">
-            </ion-avatar>
-            <ion-label>
-                <h1 style="text-align: center;">{{event.properties.creator.name}}</h1>
-                <h3 style="margin: 3%">{{event.properties.sentMessage}}</h3>
-            </ion-label>
-            <ion-chip>
-              <ion-label>{{event.properties.timeCreate}}</ion-label>
-            </ion-chip>
+              <ion-card-content>
+                <ion-avatar style="margin: 0 auto;  border: solid 3px var(--ion-color-primary);" >
+                    <img [src]="event.properties.creator.profilepic">
+                </ion-avatar>
+                <ion-label>
+                    <h1 style="text-align: center;">{{event.properties.creator.name}}</h1>
+                    <h3 style="margin: 3%">{{event.properties.sentMessage}}</h3>
+                </ion-label>
+                <ion-chip>
+                  <ion-label>{{event.properties.timeCreate}}</ion-label>
+                </ion-chip>
+              </ion-card-content>
           </ng-template>
       </ion-card>
     </div>
 </div>
 <div id="map"></div>
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" style="bottom: 11%">
+    <ion-fab-button (click)="presentEventCreatorModal('')">
+        <ion-icon name="add-circle"></ion-icon>
+    </ion-fab-button>
+</ion-fab>

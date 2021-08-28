@@ -16,10 +16,12 @@ export class UsersService {
   fileName: string;
   latestPhoto: string | ArrayBuffer;
   myObj: any;
+  latestLocation: Array<number>
 
   constructor(private http: HttpClient, private auth: AuthHandler, private es: EventsService,
     private firestore: AngularFirestore, private storage: AngularFireStorage, private utils: UtilsService) {
       this.myObj = null;
+      this.latestLocation = [0,0];
   }
 
   handleFile(files: FileList) {

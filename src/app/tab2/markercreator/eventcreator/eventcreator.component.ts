@@ -9,7 +9,7 @@ import { UtilsService } from 'src/app/services/utils.service';
 import { EventsService } from 'src/app/services/events.service';
 import { LinkSelectorPage } from '../link-selector/link-selector.page';
 import { of, Subscription } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
     selector: 'app-eventcreator',
@@ -46,7 +46,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     maximumStartTime: any;
     maximumEndTime: any;
     afterStartTime: boolean;
-    @Input() currentLocation: Array<any>;
+    @Input() currentLocation: Array<number>;
+    isEnded: any;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -57,21 +58,21 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit() {
-      this.editMode = this.eventID !== '';
-      this.minimumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000).toISOString();
-      this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000 + 604800000 - 500).toISOString();
-      this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 300000).toISOString();
-      this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 82800000).toISOString();
+        this.editMode = this.eventID !== '';
+        this.minimumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000).toISOString();
+        this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000 + 604800000 - 500).toISOString();
+        this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 300000).toISOString();
+        this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 82800000).toISOString();
 
-      this.location = [0,0];
+        this.location = [0,0];
 
-      if (this.editMode) {
-         (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
-         (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
-         this.renderEditMode();
-      } else {
-          this.renderNewMode();
-      }
+        if(this.editMode) {
+            (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
+            (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
+            this.renderEditMode();
+        } else {
+            this.renderNewMode();
+        }
     }
 
     updateEndTimeMinimum(){
@@ -93,16 +94,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     renderNewMode(){
         this.isCreator = true;
-        this.us.getUserBasic(this.auth.getUID()).pipe(catchError(err => {
-            console.error(err);
-            return of({
-                data:{
-                    name: 'Unable To Get Name',
-                }
-            })
-        })).subscribe((userRef: any) => {
-            this.eventCreatorName = userRef.data.name;
-        });
+        this.eventCreatorName = this.us.myObj.name;
         this.links = [];
     }
 
@@ -124,6 +116,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             this.eventDes = data.description;
             this.isPrivate = data.isPrivate;
             this.eventType = data.type;
+            this.isEnded = data.isEnded;
             this.location = [data.location.latitude,data.location.longitude];
             this.map.flyTo({
                 center: this.location,
@@ -149,22 +142,30 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     buildMap() {
+        if(!this.editMode){
+            this.location = [this.currentLocation[1],this.currentLocation[0]];
+        }
+
         this.map = new mapboxgl.Map({
             container: 'choosermap',
             style: environment.mapbox.style,
-            zoom: this.editMode ? 15 : 2,
+            zoom: 15,
             center: this.location
         });
+        new mapboxgl.Marker().setLngLat([this.currentLocation[1], this.currentLocation[0]]).addTo(this.map);
 
-        // @ts-ignore
-        this.geocoder = new MapboxGeocoder({
-            accessToken: mapboxgl.accessToken,
-            mapboxgl
-        });
-        document.getElementById('geocoder-container').appendChild(this.geocoder.onAdd(this.map));
-        this.geocoder.on('result', (res) => {
-            this.location = res.result.geometry.coordinates;
-        });
+        if(this.isCreator && !this.afterStartTime){
+            // @ts-ignore
+            this.geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl
+            });
+            document.getElementById('geocoder-container').appendChild(this.geocoder.onAdd(this.map));
+            this.geocoder.on('result', (res) => {
+                this.location = res.result.geometry.coordinates;
+            });
+        }
+
     }
 
     async showLinks() {
@@ -258,7 +259,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 }, {
                     text: 'Delete',
                     handler: () => {
-                        console.log(this.es.deleteEvent(this.eventID));
                         this.es.deleteEvent(this.eventID).subscribe(() => {
                             this.modalController.dismiss();
                         }, (err) => {
@@ -285,8 +285,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 }, {
                     text: 'End',
                     handler: () => {
-                        console.log(this.es.endEvent(this.eventID));
-                        console.log(this.eventID);
                         this.es.endEvent(this.eventID).subscribe(() => {
                             this.modalController.dismiss();
                         }, (err) => {

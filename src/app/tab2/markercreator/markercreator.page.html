@@ -20,6 +20,6 @@
             <ion-label>Event</ion-label>
         </ion-segment-button>
     </ion-segment>
-    <app-geo-ping *ngIf="segmentShown == 'geo-ping' && !editMode"></app-geo-ping>
-    <app-eventcreator *ngIf="segmentShown != 'geo-ping'" [eventID]="eventID"></app-eventcreator>
+    <app-geo-ping *ngIf="segmentShown == 'geo-ping' && !editMode" [currentLocation]="us.latestLocation"></app-geo-ping>
+    <app-eventcreator *ngIf="segmentShown != 'geo-ping'" [currentLocation]="us.latestLocation" [eventID]="eventID"></app-eventcreator>
 </ion-content>

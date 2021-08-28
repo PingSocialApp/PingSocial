@@ -12,7 +12,7 @@ export class MarkersService {
 
   constructor(private http: HttpClient) { }
 
-  getRelevantEvents(latitude: number, longitude: number, radius:number, reset?:boolean) {
+  getRelevantEvents(latitude: number, longitude: number, radius:number) {
     let params = new HttpParams();
         params = params.set('latitude', latitude.toString());
         params = params.set('longitude', longitude.toString());
@@ -31,7 +31,7 @@ export class MarkersService {
         }));
   }
 
-  getRelevantGeoPings(latitude: number, longitude: number, radius:number, reset?:boolean) {
+  getRelevantGeoPings(latitude: number, longitude: number, radius:number) {
     let params = new HttpParams();
         params = params.set('latitude', latitude.toString());
         params = params.set('longitude', longitude.toString());
@@ -50,7 +50,7 @@ export class MarkersService {
     }));
   }
 
-  getLinks(latitude: number, longitude: number, radius:number, reset?:boolean) {
+  getLinks(latitude: number, longitude: number, radius:number) {
     let params = new HttpParams();
         params = params.set('latitude', latitude.toString());
         params = params.set('longitude', longitude.toString());

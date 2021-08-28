@@ -27,8 +27,8 @@ export class PingsService {
         responseMessage: message,
         userSent: {
             id: this.auth.getUID(),
-            name: this.us.myObj.data.name,
-            profilepic: this.us.myObj.data.profilepic,
+            name: this.us.myObj.name,
+            profilepic: this.us.myObj.profilepic,
         },
         userRec: {
             id: member.uid,

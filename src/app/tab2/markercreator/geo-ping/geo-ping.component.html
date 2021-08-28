@@ -1,3 +1,8 @@
+<div id="mapContainer">
+    <div id="pingmap"></div>
+    <div id='geocoder-container-geoping'></div>
+</div>
+
 <ion-card>
     <ion-card-content>
         <ion-textarea debounce="20" rows="6" (ionChange)="textAmt = $event.detail.value.length" inputmode="text"
@@ -17,10 +22,6 @@
         <ion-icon name="people-circle-outline"></ion-icon>
         <ion-label>Links</ion-label>
     </ion-chip>
-    <ion-chip (click)="showLocation()">
-        <ion-icon name="navigate"></ion-icon>
-        <ion-label>Location</ion-label>
-    </ion-chip>
     <ion-chip>
         <ion-icon name="time"></ion-icon>
         <ion-select [interfaceOptions]="customAlertOptions" interface="alert" value="5 Min" (ionChange)="setValue($event)">
@@ -29,10 +30,6 @@
             <ion-select-option value="1 Day">1 Day</ion-select-option>
         </ion-select>
     </ion-chip>
-</div>
-<div id="mapContainer">
-    <div id="pingmap"></div>
-    <div id='geocoder-container-geoping'></div>
 </div>
 
 <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="sendPing()">

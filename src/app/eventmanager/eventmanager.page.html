@@ -28,6 +28,11 @@
                 </ion-refresher-content>
             </ion-refresher>
             <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+            <ion-img *ngIf="(createdSub | async)?.data.length === 0" class="emptyRequests" src="assets/undraw_Events_re_98ue.svg">
+            </ion-img>
+            <h2 *ngIf="(createdSub | async)?.data.length === 0" class="emptyRequestsLabel">
+                <ion-label>No Created Events</ion-label>
+            </h2>
             <ion-card *ngFor="let event of (createdSub | async)?.data">
                 <ion-card-header>
                     <ion-card-title>{{event.eventName}}</ion-card-title>
@@ -65,6 +70,11 @@
                 </ion-refresher-content>
             </ion-refresher>
             <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+            <ion-img *ngIf="(invitedSub | async)?.data.length === 0" class="emptyRequests" src="assets/undraw_Delivery_re_f50b.svg">
+            </ion-img>
+            <h2 *ngIf="(invitedSub | async)?.data.length === 0" class="emptyRequestsLabel">
+                <ion-label>No Invited Events!</ion-label>
+            </h2>
             <ion-card *ngFor="let event of (invitedSub | async)?.data">
                 <ion-card-header>
                     <ion-card-title>{{event.eventName}}</ion-card-title>

@@ -43,8 +43,4 @@ export class Tab2Page implements OnInit, OnDestroy {
         });
         return await modal.present();
     }
-
-    presentEventCreatorModal(s: string) {
-        this.pm.presentEventCreatorModal('');
-    }
 }

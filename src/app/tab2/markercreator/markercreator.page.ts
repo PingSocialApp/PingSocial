@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Calendar} from '@ionic-native/calendar/ngx';
 import { ModalController } from '@ionic/angular';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
     selector: 'app-markercreator',
@@ -14,7 +15,7 @@ export class MarkercreatorPage implements OnInit {
     segmentShown: string;
     editMode: boolean;
 
-    constructor(private modalController: ModalController) {
+    constructor(private modalController: ModalController, public us: UsersService) {
     }
 
     ngOnInit() {
