@@ -1,4 +1,4 @@
-import {AfterViewInit,Component,DoCheck,OnDestroy,OnInit} from '@angular/core';
+import {AfterViewInit,Component,OnDestroy,OnInit} from '@angular/core';
 import {
 	LoadingController,
     // IonSearchbar,
@@ -14,7 +14,7 @@ import {UsersService} from 'src/app/services/users.service';
 import {AuthHandler} from 'src/app/services/authHandler.service';
 import {EventsService} from 'src/app/services/events.service';
 import {UtilsService} from 'src/app/services/utils.service';
-import { Router } from '@angular/router';
+import { EventTypeEnums } from '../markercreator/eventcreator/events.model';
 
 @Component({
 	selector: 'app-physicalmap',
@@ -53,9 +53,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	checkedIn: string;
 	locationSub: Subscription;
 
-	constructor(private ms: MarkersService, private loadingController: LoadingController, 
+	constructor(private ms: MarkersService, private loadingController: LoadingController,
 		private us: UsersService, private modalController: ModalController,
-        public auth: AuthHandler, private es: EventsService, private utils: UtilsService, private router: Router) {
+        public auth: AuthHandler, private es: EventsService, private utils: UtilsService) {
 		mapboxgl.accessToken = environment.mapbox.accessToken;
 	}
 
@@ -452,49 +452,49 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 	// sets background image of cluster
 	setClusterImage(el, element) {
-		if (element.getAttribute('data-type') === 'party') {
+		if (element.getAttribute('data-type') === EventTypeEnums.PARTY) {
 			// set marker
 			if (el.classList.contains('ping')) {
 				el.classList.remove('ping');
-				el.classList += ' party';
-			} else if (el.classList.contains('professional')) {
-				el.classList.remove('professional');
-				el.classList += ' partyprofessional';
-			} else if (el.classList.contains('hangout')) {
-				el.classList.remove('hangout');
-				el.classList += ' partyhangout';
-			} else if (el.classList.contains('professionalhangout')) {
-				el.classList.remove('professionalhangout');
+				el.classList += (' ' + EventTypeEnums.PARTY);
+			} else if (el.classList.contains(EventTypeEnums.PROFESSIONAL)) {
+				el.classList.remove(EventTypeEnums.PROFESSIONAL);
+				el.classList += (' ' + EventTypeEnums.PARTY + EventTypeEnums.PROFESSIONAL);
+			} else if (el.classList.contains(EventTypeEnums.HANGOUT)) {
+				el.classList.remove(EventTypeEnums.HANGOUT);
+				el.classList += (' ' + EventTypeEnums.PARTY + EventTypeEnums.HANGOUT);
+			} else if (el.classList.contains(EventTypeEnums.PARTY + EventTypeEnums.HANGOUT)) {
+				el.classList.remove(EventTypeEnums.PROFESSIONAL + EventTypeEnums.HANGOUT);
 				el.classList += ' all';
 			}
-		} else if (element.getAttribute('data-type') === 'professional') {
+		} else if (element.getAttribute('data-type') === EventTypeEnums.PROFESSIONAL) {
 			// set marker
 			if (el.classList.contains('ping')) {
 				el.classList.remove('ping');
-				el.classList += ' professional';
-			} else if (el.classList.contains('party')) {
-				el.classList.remove('party');
-				el.classList += ' partyprofessional';
-			} else if (el.classList.contains('hangout')) {
-				el.classList.remove('hangout');
-				el.classList += ' professionalhangout';
-			} else if (el.classList.contains('partyhangout')) {
-				el.classList.remove('partyhangout');
+				el.classList += (' ' + EventTypeEnums.PROFESSIONAL);
+			} else if (el.classList.contains(EventTypeEnums.PARTY)) {
+				el.classList.remove(EventTypeEnums.PARTY);
+				el.classList += (' ' + EventTypeEnums.PARTY + EventTypeEnums.PROFESSIONAL);
+			} else if (el.classList.contains(EventTypeEnums.HANGOUT)) {
+				el.classList.remove(EventTypeEnums.HANGOUT);
+				el.classList += (' ' + EventTypeEnums.PARTY + EventTypeEnums.HANGOUT);
+			} else if (el.classList.contains(EventTypeEnums.PARTY + EventTypeEnums.HANGOUT)) {
+				el.classList.remove(EventTypeEnums.PARTY + EventTypeEnums.HANGOUT);
 				el.classList += ' all';
 			}
-		} else if (element.getAttribute('data-type') === 'hangout') {
+		} else if (element.getAttribute('data-type') === EventTypeEnums.HANGOUT) {
 			// set marker
 			if (el.classList.contains('ping')) {
 				el.classList.remove('ping');
-				el.classList += ' hangout';
-			} else if (el.classList.contains('professional')) {
-				el.classList.remove('professional');
-				el.classList += ' professionalhangout';
-			} else if (el.classList.contains('party')) {
-				el.classList.remove('party');
-				el.classList += ' partyhangout';
-			} else if (el.classList.contains('partyprofessional')) {
-				el.classList.remove('partyprofessional');
+				el.classList += (' ' + EventTypeEnums.HANGOUT);
+			} else if (el.classList.contains(EventTypeEnums.PROFESSIONAL)) {
+				el.classList.remove(EventTypeEnums.PROFESSIONAL);
+				el.classList += (' ' + EventTypeEnums.PROFESSIONAL + EventTypeEnums.HANGOUT);
+			} else if (el.classList.contains(EventTypeEnums.PARTY)) {
+				el.classList.remove(EventTypeEnums.PARTY);
+				el.classList += (' ' + EventTypeEnums.PARTY + EventTypeEnums.HANGOUT);
+			} else if (el.classList.contains(EventTypeEnums.PARTY + EventTypeEnums.PROFESSIONAL)) {
+				el.classList.remove(EventTypeEnums.PARTY + EventTypeEnums.PROFESSIONAL);
 				el.classList += ' all';
 			}
 		}
@@ -586,13 +586,18 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		// current itme
 		const currentTime = new Date().getTime();
 		// set type of event
-		if (eventInfo.type === 'party') {
-			el.className += ' party-marker';
-		} else if (eventInfo.type === 'professional') {
-			el.className += ' professional-marker';
-		} else if (eventInfo.type === 'hangout') {
-			el.className += ' hangout-marker';
+		switch (eventInfo.type) {
+			case EventTypeEnums.PARTY:
+				el.className += ' party-marker';
+				break;
+			case EventTypeEnums.PROFESSIONAL:
+				el.className += ' professional-marker';
+				break
+			case EventTypeEnums.HANGOUT:
+				el.className += ' hangout-marker';
+				break;
 		}
+
 		// time left on event
 		if ((startTime.getTime()) + (check) * 0.25 >= currentTime) {
 			el.className += ' full';

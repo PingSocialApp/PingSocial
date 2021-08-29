@@ -25,41 +25,42 @@
             <ion-icon name="call"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="mailbutton" href="mailto:{{this.socials.personalEmail}}"
-                    *ngIf="this.socials.personalEmail.length !== 0">
+                    [disabled]="this.socials.personalEmail.length === 0">
             <ion-icon name="mail"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="instabutton" href="https://instagram.com/{{this.socials.instagram}}"
-                    *ngIf="this.socials.instagram.length !== 0">
+                    [disabled]="this.socials.instagram.length === 0">
             <ion-icon name="logo-instagram"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="snapbutton" href="https://snapchat.com/add/{{this.socials.snapchat}}"
-                    *ngIf="this.socials.snapchat.length !== 0">
+                    [disabled]="this.socials.snapchat.length === 0">
             <ion-icon name="logo-snapchat"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="fbbutton" href="https://facebook.com/{{this.socials.facebook}}"
-                    *ngIf="this.socials.facebook.length !== 0">
+                    [disabled]="this.socials.facebook.length === 0">
             <ion-icon name="logo-facebook"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="ttbutton" href="https://tiktok.com/@{{this.socials.tiktok}}"
-                    *ngIf="this.socials.tiktok.length !== 0">
+                    [disabled]="this.socials.tiktok.length === 0">
             <ion-icon class="displayIcon" name="logo-tiktok"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="twitterbutton" href="https://twitter.com/{{this.socials.twitter}}"
-                    *ngIf="this.socials.twitter.length !== 0">
+                    [disabled]="this.socials.twitter.length === 0">
             <ion-icon name="logo-twitter"></ion-icon>
         </ion-button>
         <ion-button expand="block" class="venmobutton" href="https://venmo.com/{{this.socials.venmo}}"
-                    *ngIf="this.socials.venmo.length !== 0">
+                    [disabled]="this.socials.venmo.length === 0">
             <ion-icon class="displayIcon" name="logo-venmo"></ion-icon>
         </ion-button>
-        <ion-button expand="block" class="linkedinbutton" href="https://linkedin.com/in/{{this.socials.linkedIn}}" *ngIf="this.socials.linkedIn.length !== 0">
+        <ion-button expand="block" class="linkedinbutton" href="https://linkedin.com/in/{{this.socials.linkedIn}}" 
+                    [disabled]="this.socials.linkedIn.length === 0">
             <ion-icon name="logo-linkedin"></ion-icon>
         </ion-button>
         <ion-button expand="block" color="medium" href="mailto:{{this.socials.professionalEmail}}"
-                    *ngIf="this.socials.professionalEmail.length !== 0">
+                    [disabled]="this.socials.professionalEmail.length === 0">
             <ion-icon name="mail"></ion-icon>
         </ion-button>
-        <ion-button expand="block" color="danger" href="{{this.socials.web}}" *ngIf="this.socials.web.length !== 0">
+        <ion-button expand="block" color="danger" href="{{this.socials.web}}" [disabled]="this.socials.web.length === 0">
             <ion-icon name="link"></ion-icon>
         </ion-button>
         <ion-button expand="block" [routerLink]="['/eventmanager/', userId]"><ion-icon name="calendar"></ion-icon></ion-button>

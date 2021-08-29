@@ -30,7 +30,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
     myDataSub: Subscription;
 
     constructor(private actionSheet: ActionSheetController, private modalController: ModalController,
-                private alertController: AlertController, private rtdb: AngularFireDatabase, private acr: ActivatedRoute, 
+                private alertController: AlertController, private acr: ActivatedRoute,
                 private ls: LinksService,
                 private rps: RequestsService, private us: UsersService, private utils: UtilsService
                 ) {
