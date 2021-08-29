@@ -25,7 +25,7 @@ import { EventTypeEnums } from '../markercreator/eventcreator/events.model';
 export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	showPing: boolean;
 	map: mapboxgl.Map;
-	currentLocationMarker: any;
+	currentLocationMarker: mapboxgl.Marker;
 	showFilter: boolean;
 	allUserMarkers: any;
 	currentEventTitle: string;
@@ -52,10 +52,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	location: any;
 	checkedIn: string;
 	locationSub: Subscription;
+	loading: HTMLIonLoadingElement;
 
 	constructor(private ms: MarkersService, private loadingController: LoadingController,
 		private us: UsersService, private modalController: ModalController,
         public auth: AuthHandler, private es: EventsService, private utils: UtilsService) {
+
 		mapboxgl.accessToken = environment.mapbox.accessToken;
 	}
 
@@ -126,7 +128,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnDestroy() {
     }
 
-	refreshContent() {
+	async refreshContent() {
+		this.loading = await this.loadingController.create({
+			message: 'Please wait...',
+			duration: 1000000
+		});
+
+		await this.loading.present();
+
 		const coords = this.map.getCenter();
 		// TODO change radius
 		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, this.getRadius()),
@@ -174,13 +183,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
+		this.loading.dismiss();
 	}
 
 	getRadius() {
 		return (78271 / (2 ** (this.map === undefined ? 10 : this.map.getZoom()))) * 2560000;
 	}
 
-	renderUser(marker, lng, lat) {
+	renderUser(marker: mapboxgl.Marker, lng: number, lat: number) {
 		if(!marker){
 			return;
 		}
@@ -840,14 +850,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		await modal.present();
 
 		modal.onDidDismiss().then(async () => {
-			const loading = await this.loadingController.create({
-				message: 'Please wait...',
-				duration: 1500
-			  });
-			  await loading.present();
-
-			  return loading.onDidDismiss();
-		}).then((val) => {
 			this.refreshContent();
 		});
     }
