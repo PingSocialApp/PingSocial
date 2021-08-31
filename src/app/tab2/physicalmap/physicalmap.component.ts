@@ -1,6 +1,5 @@
 import {AfterViewInit,Component,OnDestroy,OnInit} from '@angular/core';
 import {
-	LoadingController,
     // IonSearchbar,
 ModalController} from '@ionic/angular';
 import {environment} from '../../../environments/environment';
@@ -52,9 +51,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	location: any;
 	checkedIn: string;
 	locationSub: Subscription;
-	loading: HTMLIonLoadingElement;
 
-	constructor(private ms: MarkersService, private loadingController: LoadingController,
+	constructor(private ms: MarkersService,
 		private us: UsersService, private modalController: ModalController,
         public auth: AuthHandler, private es: EventsService, private utils: UtilsService) {
 
@@ -103,14 +101,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
                 },(position, err) => {
-                    if(this.getDistance(pos[0], pos[1], position.coords.latitude, position.coords.longitude) >= 0.005){
+                    if(this.getDistance(pos[0], pos[1], position.coords.latitude, position.coords.longitude) >= 0.020){
                         this.updateLocation(position.coords);
+						this.renderCurrent(position);
+
+						pos = [position.coords.latitude, position.coords.longitude];
+						this.us.latestLocation = pos;
                     }
-
-                    this.renderCurrent(position);
-
-                    pos = [position.coords.latitude, position.coords.longitude];
-					this.us.latestLocation = pos;
 
                     if(err){
                         console.error(err);
@@ -129,13 +126,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
 	async refreshContent() {
-		// this.loading = await this.loadingController.create({
-		// 	message: 'Please wait...',
-		// 	duration: 1000000
-		// });
-		//
-		// await this.loading.present();
-
 		const coords = this.map.getCenter();
 		// TODO change radius
 		const sub = combineLatest([this.ms.getRelevantEvents(coords.lat, coords.lng, this.getRadius()),
@@ -183,7 +173,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
-//		this.loading.dismiss();
 	}
 
 	getRadius() {

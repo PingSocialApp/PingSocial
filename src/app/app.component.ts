@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {Platform} from '@ionic/angular';
 import {SplashScreen} from '@capacitor/splash-screen';
 import {StatusBar} from '@capacitor/status-bar';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 @Component({
     selector: 'app-root',
@@ -20,6 +21,13 @@ export class AppComponent{
             StatusBar.hide();
             SplashScreen.hide();
         });
+    }
+
+    cancelScan(){
+        Promise.all([BarcodeScanner.stopScan(), BarcodeScanner.showBackground()]).then(() => {
+            document.getElementById('app-content').style.display = 'flex';
+            document.getElementById('qr-scanner').style.display = 'none';
+        }).catch(e => console.error(e));
     }
 
 }

@@ -1,5 +1,5 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {BarcodeScanner} from '@capacitor-community/barcode-scanner';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {BarcodeScanner, ScanOptions, SupportedFormat} from '@capacitor-community/barcode-scanner';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import jsQR from 'jsqr';
 import { Share } from '@capacitor/share';
@@ -14,7 +14,7 @@ import { UtilsService } from 'src/app/services/utils.service';
     styleUrls: ['./qrcode.page.scss'],
     providers: []
 })
-export class QrcodePage implements OnInit {
+export class QrcodePage implements OnInit, OnDestroy {
     @ViewChild('fileinput', {static: false}) fileinput: ElementRef;
     @ViewChild('canvas', {static: false}) canvas: ElementRef;
 
@@ -49,18 +49,33 @@ export class QrcodePage implements OnInit {
         this.updateVals();
     }
 
+    ngOnDestroy() {
+        Promise.all([BarcodeScanner.stopScan(), BarcodeScanner.showBackground()]).then(() => {
+            document.getElementById('app-content').style.display = 'flex';
+            document.getElementById('qr-scanner').style.display = 'none';
+        }).catch(e => console.error(e));
+    }
+
     segmentChanged(ev: any) {
         this.displayScan = ev.detail.value === 'sc';
     }
 
     async scan() {
-        // Function doesn't work on web version
-        const result = await BarcodeScanner.startScan();
+        BarcodeScanner.hideBackground();
+        const display = document.getElementById('app-content').style.display;
+        document.getElementById('app-content').style.display = 'none';
+        document.getElementById('qr-scanner').style.display = 'flex';
+        const options: ScanOptions = {
+            targetedFormats: [SupportedFormat.QR_CODE]
+        }
+        const result = await BarcodeScanner.startScan(options);
         if (result.hasContent) {
             console.log(result.content); // log the raw scanned content
             this.presentAlertConfirm(this.dataReveal(result.content));
-
-          }
+        }
+        BarcodeScanner.showBackground();
+        document.getElementById('app-content').style.display = display;
+        document.getElementById('qr-scanner').style.display = 'none';
     }
 
     captureImage() {
@@ -119,9 +134,10 @@ export class QrcodePage implements OnInit {
                         text: 'Cancel',
                         role: 'cancel',
                         cssClass: 'secondary',
-                        handler: (blah) => {
+                        handler: () => {
                         }
-                    }, {
+                    },
+                    {
                         text: 'Okay',
                         handler: () => {
                             this.rs.sendRequest(dataArray[0], parseInt(dataArray[1], 10)).subscribe({
@@ -178,7 +194,7 @@ export class QrcodePage implements OnInit {
         await Share.share({
             title: 'Check out my Ping Code!',
             url: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + this.qrData
-        })
+        });
     }
 
     closeModal() {

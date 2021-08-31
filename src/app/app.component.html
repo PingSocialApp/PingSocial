@@ -1,3 +1,22 @@
-<ion-app>
+<link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+      integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+      crossorigin="anonymous"
+    />
+<ion-app id="app-content">
     <ion-router-outlet></ion-router-outlet>
 </ion-app>
+<div id="qr-scanner" class="qr-scanner">
+    <div class="barcode-scanner--area--container">
+      <div class="relative">
+        <p style="text-align: center;">Scan Ping QR Code</p>
+      </div>
+      <div class="square surround-cover">
+        <div class="barcode-scanner--area--outer surround-cover">
+          <div class="barcode-scanner--area--inner"></div>
+        </div>
+      </div>
+      <ion-button (click)="cancelScan()" color="danger" id="cancelButton">Cancel</ion-button>
+    </div>
+</div>

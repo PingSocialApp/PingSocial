@@ -48,13 +48,9 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     maximumEndTime: string;
     afterStartTime: boolean;
     @Input() currentLocation: Array<number>;
-<<<<<<< HEAD
-    isEnded: any;
     offset: any
-=======
     isEnded: boolean;
     EventType: any
->>>>>>> 24568f3c1d3c1d1c432bf2c83a87f128feb3abdc
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -84,15 +80,10 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     updateEndTimeMinimum(){
-<<<<<<< HEAD
-      this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).toDateString()).getTime() - this.offset + 300000).toISOString();
-      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000*3 - this.offset - 60000).toISOString();
-      console.log(this.maximumEndTime);
-=======
       this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value)
-        .toDateString()).getTime() - 18000000 + 300000).toISOString();
-      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000 + 82800000).toISOString();
->>>>>>> 24568f3c1d3c1d1c432bf2c83a87f128feb3abdc
+        .toDateString()).getTime() - this.offset + 300000).toISOString();
+      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime)
+        .toDateString()).getTime() + 86400000*3 - this.offset - 60000).toISOString();
     }
 
 
