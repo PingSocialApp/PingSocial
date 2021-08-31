@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.pingapp.ping',
+  appId: 'com.pingsocialapp.ping',
   appName: 'Ping',
   webDir: 'www',
   bundledWebRuntime: false,
