@@ -127,12 +127,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
 	async refreshContent() {
-		this.loading = await this.loadingController.create({
-			message: 'Please wait...',
-			duration: 1000000
-		});
-
-		await this.loading.present();
+		// this.loading = await this.loadingController.create({
+		// 	message: 'Please wait...',
+		// 	duration: 1000000
+		// });
+		//
+		// await this.loading.present();
 
 		const coords = this.map.getCenter();
 		// TODO change radius
@@ -181,7 +181,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
-		this.loading.dismiss();
+//		this.loading.dismiss();
 	}
 
 	getRadius() {

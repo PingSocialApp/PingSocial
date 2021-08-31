@@ -48,6 +48,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     afterStartTime: boolean;
     @Input() currentLocation: Array<number>;
     isEnded: any;
+    offset: any
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -59,10 +60,11 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit() {
         this.editMode = this.eventID !== '';
-        this.minimumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000).toISOString();
-        this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - 18000000 + 604800000 - 500).toISOString();
-        this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 300000).toISOString();
-        this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 82800000).toISOString();
+        this.offset = (new Date().getTimezoneOffset())*60000;
+        this.minimumStartTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset).toISOString();
+        this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset + 604800000 - 500).toISOString();
+        this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset).toISOString();
+        this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 86400000 - this.offset).toISOString();
 
         this.location = [0,0];
 
@@ -76,8 +78,9 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     updateEndTimeMinimum(){
-      this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).toDateString()).getTime() - 18000000 + 300000).toISOString();
-      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000 + 82800000).toISOString();
+      this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).toDateString()).getTime() - this.offset + 300000).toISOString();
+      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000*3 - this.offset - 60000).toISOString();
+      console.log(this.maximumEndTime);
     }
 
 
