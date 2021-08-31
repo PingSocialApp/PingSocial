@@ -3,6 +3,7 @@ import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { LinksService } from 'src/app/services/links.service';
+import { EventTypeEnums } from 'src/app/tab2/markercreator/eventcreator/events.model';
 import { MarkercreatorPage } from 'src/app/tab2/markercreator/markercreator.page';
 
 @Component({
@@ -29,15 +30,15 @@ export class ActivityStatusComponent implements OnInit {
         let pic: string;
 
         switch (val.eventType) {
-          case 'hangout' : {
+          case EventTypeEnums.HANGOUT : {
             pic = '../../assets/ping_markers/events/hangout100.png';
             break;
           }
-          case 'professional': {
+          case EventTypeEnums.PROFESSIONAL: {
             pic = '../../assets/ping_markers/events/professional100.png';
             break;
           }
-          case 'party': {
+          case EventTypeEnums.PARTY: {
             pic = '../../assets/ping_markers/events/party100.png';
             break;
           }

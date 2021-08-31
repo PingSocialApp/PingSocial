@@ -10,6 +10,7 @@ import { EventsService } from 'src/app/services/events.service';
 import { LinkSelectorPage } from '../link-selector/link-selector.page';
 import { of, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { EventTypeEnums } from './events.model';
 
 @Component({
     selector: 'app-eventcreator',
@@ -21,7 +22,7 @@ import { switchMap } from 'rxjs/operators';
 export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     map: mapboxgl.Map;
     currentUser: any;
-    geocoder: any;
+    geocoder: mapboxgl.geocoder;
     eventName: string;
     location: Array<any>;
     isPrivate: boolean;
@@ -41,21 +42,26 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     availableEndDays: string;
     availableEndMonths: string;
     availableEndYears: string;
-    minimumStartTime: any;
-    minimumEndTime: any;
-    maximumStartTime: any;
-    maximumEndTime: any;
+    minimumStartTime: string;
+    minimumEndTime: string;
+    maximumStartTime: string;
+    maximumEndTime: string;
     afterStartTime: boolean;
     @Input() currentLocation: Array<number>;
+<<<<<<< HEAD
     isEnded: any;
     offset: any
+=======
+    isEnded: boolean;
+    EventType: any
+>>>>>>> 24568f3c1d3c1d1c432bf2c83a87f128feb3abdc
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
                 private us: UsersService, private auth: AuthHandler, private es: EventsService) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
         this.isPrivate = false;
-
+        this.EventType = EventTypeEnums;
     }
 
     ngOnInit() {
@@ -78,9 +84,15 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     updateEndTimeMinimum(){
+<<<<<<< HEAD
       this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value).toDateString()).getTime() - this.offset + 300000).toISOString();
       this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000*3 - this.offset - 60000).toISOString();
       console.log(this.maximumEndTime);
+=======
+      this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value)
+        .toDateString()).getTime() - 18000000 + 300000).toISOString();
+      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000 + 82800000).toISOString();
+>>>>>>> 24568f3c1d3c1d1c432bf2c83a87f128feb3abdc
     }
 
 

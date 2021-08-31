@@ -1,8 +1,8 @@
 {
   "name": "pingsocial",
   "version": "0.0.1",
-  "author": "Ping Social LLC",
-  "homepage": "https://ionicframework.com/",
+  "author": "Ping Social",
+  "homepage": "https://ping-dev.heroku.com",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

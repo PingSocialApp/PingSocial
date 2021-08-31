@@ -28,7 +28,6 @@ export class SettingsPage implements OnInit {
     constructor(private modalCtrl: ModalController, private auth: AuthHandler, private afAuth: AngularFireAuth,
          private r: Router, private firestore: AngularFirestore
         ,private us: UsersService, private utils: UtilsService) {
-      
     }
 
     ngOnInit() {
