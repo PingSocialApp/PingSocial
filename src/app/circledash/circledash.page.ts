@@ -26,20 +26,22 @@ export class CircledashPage implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        // TODO Paginate
-        this.pingArray = this.firestore.collection('pings', ref => ref.where('userRec.id', '==',
-            this.auth.getUID()).orderBy('timeStamp','desc'))
-            .get().pipe(map(querySnap =>
-                querySnap.docs.map(doc => {
-                    const data = doc;
-                        return {
-                            id: data.id,
-                            sentMessage: data.get('sentMessage'),
-                            recMessage: data.get('responseMessage'),
-                            userSent: data.get('userSent')
-                        };
-                    })
-                ));
+        // TODO Realtime Update
+        this.pingArray = this.firestore.collection('pings', ref =>
+            ref.where('userRec.id', '==', this.auth.getUID())
+            .orderBy('timeStamp','desc'))
+            .snapshotChanges().pipe(map(querySnap => {
+                return querySnap.map(snap => {
+                    const doc = snap.payload.doc;
+                    const obj =  {
+                        id: doc.id,
+                        sentMessage: doc.get('sentMessage'),
+                        recMessage: doc.get('responseMessage'),
+                        userSent: doc.get('userSent')
+                    };
+                    return obj;
+                });
+            }));
     }
 
     ngOnDestroy(){
@@ -51,7 +53,6 @@ export class CircledashPage implements OnInit, OnDestroy {
             message = 'Ping Auto Generated Message';
         }
         const alert = await this.alertController.create({
-            cssClass: 'my-custom-class',
             header,
             subHeader: message,
             buttons: ['OK']
