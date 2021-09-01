@@ -104,21 +104,22 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
                 },(position, err) => {
+					if(err){
+                        console.error(err);
+						return;
+                    }
+
                     if(this.getDistance(this.us.latestLocation[0], this.us.latestLocation[1],
 						 position.coords.longitude, position.coords.latitude) >= 0.020){
                         this.updateLocation(position.coords);
 						this.renderCurrent();
 						this.us.latestLocation = [position.coords.longitude, position.coords.latitude];
                     }
-
-                    if(err){
-                        console.error(err);
-                    }
                 });
             });
-						this.map.on('idle', () => {
-							this.map.resize();
-						});
+			this.map.on('idle', () => {
+				this.map.resize();
+			});
         }).catch((error) => {
             console.error('Error getting location', error);
         });
@@ -193,24 +194,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				.addTo(this.map);
 		} catch (e) {
 			console.error(e.message);
-		}
-	}
-
-	convertTime(t) {
-		if (t >= 86400000) {
-			// days
-			return Math.floor(t / 86400000) + 'd ago';
-		} else if (t >= 3600000) {
-			// hours
-			return Math.floor(t / 3600000) + 'h ago';
-		} else if (t >= 60000) {
-			// mins
-			return Math.floor(t / 60000) + 'm ago';
-		} else if (t >= 1000) {
-			// secs
-			return Math.floor(t / 1000) + 's ago';
-		} else {
-			return 'Just Now';
 		}
 	}
 
@@ -513,7 +496,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			return;
 		}
 		const pingInfo = doc.properties;
-		let el = null;
+		let el:HTMLElement = null;
 		if (document.getElementById(pingInfo.id)) {
 			el = document.getElementById(pingInfo.id);
 		} else {
@@ -531,7 +514,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			timeBetweenString = (temp).toString() + ' minute(s) remaining';
 		}else{
 			let temp = Math.ceil(timeBetween/3600000) + 1;
-			console.log(temp);
 			if(temp > 24){
 				temp = 24;
 			}

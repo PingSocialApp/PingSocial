@@ -148,7 +148,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
             this.closeModal();
         }, err => {
             this.utils.presentToast('Whoops! Unexpected Problem');
-            console.log(err);
+            console.error(err);
         });
     }
 }

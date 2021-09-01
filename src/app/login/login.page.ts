@@ -55,7 +55,7 @@ export class LoginPage implements OnInit {
                 this.router.navigate(['/tabs']);
             }).catch((error) => {
                 this.utils.presentToast(error.message);
-                console.log(error.message);
+                console.error(error.message);
             });
         }
     }
@@ -70,7 +70,6 @@ export class LoginPage implements OnInit {
                     role: 'cancel',
                     cssClass: 'secondary',
                     handler: () => {
-                        console.log('Confirm Cancel');
                     }
                 }, {
                     text: 'Ok',
@@ -78,7 +77,7 @@ export class LoginPage implements OnInit {
                         try {
                             this.auth.auth.sendPasswordResetEmail(alertData.email)
                         } catch (e) {
-                            console.log(e);
+                            console.error(e);
                         }
                     }
                 }

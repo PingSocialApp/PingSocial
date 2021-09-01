@@ -70,7 +70,6 @@ export class QrcodePage implements OnInit, OnDestroy {
         }
         const result = await BarcodeScanner.startScan(options);
         if (result.hasContent) {
-            console.log(result.content); // log the raw scanned content
             this.presentAlertConfirm(this.dataReveal(result.content));
         }
         BarcodeScanner.showBackground();
