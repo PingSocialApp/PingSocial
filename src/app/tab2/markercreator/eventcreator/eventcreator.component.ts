@@ -24,7 +24,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     currentUser: any;
     geocoder: mapboxgl.geocoder;
     eventName: string;
-    location: Array<any>;
+    location: Array<number>;
     isPrivate: boolean;
     links: Array<string>;
     eventDes: string;
@@ -50,7 +50,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     @Input() currentLocation: Array<number>;
     offset: any
     isEnded: boolean;
-    EventType: any
+    EventType: any;
 
     constructor(private cal: Calendar, private alertController: AlertController, private modalController: ModalController,
         private utils: UtilsService,
@@ -149,7 +149,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     buildMap() {
         if(!this.editMode){
-            this.location = [this.currentLocation[1],this.currentLocation[0]];
+            this.location = this.currentLocation;
         }
 
         this.map = new mapboxgl.Map({
@@ -158,7 +158,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             zoom: 15,
             center: this.location
         });
-        new mapboxgl.Marker().setLngLat([this.currentLocation[1], this.currentLocation[0]]).addTo(this.map);
+        new mapboxgl.Marker().setLngLat(this.currentLocation).addTo(this.map);
 
         if(this.isCreator && !this.afterStartTime){
             // @ts-ignore
@@ -168,7 +168,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             });
             document.getElementById('geocoder-container').appendChild(this.geocoder.onAdd(this.map));
             this.geocoder.on('result', (res) => {
-                this.location = res.result.geometry.coordinates;
+                this.location = [res.result.geometry.coordinates[1],res.result.geometry.coordinates[0]];
             });
         }
 
@@ -200,8 +200,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             const data = {
                 eventName: this.eventName,
                 location: {
-                    latitude: this.location[1],
-                    longitude: this.location[0]
+                    latitude: this.location[0],
+                    longitude: this.location[1]
                 },
                 startTime: (document.getElementById('startTime') as HTMLInputElement).value,
                 endTime: (document.getElementById('endTime') as HTMLInputElement).value,

@@ -52,10 +52,10 @@ export class LinksService {
     let code = 0;
     for(let i = 0; i < permissions.length; i++){
         // tslint:disable-next-line:no-bitwise
-        code |= +!!permissions[i] << (11-i);
+        code |= +!!permissions[i] << (permissions.length-i);
     }
 
-    return this.http.patch(environment.apiURL.links + id + '/tosocials', {
+    return this.http.patch(environment.apiURL.links + 'tosocials/' + id, {
       permissions: code
     }).pipe(retry(3));
   }

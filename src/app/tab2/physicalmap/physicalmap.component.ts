@@ -4,7 +4,7 @@ import {
 ModalController} from '@ionic/angular';
 import {environment} from '../../../environments/environment';
 import * as mapboxgl from 'mapbox-gl';
-import {Geolocation,Position} from '@capacitor/geolocation'
+import {Geolocation} from '@capacitor/geolocation'
 import {combineLatest,Subscription} from 'rxjs';
 import {MarkercreatorPage} from '../markercreator/markercreator.page';
 import {RatingPage} from '../../rating/rating.page';
@@ -47,7 +47,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	private linksSub: Subscription;
 	private markersSub: Subscription;
 	showCheckIn: boolean;
-	location: any;
 	checkedIn: string;
 	locationSub: Subscription;
 
@@ -60,7 +59,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	ngOnInit() {
 		this.allUserMarkers = [];
-		this.location = [];
 		this.showFilter = false;
 		this.showEventDetails = false;
 		this.showUserDetails = false;
@@ -86,26 +84,24 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
     ngAfterViewInit() {
-        let pos = null;
         Geolocation.getCurrentPosition().then((resp) => {
             this.buildMap(resp.coords);
             this.updateLocation(resp.coords);
-            pos = [resp.coords.latitude, resp.coords.longitude];
-			this.us.latestLocation = pos;
+			this.us.latestLocation = [resp.coords.longitude, resp.coords.latitude];
+			this.presentCurrentLocation();
         }).then(() => {
             this.map.on('load', () => {
-                this.presentCurrentLocation();
+				this.renderCurrent();
 				this.map.resize();
                 this.refreshContent();
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
                 },(position, err) => {
-                    if(this.getDistance(pos[0], pos[1], position.coords.latitude, position.coords.longitude) >= 0.020){
+                    if(this.getDistance(this.us.latestLocation[0], this.us.latestLocation[1],
+						 position.coords.longitude, position.coords.latitude) >= 0.020){
                         this.updateLocation(position.coords);
-						this.renderCurrent(position);
-
-						pos = [position.coords.latitude, position.coords.longitude];
-						this.us.latestLocation = pos;
+						this.renderCurrent();
+						this.us.latestLocation = [position.coords.longitude, position.coords.latitude];
                     }
 
                     if(err){
@@ -178,12 +174,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		return (78271 / (2 ** (this.map === undefined ? 10 : this.map.getZoom()))) * 2560000;
 	}
 
-	renderUser(marker: mapboxgl.Marker, lng: number, lat: number) {
+	renderUser(marker: mapboxgl.Marker, coords: Array<number>) {
 		if(!marker){
 			return;
 		}
 		try {
-			marker.setLngLat([lng, lat])
+			marker.setLngLat(coords)
 				.addTo(this.map);
 		} catch (e) {
 			console.error(e.message);
@@ -346,9 +342,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			// TODO:
 			// reposition more details button
 			el.addEventListener('click', (e: any) => {
-				if(((this.location[0] + 0.125 >= feature.geometry.coordinates[0])
-				 && (this.location[0] - 0.125 <= feature.geometry.coordinates[0]))
-						&& ((this.location[1] + 0.125 >= feature.geometry.coordinates[1]) && (this.location[1] - 0.125 <= feature.geometry.coordinates[1]))){
+				if(((this.us.latestLocation[0] + 0.125 >= feature.geometry.coordinates[0])
+				 && (this.us.latestLocation[0] - 0.125 <= feature.geometry.coordinates[0]))
+						&& ((this.us.latestLocation[1] + 0.125 >= feature.geometry.coordinates[1]) &&
+						(this.us.latestLocation[1] - 0.125 <= feature.geometry.coordinates[1]))){
 							this.showCheckIn = true;
 						}
 				const markerArray = this.markerArray;
@@ -618,9 +615,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.toDateString() + ' ' +
 				endTime.getHours() + ':' + endMinutes;
 			this.currentEventId = el.id;
-			if(((this.location[0] + 0.125 >= doc.geometry.coordinates[0])
-			 && (this.location[0] - 0.125 <= doc.geometry.coordinates[0]))
-					&& ((this.location[1] + 0.125 >= doc.geometry.coordinates[1]) && (this.location[1] - 0.125 <= doc.geometry.coordinates[1]))){
+			if(((this.us.latestLocation[0] + 0.125 >= doc.geometry.coordinates[0])
+			 && (this.us.latestLocation[0] - 0.125 <= doc.geometry.coordinates[0]))
+					&& ((this.us.latestLocation[1] + 0.125 >= doc.geometry.coordinates[1]) &&
+					(this.us.latestLocation[1] - 0.125 <= doc.geometry.coordinates[1]))){
 						this.showCheckIn = true;
 					}
 		});
@@ -676,7 +674,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		});
 	}
 
-	async checkOut(id) {
+	async checkOut(id:string) {
 		this.checkedIn = '';
 		const modal = await this.modalController.create({
 			component: RatingPage,
@@ -688,15 +686,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		return modal.onDidDismiss();
 	}
 
-    renderCurrent(pos: Position) {
-        // update current user location
-		const lng = pos.coords.longitude;
-		const lat = pos.coords.latitude;
-
-		this.location = [lng, lat];
-
-		// use api to get location
-		this.renderUser(this.currentLocationMarker, lng, lat);
+    renderCurrent() {
+		this.renderUser(this.currentLocationMarker, this.us.latestLocation);
     }
 
     renderLinks(coords) {
@@ -710,8 +701,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 el.className += ' person-location';
                 el.style.backgroundImage = 'url(' + doc.properties.profilepic + ')';
                 // get other users longitude, latitude, and lastOnline vals
-                const longi = doc.geometry.coordinates[0];
-                const latid = doc.geometry.coordinates[1];
 
                 el.id = doc.properties.uid;
                 const oMark = new mapboxgl.Marker(el);
@@ -720,9 +709,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
                     this.otherUserName = doc.properties.name;
-                    this.otherUserId = doc.properties.uid
+                    this.otherUserId = doc.properties.uid;
                 });
-                this.renderUser(oMark, longi, latid);
+                this.renderUser(oMark, doc.geometry.coordinates);
             });
         }, error => {
             console.error(error);
