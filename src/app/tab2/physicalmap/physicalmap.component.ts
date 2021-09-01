@@ -1,5 +1,6 @@
 import {AfterViewInit,Component,OnDestroy,OnInit} from '@angular/core';
 import {
+	LoadingController,
     // IonSearchbar,
 ModalController} from '@ionic/angular';
 import {environment} from '../../../environments/environment';
@@ -51,7 +52,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	locationSub: Subscription;
 
 	constructor(private ms: MarkersService,
-		private us: UsersService, private modalController: ModalController,
+		private us: UsersService, private modalController: ModalController, private loadingController: LoadingController,
         public auth: AuthHandler, private es: EventsService, private utils: UtilsService) {
 
 		mapboxgl.accessToken = environment.mapbox.accessToken;
@@ -90,8 +91,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.us.latestLocation = [resp.coords.longitude, resp.coords.latitude];
 			this.presentCurrentLocation();
         }).then(() => {
-            this.map.on('load', () => {
+            this.map.on('load', async () => {
+				const loading = await this.loadingController.create({
+					message: 'Please wait...',
+					duration: 500000
+				});
+				await loading.present();
 				this.renderCurrent();
+				loading.dismiss();
 				this.map.resize();
                 this.refreshContent();
                 Geolocation.watchPosition({
@@ -650,19 +657,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			center: [coords.longitude, coords.latitude]
 		});
 		this.map.on('dragstart', () => {
-			this.showEventDetails = false;
-			this.showUserDetails = false;
-			this.showPing = false;
-			this.showClusterDetails = false;
-			this.showCheckIn = false;
+			this.removeBanner();
 		});
 
 		this.map.on('zoomstart', () => {
-			this.showEventDetails = false;
-			this.showUserDetails = false;
-			this.showPing = false;
-			this.showClusterDetails = false;
-			this.showCheckIn = false;
+			this.removeBanner();
 		});
 
 		this.map.on('dragend', () => {
@@ -684,6 +683,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		});
 		await modal.present();
 		return modal.onDidDismiss();
+	}
+
+	private removeBanner(){
+		this.showEventDetails = false;
+		this.showUserDetails = false;
+		this.showPing = false;
+		this.showClusterDetails = false;
+		this.showCheckIn = false;
 	}
 
     renderCurrent() {

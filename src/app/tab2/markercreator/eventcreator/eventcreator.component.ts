@@ -148,17 +148,17 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     buildMap() {
-        if(!this.editMode){
-            this.location = this.currentLocation;
-        }
-
         this.map = new mapboxgl.Map({
             container: 'choosermap',
             style: environment.mapbox.style,
             zoom: 15,
-            center: this.location
+            center: this.currentLocation
         });
         new mapboxgl.Marker().setLngLat(this.currentLocation).addTo(this.map);
+
+        if(!this.editMode){
+            this.location = [this.currentLocation[1],this.currentLocation[0]];
+        }
 
         if(this.isCreator && !this.afterStartTime){
             // @ts-ignore
