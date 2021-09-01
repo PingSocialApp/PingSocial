@@ -116,6 +116,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 });
             });
+						this.map.on('idle', () => {
+							this.map.resize();
+						});
         }).catch((error) => {
             console.error('Error getting location', error);
         });
