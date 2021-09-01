@@ -8,7 +8,7 @@ import { AuthHandler } from '../../services/authHandler.service';
 import { EventsService } from '../../services/events.service';
 import { PingsService } from 'src/app/services/pings.service';
 import { UtilsService } from 'src/app/services/utils.service';
-import { tap } from 'rxjs/operators';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-in-event',
@@ -27,7 +27,7 @@ export class InEventComponent implements OnInit, OnChanges {
 
     constructor(private modalController: ModalController,private utils: UtilsService,
                 private alertController: AlertController, private requestService: RequestsService,
-                private auth: AuthHandler, private es: EventsService, private ps: PingsService) {
+                private auth: AuthHandler, private es: EventsService, private ps: PingsService, private us: UsersService) {
     }
 
     ngOnInit(){
@@ -67,12 +67,18 @@ export class InEventComponent implements OnInit, OnChanges {
                 }, {
                     text: 'Send',
                     handler: (alertData) => {
-                        this.ps.sendPing(alertData, attendee).then(() => {
-                            this.utils.presentToast('Ping Sent!');
-                        }, err => {
-                            console.error(err);
+                        this.us.getUserBasic(attendee).subscribe(val => {
+                            this.ps.sendPing(val.data, alertData).then(() => {
+                                this.utils.presentToast('Ping Sent!');
+                            }, err => {
+                                console.error(err);
+                                this.utils.presentToast('Whoops! Couldn\'t Send Ping');
+                            })
+                        }, userError => {
+                            console.error(userError);
                             this.utils.presentToast('Whoops! Couldn\'t Send Ping');
-                        })
+                        });
+
                     }
                 }
             ],
