@@ -15,5 +15,10 @@
 			"Orientation": "portrait",
 			"SplashScreenDelay": "3000"
 		}
+	},
+	"plugins": {
+		"Keyboard": {
+			"resize": "body"
+		}
 	}
 }

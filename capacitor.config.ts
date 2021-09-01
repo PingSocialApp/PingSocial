@@ -1,4 +1,5 @@
 import { CapacitorConfig } from '@capacitor/cli';
+import { KeyboardResize } from '@capacitor/keyboard';
 
 const config: CapacitorConfig = {
   appId: 'com.pingsocialapp.ping',
@@ -16,6 +17,11 @@ const config: CapacitorConfig = {
       SplashScreen: 'screen',
       Orientation: 'portrait',
       SplashScreenDelay: '3000'
+    }
+  },
+  plugins: {
+    Keyboard: {
+      resize: KeyboardResize.Body
     }
   }
 };
