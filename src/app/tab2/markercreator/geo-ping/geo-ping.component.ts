@@ -2,7 +2,6 @@ import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core'
 import * as mapboxgl from 'mapbox-gl';
 import {environment} from '../../../../environments/environment';
 import {ModalController} from '@ionic/angular';
-import {Geolocation} from '@capacitor/geolocation';
 import {LinkSelectorPage} from '../link-selector/link-selector.page';
 import { AuthHandler } from 'src/app/services/authHandler.service';
 import { GeopingsService } from 'src/app/services/geopings.service';
@@ -55,7 +54,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit() {
-        this.location = [this.currentLocation[1],this.currentLocation[0]];
+        this.location = this.currentLocation;
         this.buildMap();
         (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
         (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
@@ -76,7 +75,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         document.getElementById('geocoder-container-geoping').appendChild(this.geocoder.onAdd(this.map));
         this.geocoder.on('result', (res) => {
-            this.location = res.result.geometry.coordinates;
+            this.location = [res.result.geometry.coordinates[1],res.result.geometry.coordinates[0]];
         });
     }
 
@@ -132,8 +131,8 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         const geoPing = {
             sentMessage: this.message,
             location: {
-                latitude: this.location[1],
-                longitude: this.location[0]
+                latitude: this.location[0],
+                longitude: this.location[1]
             },
             isPrivate: !this.isPublic,
             timeLimit: duration
