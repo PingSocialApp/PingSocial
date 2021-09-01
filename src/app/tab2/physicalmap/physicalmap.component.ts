@@ -33,7 +33,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	currentEventId: string;
 	showUserDetails: boolean;
 	otherUserName = '';
-	otherUserLocation: any;
 	otherUserStatus = '';
 	otherUserId: string;
 	showClusterDetails: boolean;
@@ -275,7 +274,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	// start of subfunctions
 	// sets up map for sources, clusters, and cluster click functions
-	clusterSetUp(data) {
+	clusterSetUp(data: Array<any>) {
 		// creates or updates source
 		if (!this.map.getSource('events')) {
 			this.map.addSource('events', {
@@ -721,12 +720,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
                     this.otherUserName = doc.properties.name;
-					const reqStr = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + longi + ',' + latid + '.json?access_token=' +
-		            			mapboxgl.accessToken;
-		        	fetch(reqStr).then(response => response.json())
-		        		.then(data => {
-							this.otherUserLocation = data.features[3].text;
-						});
                     this.otherUserId = doc.properties.uid
                 });
                 this.renderUser(oMark, longi, latid);
@@ -761,7 +754,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.otherUserName = val.data.name;
                 this.otherUserStatus = 'Online';
                 this.otherUserId = 'currentLocation';
-                this.otherUserLocation = 'Here';
             });
             el.id = 'currentLocation';
             this.currentLocationMarker = new mapboxgl.Marker(el);
