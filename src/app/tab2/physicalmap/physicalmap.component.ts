@@ -92,8 +92,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.presentCurrentLocation();
         }).then(() => {
             this.map.on('load', () => {
-				this.renderCurrent();
-				this.map.resize();
+							this.renderCurrent();
+							this.map.resize();
                 this.refreshContent();
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
@@ -110,6 +110,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 });
             });
+						this.map.on('idle', () => {
+							this.map.resize();
+						});
         }).catch((error) => {
             console.error('Error getting location', error);
         });
