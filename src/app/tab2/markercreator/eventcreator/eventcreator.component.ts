@@ -200,8 +200,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             const data = {
                 eventName: this.eventName,
                 location: {
-                    latitude: this.location[0],
-                    longitude: this.location[1]
+                    latitude: this.location[this.editMode ? 1 : 0],
+                    longitude: this.location[this.editMode ? 0 : 1]
                 },
                 startTime: (document.getElementById('startTime') as HTMLInputElement).value,
                 endTime: (document.getElementById('endTime') as HTMLInputElement).value,

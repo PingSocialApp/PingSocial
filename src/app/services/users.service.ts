@@ -8,6 +8,7 @@ import { UtilsService } from './utils.service';
 import { AuthHandler } from './authHandler.service';
 import { from } from 'rxjs';
 import { EventsService } from './events.service';
+import { AngularFireDatabase } from '@angular/fire/database';
 
 @Injectable({
   providedIn: 'root'
@@ -18,10 +19,17 @@ export class UsersService {
   myObj: any;
   latestLocation: Array<number>
 
-  constructor(private http: HttpClient, private auth: AuthHandler, private es: EventsService,
+  constructor(private http: HttpClient, private auth: AuthHandler, private es: EventsService, private db: AngularFireDatabase,
     private firestore: AngularFirestore, private storage: AngularFireStorage, private utils: UtilsService) {
       this.myObj = null;
       this.latestLocation = [0,0];
+      this.listenEvent();
+  }
+
+  private listenEvent(){
+    this.db.object('checkedIn/' + this.auth.getUID()).valueChanges().subscribe((val:string) => {
+      this.es.checkedInEvent.next(val || '');
+    });
   }
 
   handleFile(files: FileList) {
@@ -43,7 +51,6 @@ export class UsersService {
       next: (val:any) => {
         if(id === this.auth.getUID()){
           this.myObj = val.data;
-          this.es.checkedInEvent.next(this.myObj.checkedIn);
         }
       }
     }));

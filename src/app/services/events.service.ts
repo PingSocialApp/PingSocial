@@ -149,24 +149,14 @@ export class EventsService {
   }
 
   checkin(id: string){
-    return this.http.post(environment.apiURL.events + id + '?action=checkin',{}).pipe(retry(3), tap({
-      next: () => {
-        this.checkedInEvent.next(id);
-      },
-      error: (err) => console.error(err)
-    }));
+    return this.http.post(environment.apiURL.events + id + '?action=checkin',{}).pipe(retry(3));
   }
 
   checkout(id: string, rating: number, review: string){
     return this.http.post(environment.apiURL.events + id + '?action=checkout',{
       rating,
       review
-    }).pipe(retry(3), tap({
-      next: () => {
-        this.checkedInEvent.next('');
-      },
-      error: (err) => console.error(err)
-    }));
+    }).pipe(retry(3));
   }
 
   endEvent(id: string){

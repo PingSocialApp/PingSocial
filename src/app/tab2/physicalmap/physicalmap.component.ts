@@ -659,7 +659,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	async checkOut(id:string) {
-		this.checkedIn = '';
 		const modal = await this.modalController.create({
 			component: RatingPage,
 			componentProps: {
@@ -724,10 +723,12 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         const el = this.createMarker();
         el.className += ' person-location';
 
+		this.es.checkedInEvent.subscribe(val => {
+			this.checkedIn = val;
+		});
+
         this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
             el.style.backgroundImage = 'url(' + val.data.profilepic + ')';
-			this.checkedIn = val.data.checkedIn;
-
             el.addEventListener('click', (e) => {
                 this.showUserDetails = true;
                 this.showEventDetails = false;
@@ -820,7 +821,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		if(this.checkedIn === ''){
 			this.es.checkin(id).subscribe(() => {
 				this.utils.presentToast('Welcome to ' + title);
-				this.checkedIn = id;
 			}, (err) => {
 				console.error(err);
 				this.utils.presentToast('Whoops! Unable to checkin');
