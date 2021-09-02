@@ -117,9 +117,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 });
             });
-			this.map.on('idle', () => {
-				this.map.resize();
-			});
         }).catch((error) => {
             console.error('Error getting location', error);
         });
@@ -361,10 +358,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 									const timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
 									let timeBetweenString = null;
 									if(timeBetween <= 3600000) {
-										const temp = Math.ceil(timeBetween/60000) + 1;
+										const temp = Math.ceil(timeBetween/60000);
 										timeBetweenString = (temp).toString() + ' minutes remaining';
 									} else {
-										const temp = Math.ceil(timeBetween/3600000) + 1;
+										const temp = Math.ceil(timeBetween/3600000);
 										timeBetweenString = (temp).toString() + ' hours remaining';
 									}
 									element.properties.timeCreate = timeBetweenString;
@@ -510,10 +507,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		const timeBetween = (new Date(pingInfo.timeExpire)).getTime() - (new Date()).getTime();
 		let timeBetweenString = null;
 		if(timeBetween <= 3600000){
-			const temp = Math.ceil(timeBetween/60000) + 1;
+			const temp = Math.ceil(timeBetween/60000);
 			timeBetweenString = (temp).toString() + ' minute(s) remaining';
 		}else{
-			let temp = Math.ceil(timeBetween/3600000) + 1;
+			let temp = Math.ceil(timeBetween/3600000);
 			if(temp > 24){
 				temp = 24;
 			}

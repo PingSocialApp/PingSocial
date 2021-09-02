@@ -75,7 +75,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         document.getElementById('geocoder-container-geoping').appendChild(this.geocoder.onAdd(this.map));
         this.geocoder.on('result', (res) => {
-            this.location = [res.result.geometry.coordinates[1],res.result.geometry.coordinates[0]];
+            this.location = res.result.geometry.coordinates;
         });
     }
 
@@ -131,8 +131,8 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         const geoPing = {
             sentMessage: this.message,
             location: {
-                latitude: this.location[0],
-                longitude: this.location[1]
+                latitude: this.location[1],
+                longitude: this.location[0]
             },
             isPrivate: !this.isPublic,
             timeLimit: duration

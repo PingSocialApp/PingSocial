@@ -64,24 +64,24 @@
             </ion-button>
         </ion-card-content>
     </ion-card>
-    <ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator">
-        <ion-fab-button (click)="manageEvent()">
-            <ion-icon name="checkmark"></ion-icon>
-        </ion-fab-button>
-    </ion-fab>
-    <ion-fab *ngIf="isCreator && !afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
-        <ion-fab-button (click)="deleteEvent()" color="danger">
-            <ion-icon name="trash-outline"></ion-icon>
-        </ion-fab-button>
-    </ion-fab>
-    <ion-fab *ngIf="isCreator && afterStartTime && !isEnded" vertical="bottom" horizontal="start" style="position: fixed">
-        <ion-fab-button (click)="endEvent()" color="danger">
-            <ion-icon name="close-outline"></ion-icon>
-        </ion-fab-button>
-    </ion-fab>
+    <div *ngIf="editMode" class="eventMenu">
+        <ion-button (click)="downloadEvent()">
+            <ion-label>Download Event</ion-label>
+        </ion-button>
+    </div>
 </div>
-<div *ngIf="editMode" class="eventMenu">
-    <ion-button (click)="downloadEvent()">
-        <ion-label>Download Event</ion-label>
-    </ion-button>
-</div>
+<ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator">
+    <ion-fab-button (click)="manageEvent()">
+        <ion-icon name="checkmark"></ion-icon>
+    </ion-fab-button>
+</ion-fab>
+<ion-fab *ngIf="isCreator && !afterStartTime" vertical="bottom" horizontal="start" style="position: fixed">
+    <ion-fab-button (click)="deleteEvent()" color="danger">
+        <ion-icon name="trash-outline"></ion-icon>
+    </ion-fab-button>
+</ion-fab>
+<ion-fab *ngIf="isCreator && afterStartTime && !isEnded" vertical="bottom" horizontal="start" style="position: fixed">
+    <ion-fab-button (click)="endEvent()" color="danger">
+        <ion-icon name="close-outline"></ion-icon>
+    </ion-fab-button>
+</ion-fab>

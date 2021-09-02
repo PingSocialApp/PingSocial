@@ -64,7 +64,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
     getMyData(){
         this.myDataSub = this.ls.getToSocials(this.userId).subscribe((res:any) => {
             if (res.data !== -1) {
-                this.permissions = this.getPermission(res.data);
+                this.permissions = res.data;
                 this.myInfo = true;
             } else {
                 this.myInfo = false;
