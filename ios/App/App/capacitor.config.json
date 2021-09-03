@@ -1,5 +1,5 @@
 {
-	"appId": "com.pingsocialapp.ping",
+	"appId": "com.pingsocial.pingapp",
 	"appName": "Ping",
 	"webDir": "www",
 	"bundledWebRuntime": false,
