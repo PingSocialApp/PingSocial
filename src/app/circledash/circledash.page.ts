@@ -26,17 +26,19 @@ export class CircledashPage implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        // TODO Realtime Update
         this.pingArray = this.firestore.collection('pings', ref =>
-            ref.where('userRec.id', '==', this.auth.getUID())
-            .orderBy('timeStamp','desc'))
+        ref.where('userRec.id', '==', this.auth.getUID()))
             .snapshotChanges().pipe(map(querySnap => {
                 return querySnap.map(snap => {
                     const doc = snap.payload.doc;
                     const obj =  {
+                        // @ts-ignore
                         id: doc.id,
+                        // @ts-ignore
                         sentMessage: doc.get('sentMessage'),
+                        // @ts-ignore
                         recMessage: doc.get('responseMessage'),
+                        // @ts-ignore
                         userSent: doc.get('userSent')
                     };
                     return obj;

@@ -8,6 +8,7 @@ import {QrcodePage} from './qrcode/qrcode.page';
 import {Subscription} from 'rxjs';
 import {AngularFireDatabase} from '@angular/fire/database';
 import { AuthHandler } from '../services/authHandler.service';
+import { EventsService } from '../services/events.service';
 
 @Component({
     selector: 'app-tab2',
@@ -17,10 +18,11 @@ import { AuthHandler } from '../services/authHandler.service';
 })
 
 export class Tab2Page implements OnInit, OnDestroy {
-    unreadPings: any;
+    unreadPings: number | any;
     private unreadPingSub: Subscription;
+    checkedInSub: Subscription;
 
-    constructor(private pm: PhysicalmapComponent, private auth: AuthHandler,
+    constructor(private auth: AuthHandler, private es: EventsService,
                 private modalController: ModalController, private db: AngularFireDatabase) {
 
         mapboxgl.accessToken = environment.mapbox.accessToken;
@@ -31,10 +33,15 @@ export class Tab2Page implements OnInit, OnDestroy {
         this.unreadPingSub = this.db.object('userNumerics/numPings/' + this.auth.getUID()).valueChanges().subscribe(res => {
             this.unreadPings = res;
         },(error) => console.error(error));
+
+        this.checkedInSub = this.db.object('checkedIn/' + this.auth.getUID()).valueChanges().subscribe((val:string) => {
+          this.es.checkedInEvent.next(val || '');
+        });
     }
 
     ngOnDestroy() {
         this.unreadPingSub.unsubscribe();
+        this.checkedInSub.unsubscribe();
     }
 
     async presentQRModal() {

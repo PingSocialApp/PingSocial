@@ -33,7 +33,7 @@ export class LoginPage implements OnInit {
 
     createAccount() {
         if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
-            this.auth.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
+            this.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
                 this.us.createUser().subscribe(success => {
                     this.router.navigate(['/registration']);
                 }, fail => {
@@ -49,7 +49,7 @@ export class LoginPage implements OnInit {
 
     login() {
         if (this.email !== '' && this.password !== '') {
-            this.auth.auth.signInWithEmailAndPassword(this.email, this.password).then(value => {
+            this.auth.signInWithEmailAndPassword(this.email, this.password).then(value => {
                 this.email = '';
                 this.password = '';
                 this.router.navigate(['/tabs']);
@@ -75,7 +75,7 @@ export class LoginPage implements OnInit {
                     text: 'Ok',
                     handler: (alertData) => {
                         try {
-                            this.auth.auth.sendPasswordResetEmail(alertData.email)
+                            this.auth.sendPasswordResetEmail(alertData.email)
                         } catch (e) {
                             console.error(e);
                         }

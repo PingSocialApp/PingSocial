@@ -56,7 +56,7 @@ export class SettingsPage implements OnInit {
     }
 
     logout() {
-        this.afAuth.auth.signOut().then(() => {
+        this.afAuth.signOut().then(() => {
             this.closeModal();
             this.r.navigate(['/login']);
         }).catch((er) => console.error(er));

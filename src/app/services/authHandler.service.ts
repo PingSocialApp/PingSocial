@@ -10,7 +10,10 @@ import { switchMap } from 'rxjs/operators';
     providedIn: 'root'
 })
 export class AuthHandler implements HttpInterceptor {
+    uid:string
+
     constructor(private auth: AngularFireAuth) {
+        this.initUID();
     }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>>{
@@ -32,7 +35,13 @@ export class AuthHandler implements HttpInterceptor {
         return next.handle(req);
     }
 
+    initUID(){
+        this.auth.user.subscribe(val => {
+            this.uid = val.uid;
+        });
+    }
+
     getUID(){
-        return this.auth.auth.currentUser.uid;
+        return this.uid;
     }
 }
