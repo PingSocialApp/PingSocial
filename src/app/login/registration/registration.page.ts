@@ -63,7 +63,7 @@ export class RegistrationPage implements OnInit, OnDestroy {
             message: 'Creating Profile...',
         });
         if ((document.getElementById('username') as HTMLInputElement).value === '') {
-            await this.utils.presentToast('Whoops! Looks like you forgot your name');
+            this.utils.presentToast('Whoops! Looks like you forgot your name');
             return;
         }
         await loading.present();

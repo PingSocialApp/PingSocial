@@ -58,11 +58,10 @@ export class UsersService {
   }
 
   createUser(){
-    const uid = this.auth.getUID();
     const seed = Math.floor(Math.random() * Math.floor(10000));
 
       const userObject = {
-          name: 'User' + uid,
+          name: 'User' + seed,
           bio: 'New to Ping!',
           checkedIn: '',
           profilepic: 'https://picsum.photos/seed/' + seed + '/300'

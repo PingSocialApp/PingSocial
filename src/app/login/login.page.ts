@@ -32,7 +32,13 @@ export class LoginPage implements OnInit {
     }
 
     createAccount() {
-        if ((this.newEmail !== '' && this.newPass !== '') && (this.newPass === this.rePass)) {
+        if(this.newEmail === '') {
+            this.utils.presentToast('Whoops! Missing Email');
+        }else if(this.newPass === ''){
+            this.utils.presentToast('Whoops! Missing Password');
+        }else if(this.newPass !== this.rePass){
+            this.utils.presentToast('Whoops! Passwords don\'t match');
+        }else {
             this.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
                 this.us.createUser().subscribe(success => {
                     this.router.navigate(['/registration']);
@@ -48,8 +54,12 @@ export class LoginPage implements OnInit {
     }
 
     login() {
-        if (this.email !== '' && this.password !== '') {
-            this.auth.signInWithEmailAndPassword(this.email, this.password).then(value => {
+        if(this.email === ''){
+            this.utils.presentToast('Whoops! Empty Email');
+        } else if(this.password === ''){
+            this.utils.presentToast('Whoops! Empty Email');
+        } else {
+            this.auth.signInWithEmailAndPassword(this.email, this.password).then(() => {
                 this.email = '';
                 this.password = '';
                 this.router.navigate(['/tabs']);

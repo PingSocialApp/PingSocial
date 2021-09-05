@@ -38,6 +38,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.message = '';
         this.textAmt = 0;
         this.showPublic = false;
         this.isPublic = true;
@@ -71,10 +72,19 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
-            mapboxgl
+            mapboxgl,
+            marker: false
         });
+
+        const marker = new mapboxgl.Marker({draggable: true}).setLngLat(this.currentLocation).addTo(this.map);
+            marker.on('dragend', () => {
+                const lngLat = marker.getLngLat();
+                this.location = [lngLat.lng,lngLat.lat];
+        });
+
         document.getElementById('geocoder-container-geoping').appendChild(this.geocoder.onAdd(this.map));
         this.geocoder.on('result', (res) => {
+            marker.setLngLat(res.result.geometry.coordinates);
             this.location = res.result.geometry.coordinates;
         });
     }
@@ -109,7 +119,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     sendPing() {
-        let duration;
+        let duration: number;
         if (this.durationString === '5 Min') {
             duration = 5;
         } else if (this.durationString === '1 Hour') {
@@ -126,6 +136,11 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.utils.presentToast('Whoops! You didn\'t add anyone');
                 return;
             }
+        }
+
+        if(this.message.length === 0){
+            this.utils.presentToast('Whoops! Missing Content');
+            return;
         }
 
         const geoPing = {

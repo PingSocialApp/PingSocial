@@ -70,6 +70,9 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.location = [0,0];
 
+        this.eventName = '';
+        this.eventDes = '';
+
         if(this.editMode) {
             (document.getElementById('startTime') as HTMLInputElement).value = new Date().toISOString();
             (document.getElementById('endTime') as HTMLInputElement).value = new Date().toISOString();
@@ -164,10 +167,18 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             // @ts-ignore
             this.geocoder = new MapboxGeocoder({
                 accessToken: mapboxgl.accessToken,
-                mapboxgl
+                mapboxgl,
+                marker: false
             });
+            const marker = new mapboxgl.Marker({draggable: true}).setLngLat(this.currentLocation).addTo(this.map);
+            marker.on('dragend', () => {
+                const lngLat = marker.getLngLat();
+                this.location = [lngLat.lat,lngLat.lng];
+            });
+
             document.getElementById('geocoder-container').appendChild(this.geocoder.onAdd(this.map));
             this.geocoder.on('result', (res) => {
+                marker.setLngLat(res.result.geometry.coordinates);
                 this.location = [res.result.geometry.coordinates[1],res.result.geometry.coordinates[0]];
             });
         }
@@ -190,13 +201,22 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     async manageEvent() {
-        if (this.eventName === '' || (document.getElementById('startTime') as HTMLInputElement).value === '' || (document.getElementById('endTime') as HTMLInputElement).value === '' || this.eventDes === '' || this.eventType === ''
-            || typeof this.location === 'undefined') {
-            this.utils.presentToast('Whoops! You have an empty entry');
-        } else if (new Date((document.getElementById('startTime') as HTMLInputElement).value) > new Date((document.getElementById('startTime') as HTMLInputElement).value)) {
+        if(this.eventName === ''){
+            this.utils.presentToast('Whoops! Missing Event Name');
+        }else if(this.eventDes === ''){
+            this.utils.presentToast('Whoops! Missing Event Des');
+        }else if((document.getElementById('startTime') as HTMLInputElement).value === undefined){
+            this.utils.presentToast('Whoops! Missing Start Time');
+        }else if(this.eventType === ''){
+            this.utils.presentToast('Whoops! Missing Event Type');
+        }else if((document.getElementById('endTime') as HTMLInputElement).value === undefined){
+            this.utils.presentToast('Whoops! Missing End Time');
+        }else if(new Date((document.getElementById('startTime') as HTMLInputElement).value) >
+                    new Date((document.getElementById('startTime') as HTMLInputElement).value)){
             this.utils.presentToast('Whoops! Your event ended before it started');
-        } else {
-
+        }else if(this.isPrivate && this.links.length === 0){
+            this.utils.presentToast('Whoops! Your didn\'t invite anyone');
+        }else {
             const data = {
                 eventName: this.eventName,
                 location: {

@@ -32,14 +32,17 @@ export class RatingPage implements OnInit, OnDestroy {
         if(this.review.length > 1000){
             await this.utils.presentToast('Whoops! Your review is too long');
             return;
+        }else if(this.review.length === 0){
+            this.review = ' ';
         }
 
-        this.checkoutSub = this.es.checkout(this.eventID, this.rate, this.review).subscribe(async val => {
+        this.checkoutSub = this.es.checkout(this.eventID, this.rate, this.review).subscribe(async () => {
             await this.modalController.dismiss({
                 isSuccesful: true
             });
             this.utils.presentToast('Checkout Successful!');
-        }, async err => {
+        }, async (err) => {
+            console.error(err);
             await this.modalController.dismiss({
                 isSuccesful: false
             });
