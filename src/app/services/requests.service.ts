@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {catchError, first, retry, scan, share} from 'rxjs/operators';
+import {catchError, retry, scan, share} from 'rxjs/operators';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { AngularFireDatabase } from '@angular/fire/database';

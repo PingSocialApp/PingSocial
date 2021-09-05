@@ -9,7 +9,7 @@
         </ion-tab-button>
 
         <ion-tab-button tab="tab3">
-            <ion-badge *ngIf="(pingLength | async) !==0">{{pingLength | async}}</ion-badge>
+            <ion-badge *ngIf="((pingLength | async) || 0) !== 0">{{pingLength | async}}</ion-badge>
             <ion-icon name="people"></ion-icon>
         </ion-tab-button>
     </ion-tab-bar>
