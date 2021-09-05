@@ -161,18 +161,18 @@ export class UserprofilePage implements OnInit, OnDestroy {
 
     async presentActionSheet() {
         const actionSheet = await this.actionSheet.create({
-            header: this.socials[0],
+            header: this.socials.phone,
             buttons: [{
                 text: 'Call',
                 icon: 'call',
                 handler: () => {
-                    window.open('tel:' + this.socials[0]);
+                    window.open('tel:' + this.socials.phone);
                 }
             }, {
                 text: 'Text/SMS',
                 icon: 'chatbubble',
                 handler: () => {
-                    window.open('sms:' + this.socials[0]);
+                    window.open('sms:' + this.socials.phone);
                 }
             }, {
                 text: 'Cancel',
