@@ -28,7 +28,11 @@ export class LoginPage implements OnInit {
     }
 
     ngOnInit() {
-
+        this.newEmail = '';
+        this.newPass = '';
+        this.rePass = '';
+        this.email = '';
+        this.password = '';
     }
 
     createAccount() {
