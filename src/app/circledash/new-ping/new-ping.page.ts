@@ -80,6 +80,10 @@ export class NewPingPage implements OnInit, OnDestroy {
             }
         }
 
+        if(links.length === 0){
+            this.utils.presentToast('Whoops! You haven\'t selected anyone');
+        }
+
         this.ps.sendPing(links, this.pingMessage).then(() => {
             this.utils.presentToast('Ping Sent!');
             this.closeModal()
