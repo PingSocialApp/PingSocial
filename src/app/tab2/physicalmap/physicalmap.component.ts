@@ -91,20 +91,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.us.latestLocation = [resp.coords.longitude, resp.coords.latitude];
 			this.presentCurrentLocation();
         }).then(() => {
-            this.map.on('load', async () => {
-				const loading = await this.loadingController.create({
-					message: 'Please wait...',
-					duration: 500000
-				});
-				await loading.present();
-				this.renderCurrent();
-				loading.dismiss();
+            this.map.on('load', () => {
 				this.map.resize();
                 this.refreshContent();
+				this.renderCurrent();
                 Geolocation.watchPosition({
                     enableHighAccuracy: true,
+					maximumAge: 30*1000
                 },(position, err) => {
 					if(err){
+						this.utils.presentToast(err);
                         console.error(err);
 						return;
                     }
@@ -118,6 +114,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
             });
         }).catch((error) => {
+			this.utils.presentToast(error);
             console.error('Error getting location', error);
         });
     }
@@ -719,6 +716,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     presentCurrentLocation() {
         const el = this.createMarker();
         el.className += ' person-location';
+		this.currentLocationMarker = new mapboxgl.Marker(el);
 
 		this.es.checkedInEvent.subscribe(val => {
 			this.checkedIn = val;
@@ -735,7 +733,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.otherUserId = 'currentLocation';
             });
             el.id = 'currentLocation';
-            this.currentLocationMarker = new mapboxgl.Marker(el);
         }, err => {
             console.error(err);
             this.utils.presentToast('Whoops! Unable to get your marker');
