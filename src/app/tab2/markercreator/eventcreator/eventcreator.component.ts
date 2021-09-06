@@ -157,7 +157,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             zoom: 15,
             center: this.currentLocation
         });
-        new mapboxgl.Marker().setLngLat(this.currentLocation).addTo(this.map);
+        new mapboxgl.Marker({color: '#8FDEE6'}).setLngLat(this.currentLocation).addTo(this.map);
 
         if(!this.editMode){
             this.location = [this.currentLocation[1],this.currentLocation[0]];

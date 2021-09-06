@@ -68,7 +68,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
             zoom: 15,
             center: this.location
         });
-        new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
+        new mapboxgl.Marker({color: '#8FDEE6'}).setLngLat(this.location).addTo(this.map);
         // @ts-ignore
         this.geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
