@@ -47,6 +47,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     maximumStartTime: string;
     maximumEndTime: string;
     afterStartTime: boolean;
+    afterEndTime: boolean;
     @Input() currentLocation: Array<number>;
     offset: any
     isEnded: boolean;
@@ -112,11 +113,9 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.eventsSub = this.es.getEventDetails(this.eventID).subscribe((ref:any) => {
             const data = ref.data;
-            if(new Date().getTime() - new Date(data.startTime).getTime() >= 300000){
-              this.afterStartTime = true;
-            }else{
-              this.afterStartTime = false;
-            }
+            this.afterStartTime = new Date().getTime() - new Date(data.startTime).getTime() >= 300000;
+            this.afterEndTime = new Date().getTime() < new Date(data.endTime).getTime();
+
             (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
             (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
             this.eventName = data.eventName;

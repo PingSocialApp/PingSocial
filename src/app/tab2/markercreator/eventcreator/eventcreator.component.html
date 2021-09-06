@@ -70,12 +70,12 @@
         </ion-button>
     </div>
 </div>
-<ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator">
+<ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator && !afterEndTime">
     <ion-fab-button (click)="manageEvent()">
         <ion-icon name="checkmark"></ion-icon>
     </ion-fab-button>
 </ion-fab>
-<ion-fab *ngIf="isCreator && !afterStartTime && !editMode" vertical="bottom" horizontal="start" style="position: fixed">
+<ion-fab *ngIf="isCreator && !afterStartTime && editMode" vertical="bottom" horizontal="start" style="position: fixed">
     <ion-fab-button (click)="deleteEvent()" color="danger">
         <ion-icon name="trash-outline"></ion-icon>
     </ion-fab-button>
