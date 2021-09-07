@@ -718,7 +718,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     presentCurrentLocation() {
         const el = this.createMarker();
-        el.className += ' person-location';
+        el.classList.add('person-location');
+		el.style.width = '50px';
+		el.style.height = '50px';
+
 		this.currentLocationMarker = new mapboxgl.Marker(el);
 
 		this.es.checkedInEvent.subscribe(val => {
