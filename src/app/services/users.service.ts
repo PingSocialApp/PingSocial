@@ -71,7 +71,7 @@ export class UsersService {
   }
 
   setNotifToken(notifToken: string){
-    return this.http.post(environment.apiURL.users + '/notification', notifToken).pipe(retry(3));
+    return this.http.put(environment.apiURL.users + 'notification', {notifToken}).pipe(retry(3));
   }
 
   updateProfile() {
