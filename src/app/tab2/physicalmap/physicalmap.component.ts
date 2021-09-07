@@ -729,7 +729,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		});
 
         this.us.getUserBasic(this.auth.getUID()).subscribe((val:any) => {
-            el.style.backgroundImage = 'url(' + val.data.profilepic + ')';
+            el.style.backgroundImage = `url(${val.data.profilepic})`;
             el.addEventListener('click', (e) => {
                 this.showUserDetails = true;
                 this.showEventDetails = false;
