@@ -28,18 +28,19 @@ export class ActivityStatusComponent implements OnInit {
     this.links = this.ls.getLastCheckedInLocations(this.offset).pipe(tap(response => {
       response.data.map(val => {
         let pic: string;
+        console.log(val.eventType);
 
         switch (val.eventType) {
-          case EventTypeEnums.HANGOUT : {
-            pic = '../../assets/ping_markers/events/hangout100.png';
+          case EventTypeEnums.HANGOUT: {
+            pic = 'src/assets/ping_markers/hangout100.png';
             break;
           }
           case EventTypeEnums.PROFESSIONAL: {
-            pic = '../../assets/ping_markers/events/professional100.png';
+            pic = 'src/assets/ping_markers/professional100.png';
             break;
           }
           case EventTypeEnums.PARTY: {
-            pic = '../../assets/ping_markers/events/party100.png';
+            pic = 'src/assets/ping_markers/party100.png';
             break;
           }
           default:{
