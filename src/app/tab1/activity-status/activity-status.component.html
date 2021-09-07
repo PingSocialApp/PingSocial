@@ -17,7 +17,7 @@
     <div style="display: flex;" >
       <div class="entityWrapper">
         <ion-avatar>
-          <img src="{{link.user.profilepic}}">
+          <img [src]="link.user.profilepic">
         </ion-avatar>
         <ion-label>{{link.user.name}}</ion-label>
       </div>
@@ -26,7 +26,7 @@
       </div>
       <div class="entityWrapper">
         <ion-avatar>
-          <img src="{{link.eventType}}">
+          <img [src]="link.eventType">
         </ion-avatar>
         <ion-label>{{link.eventName}}</ion-label>
       </div>
