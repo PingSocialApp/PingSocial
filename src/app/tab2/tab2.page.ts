@@ -10,7 +10,7 @@ import {AngularFireDatabase} from '@angular/fire/database';
 import { AuthHandler } from '../services/authHandler.service';
 import { EventsService } from '../services/events.service';
 import { concatMap } from 'rxjs/operators';
-import { NotificationService } from '../services/notification.service';
+// import { NotificationService } from '../services/notification.service';
 
 @Component({
     selector: 'app-tab2',
@@ -24,7 +24,8 @@ export class Tab2Page implements OnInit, OnDestroy {
     private unreadPingSub: Subscription;
     checkedInSub: Subscription;
 
-    constructor(private auth: AuthHandler, private es: EventsService, private ns: NotificationService,
+    constructor(private auth: AuthHandler, private es: EventsService,
+                // private ns: NotificationService
                 private modalController: ModalController, private db: AngularFireDatabase) {
 
         mapboxgl.accessToken = environment.mapbox.accessToken;
@@ -40,7 +41,7 @@ export class Tab2Page implements OnInit, OnDestroy {
         this.checkedInSub = this.db.object('checkedIn/' + this.auth.getUID()).valueChanges().subscribe((val:string) => {
           this.es.checkedInEvent.next(val || '');
         });
-        this.ns.initPush();
+        // this.ns.initPush();
     }
 
     ngOnDestroy() {
