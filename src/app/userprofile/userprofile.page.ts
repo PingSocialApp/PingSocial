@@ -42,7 +42,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
         const isModalOpened = await this.modalController.getTop();
         this.userId = this.acr.snapshot.params.id;
         // tslint:disable-next-line:no-unused-expression
-        isModalOpened ? this.closeModal() : null;
+        isModalOpened ? this.modalController.dismiss() : null;
         this.getMyData();
         this.getOtherData();
 
@@ -59,6 +59,19 @@ export class UserprofilePage implements OnInit, OnDestroy {
         this.myDataSub.unsubscribe();
         this.userBasicSub.unsubscribe();
         this.userSocialsSub.unsubscribe();
+    }
+
+    doRefresh(event){
+        this.getOtherData();
+
+        this.userBasicSub = this.us.getUserBasic(this.userId).subscribe({
+            next: (data:any) => {
+                this.userObj = data.data;
+            }, error: (err) => {
+                this.utils.presentToast('Whoops! Unable to get profile info');
+                console.error(err.error);
+            }
+        });
     }
 
     getMyData(){
@@ -137,22 +150,9 @@ export class UserprofilePage implements OnInit, OnDestroy {
         return boolValues;
     }
 
-    closeModal() {
-        // using the injected ModalController this page
-        // can "dismiss" itself and optionally pass back data
-        this.modalController.dismiss({
-            dismissed: true
-        });
-    }
-
     changePermissions() {
         this.ls.updatePermissions(this.permissions, this.userId).subscribe(async (val:any) => {
-            if (this.currCode !== val.data.code) {
-                if (this.currCode !== undefined) {
-                    await this.utils.presentToast('User Permissions have been updated!');
-                }
-                this.currCode = val.data.code;
-            }
+            await this.utils.presentToast('User Permissions have been updated!');
         }, async (err)=> {
             console.error(err);
             await this.utils.presentToast('Whoops! Update failed');

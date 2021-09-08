@@ -9,6 +9,9 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
+    <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
     <ion-avatar><img src="{{this.userObj?.profilepic}}"></ion-avatar>
     <ion-label style="text-align: center"><h1>{{this.userObj?.name}}</h1></ion-label>
     <ion-label style="text-align: center;"><h3>{{this.userObj?.bio}}</h3></ion-label>
@@ -20,143 +23,157 @@
             <ion-label>My Info</ion-label>
         </ion-segment-button>
     </ion-segment>
-    <ion-list *ngIf="displayTF && theirInfo" class="TFDisplay">
-        <ion-button color="success" expand="block" (click)="presentActionSheet()" [disabled]="this.socials.phone.length === 0">
-            <ion-icon name="call"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="mailbutton" href="mailto:{{this.socials.personalEmail}}"
-                    [disabled]="this.socials.personalEmail.length === 0">
-            <ion-icon name="mail"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="instabutton" href="https://instagram.com/{{this.socials.instagram}}"
-                    [disabled]="this.socials.instagram.length === 0">
-            <ion-icon name="logo-instagram"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="snapbutton" href="https://snapchat.com/add/{{this.socials.snapchat}}"
-                    [disabled]="this.socials.snapchat.length === 0">
-            <ion-icon name="logo-snapchat"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="fbbutton" href="https://facebook.com/{{this.socials.facebook}}"
-                    [disabled]="this.socials.facebook.length === 0">
-            <ion-icon name="logo-facebook"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="ttbutton" href="https://tiktok.com/@{{this.socials.tiktok}}"
-                    [disabled]="this.socials.tiktok.length === 0">
-            <ion-icon class="displayIcon" name="logo-tiktok"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="twitterbutton" href="https://twitter.com/{{this.socials.twitter}}"
-                    [disabled]="this.socials.twitter.length === 0">
-            <ion-icon name="logo-twitter"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="venmobutton" href="https://venmo.com/{{this.socials.venmo}}"
-                    [disabled]="this.socials.venmo.length === 0">
-            <ion-icon class="displayIcon" name="logo-venmo"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" class="linkedinbutton" href="https://linkedin.com/in/{{this.socials.linkedIn}}" 
-                    [disabled]="this.socials.linkedIn.length === 0">
-            <ion-icon name="logo-linkedin"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" color="medium" href="mailto:{{this.socials.professionalEmail}}"
-                    [disabled]="this.socials.professionalEmail.length === 0">
-            <ion-icon name="mail"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" color="danger" href="{{this.socials.web}}" [disabled]="this.socials.web.length === 0">
-            <ion-icon name="link"></ion-icon>
-        </ion-button>
-        <ion-button expand="block" [routerLink]="['/eventmanager/', userId]"><ion-icon name="calendar"></ion-icon></ion-button>
-    </ion-list>
-    <ion-list *ngIf="!displayTF && myInfo">
-        <ion-item>
-            <ion-icon class="displayIcon phicon" name="call"></ion-icon>
-            <ion-label>
-                Phone Number
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[1]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon micon" name="mail"></ion-icon>
-            <ion-label>
-                Email
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[2]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon igicon" name="logo-instagram"></ion-icon>
-            <ion-label>
-                Instagram
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[3]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon scicon" name="logo-snapchat"></ion-icon>
-            <ion-label>
-                Snapchat
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[4]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon fbicon" name="logo-facebook"></ion-icon>
-            <ion-label>
-                Facebook
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[5]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon tticon" name="logo-tiktok"></ion-icon>
-            <ion-label>
-                TikTok
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[6]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon twicon" name="logo-twitter"></ion-icon>
-            <ion-label>
-                Twitter
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[7]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon vicon" name="logo-venmo"></ion-icon>
-            <ion-label>
-                Venmo
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[8]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon liicon" name="logo-linkedin"></ion-icon>
-            <ion-label>
-                LinkedIn
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[9]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon pmicon" name="mail"></ion-icon>
-            <ion-label>
-                Professional Email
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[10]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon gicon" name="link"></ion-icon>
-            <ion-label>
-                Website
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[11]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-        <ion-item>
-            <ion-icon class="displayIcon locicon" name="location"></ion-icon>
-            <ion-label>
-                Location
-            </ion-label>
-            <ion-toggle [(ngModel)]="permissions[0]" (ionChange)="changePermissions()"></ion-toggle>
-        </ion-item>
-    </ion-list>
-    <ion-img class="tinoneimg" *ngIf="displayTF && !theirInfo" src="assets/undraw_Add_friends_wa2a.svg">
-    </ion-img>
-    <ion-button expand="full" (click)="createRequest(userId)" class="tinonebutton" *ngIf="displayTF && !theirInfo">
-        Request {{this.userObj?.name}}'s Info
-    </ion-button>
-    <ion-img *ngIf="!displayTF && !myInfo" src="assets/undraw_receipt_ecdd.svg" class="minoneimg">
-    </ion-img>
-    <h1 *ngIf="!displayTF && !myInfo" class="minonealert">{{this.userObj?.name}} has not requested your info</h1>
+
+    <div *ngIf="displayTF">
+        <div *ngIf="!theirInfo">
+            <ion-img class="tinoneimg"  src="assets/undraw_Add_friends_wa2a.svg">
+            </ion-img>
+            <ion-button expand="full" (click)="createRequest(userId)" class="tinonebutton">
+                Request {{this.userObj?.name}}'s Info
+            </ion-button>
+        </div>
+        <div *ngIf="theirInfo">
+            <ion-list class="TFDisplay">
+                <ion-button color="success" expand="block" (click)="presentActionSheet()" [disabled]="this.socials.phone.length === 0">
+                    <ion-icon name="call"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="mailbutton" href="mailto:{{this.socials.personalEmail}}"
+                            [disabled]="this.socials.personalEmail.length === 0">
+                    <ion-icon name="mail"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="instabutton" href="https://instagram.com/{{this.socials.instagram}}"
+                            [disabled]="this.socials.instagram.length === 0">
+                    <ion-icon name="logo-instagram"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="snapbutton" href="https://snapchat.com/add/{{this.socials.snapchat}}"
+                            [disabled]="this.socials.snapchat.length === 0">
+                    <ion-icon name="logo-snapchat"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="fbbutton" href="https://facebook.com/{{this.socials.facebook}}"
+                            [disabled]="this.socials.facebook.length === 0">
+                    <ion-icon name="logo-facebook"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="ttbutton" href="https://tiktok.com/@{{this.socials.tiktok}}"
+                            [disabled]="this.socials.tiktok.length === 0">
+                    <ion-icon class="displayIcon" name="logo-tiktok"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="twitterbutton" href="https://twitter.com/{{this.socials.twitter}}"
+                            [disabled]="this.socials.twitter.length === 0">
+                    <ion-icon name="logo-twitter"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="venmobutton" href="https://venmo.com/{{this.socials.venmo}}"
+                            [disabled]="this.socials.venmo.length === 0">
+                    <ion-icon class="displayIcon" name="logo-venmo"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" class="linkedinbutton" href="https://linkedin.com/in/{{this.socials.linkedIn}}" 
+                            [disabled]="this.socials.linkedIn.length === 0">
+                    <ion-icon name="logo-linkedin"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" color="medium" href="mailto:{{this.socials.professionalEmail}}"
+                            [disabled]="this.socials.professionalEmail.length === 0">
+                    <ion-icon name="mail"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" color="danger" href="{{this.socials.web}}" [disabled]="this.socials.web.length === 0">
+                    <ion-icon name="link"></ion-icon>
+                </ion-button>
+                <ion-button expand="block" [routerLink]="['/eventmanager/', userId]"><ion-icon name="calendar"></ion-icon></ion-button>
+            </ion-list>
+        </div>
+    </div>
+    <div *ngIf="!displayTF">
+        <div *ngIf="myInfo">
+            <ion-list>
+                <ion-item>
+                    <ion-icon class="displayIcon phicon" name="call"></ion-icon>
+                    <ion-label>
+                        Phone Number
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[1]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon micon" name="mail"></ion-icon>
+                    <ion-label>
+                        Email
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[2]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon igicon" name="logo-instagram"></ion-icon>
+                    <ion-label>
+                        Instagram
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[3]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon scicon" name="logo-snapchat"></ion-icon>
+                    <ion-label>
+                        Snapchat
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[4]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon fbicon" name="logo-facebook"></ion-icon>
+                    <ion-label>
+                        Facebook
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[5]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon tticon" name="logo-tiktok"></ion-icon>
+                    <ion-label>
+                        TikTok
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[6]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon twicon" name="logo-twitter"></ion-icon>
+                    <ion-label>
+                        Twitter
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[7]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon vicon" name="logo-venmo"></ion-icon>
+                    <ion-label>
+                        Venmo
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[8]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon liicon" name="logo-linkedin"></ion-icon>
+                    <ion-label>
+                        LinkedIn
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[9]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon pmicon" name="mail"></ion-icon>
+                    <ion-label>
+                        Professional Email
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[10]" ></ion-toggle>
+                </ion-item>
+                <ion-item>
+                    <ion-icon class="displayIcon gicon" name="link"></ion-icon>
+                    <ion-label>
+                        Website
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[11]" ></ion-toggle>
+                </ion-item>
+                    <ion-item>
+                    <ion-icon class="displayIcon locicon" name="location"></ion-icon>
+                    <ion-label>
+                        Location
+                    </ion-label>
+                    <ion-toggle [(ngModel)]="permissions[0]" ></ion-toggle>
+                </ion-item>
+            </ion-list>
+            <ion-button (click)="changePermissions()" expand="full"><ion-icon name="save"></ion-icon></ion-button>
+        </div>
+        <div *ngIf="!myInfo">
+            <ion-img  src="assets/undraw_receipt_ecdd.svg" class="minoneimg">
+            </ion-img>
+            <h1 class="minonealert">{{this.userObj?.name}} has not requested your info</h1>
+        </div>
+    </div>
 </ion-content>

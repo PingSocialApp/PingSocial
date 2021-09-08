@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { LinksService } from 'src/app/services/links.service';
 import { EventTypeEnums } from 'src/app/tab2/markercreator/eventcreator/events.model';
 import { MarkercreatorPage } from 'src/app/tab2/markercreator/markercreator.page';
@@ -25,35 +25,38 @@ export class ActivityStatusComponent implements OnInit {
   }
 
   getLinks(){
-    this.links = this.ls.getLastCheckedInLocations(this.offset).pipe(tap(response => {
-      response.data.map(val => {
-        let pic: string;
+    this.links = this.ls.getLastCheckedInLocations(this.offset).pipe(map(response => {
+      return {
+        isDone: response.isDone,
+        data: response.data.map(val => {
+          let pic: string;
 
-        switch (val.eventType) {
-          case EventTypeEnums.HANGOUT : {
-            pic = '../../assets/ping_markers/events/hangout100.png';
-            break;
+          switch (val.eventType) {
+            case EventTypeEnums.HANGOUT: {
+              pic = 'assets/ping_markers/hangout100_activity.png';
+              break;
+            }
+            case EventTypeEnums.PROFESSIONAL: {
+              pic = 'assets/ping_markers/networking100_activity.png';
+              break;
+            }
+            case EventTypeEnums.PARTY: {
+              pic = 'assets/ping_markers/party100_activity.png';
+              break;
+            }
+            default:{
+              break;
+            }
           }
-          case EventTypeEnums.PROFESSIONAL: {
-            pic = '../../assets/ping_markers/events/professional100.png';
-            break;
-          }
-          case EventTypeEnums.PARTY: {
-            pic = '../../assets/ping_markers/events/party100.png';
-            break;
-          }
-          default:{
-            break;
-          }
-        }
 
-        return {
-          user: val.user,
-          eventName: val.eventName,
-          eventId: val.eventId,
-          eventType: pic
-        }
-      })
+          return {
+            user: val.user,
+            eventName: val.eventName,
+            eventId: val.eventId,
+            eventType: pic
+          }
+        })
+      }
     }));
   }
 
