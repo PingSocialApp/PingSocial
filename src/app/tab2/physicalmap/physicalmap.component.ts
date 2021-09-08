@@ -633,9 +633,9 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			zoom: 17,
 			maxZoom:17,
       minZoom: 10,
-			pitchWithRotate: false,
-			dragRotate: false,
-			touchZoomRotate: false,
+			// pitchWithRotate: false,
+			// dragRotate: false,
+			// touchZoomRotate: false,
 			center: [coords.longitude, coords.latitude]
 		});
 		this.map.on('dragstart', () => {

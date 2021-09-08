@@ -85,9 +85,10 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     updateEndTimeMinimum(){
       this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value)
-        .toDateString()).getTime() - this.offset + 300000).toISOString();
-      this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime)
-        .toDateString()).getTime() + 86400000*3 - this.offset - 60000).toISOString();
+        .toDateString()
+      ).getTime() - this.offset + 300000).toISOString();
+       this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000*3 - this.offset - 60000).toISOString();
+      //this.maximumEndTime = new Date(new Date(new Date(new Date(this.minimumEndTime).getTime() + 86400000*2 - this.offset).toDateString()).getTime() - 60000).toISOString();
     }
 
 
