@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {Platform} from '@ionic/angular';
 import {SplashScreen} from '@capacitor/splash-screen';
-import {StatusBar} from '@capacitor/status-bar';
+import {StatusBar, Style, StyleOptions} from '@capacitor/status-bar';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 @Component({
@@ -18,7 +18,11 @@ export class AppComponent{
 
     initializeApp() {
         this.platform.ready().then(() => {
-            StatusBar.hide();
+            const options: StyleOptions = {
+                style: Style.Light,
+            }
+
+            StatusBar.setStyle(options);
             SplashScreen.hide();
         });
     }
