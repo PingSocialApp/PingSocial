@@ -10,7 +10,7 @@
         </ion-title>
         <ion-buttons slot="primary">
             <ion-button (click)="presentRequestsPage()">
-                <ion-badge *ngIf="(requestAmount | async) !== 0">{{requestAmount | async}}</ion-badge>
+                <ion-badge *ngIf="requestNum > 0">{{requestNum}}</ion-badge>
                 <ion-icon name="person-add"></ion-icon>
             </ion-button>
         </ion-buttons>
