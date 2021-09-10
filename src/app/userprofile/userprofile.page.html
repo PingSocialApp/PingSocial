@@ -28,8 +28,13 @@
         <div *ngIf="!theirInfo">
             <ion-img class="tinoneimg"  src="assets/undraw_Add_friends_wa2a.svg">
             </ion-img>
-            <ion-button expand="full" (click)="createRequest(userId)" class="tinonebutton">
-                Request {{this.userObj?.name}}'s Info
+            <ion-button expand="full" (click)="createRequest(userId)" class="tinonebutton" [disabled]="requestExists">
+                <p *ngIf="!requestExists">
+                    Request {{this.userObj?.name}}'s Info
+                </p>
+                <p *ngIf="requestExists">
+                    Waiting for {{this.userObj?.name}}'s Response
+                </p>
             </ion-button>
         </div>
         <div *ngIf="theirInfo">

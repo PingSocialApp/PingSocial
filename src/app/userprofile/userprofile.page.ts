@@ -28,6 +28,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
     private userSocialsSub: Subscription;
     userBasicSub: Subscription;
     myDataSub: Subscription;
+    requestExists: boolean;
 
     constructor(private actionSheet: ActionSheetController, private modalController: ModalController,
                 private alertController: AlertController, private acr: ActivatedRoute,
@@ -42,7 +43,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
         const isModalOpened = await this.modalController.getTop();
         this.userId = this.acr.snapshot.params.id;
         // tslint:disable-next-line:no-unused-expression
-        isModalOpened ? this.modalController.dismiss() : null;
+        isModalOpened ? this.closeModal() : null;
         this.getMyData();
         this.getOtherData();
 
@@ -59,19 +60,6 @@ export class UserprofilePage implements OnInit, OnDestroy {
         this.myDataSub.unsubscribe();
         this.userBasicSub.unsubscribe();
         this.userSocialsSub.unsubscribe();
-    }
-
-    doRefresh(event){
-        this.getOtherData();
-
-        this.userBasicSub = this.us.getUserBasic(this.userId).subscribe({
-            next: (data:any) => {
-                this.userObj = data.data;
-            }, error: (err) => {
-                this.utils.presentToast('Whoops! Unable to get profile info');
-                console.error(err.error);
-            }
-        });
     }
 
     getMyData(){
@@ -91,12 +79,15 @@ export class UserprofilePage implements OnInit, OnDestroy {
     getOtherData(){
         this.userSocialsSub = this.ls.getFromSocials(this.userId).subscribe((socialsData:any) => {
             const linkData = socialsData.data;
-            if (linkData != null) {
+            if(linkData === 'isRequest'){
+                this.theirInfo = false;
+                this.requestExists = true;
+            } else if (linkData != null) {
                 linkData.phone = linkData.phone.replace('(', '').replace(')', '')
                     .replace('-', '').replace(' ', '');
-                linkData.website = !((linkData.web.includes('http://')) || (linkData.web.includes('https://'))
+                linkData.web = !((linkData.web.includes('http://')) || (linkData.web.includes('https://'))
                 || linkData.web.length <= 0) ?
-                    'http://' + linkData.web : linkData.web;
+                    'https://' + linkData.web : linkData.web;
 
                 this.socials = linkData;
                 this.theirInfo = true;
@@ -115,7 +106,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
 
     createRequest(id: string) {
         this.rps.sendRequest(id, 2047).subscribe(() => this.utils.presentToast('Request Sent!'), (err) => {
-            console.error(err);
+            console.error(err.error.data);
             this.utils.presentToast('Whoops! Unable to send request');
         });
     }
@@ -150,9 +141,18 @@ export class UserprofilePage implements OnInit, OnDestroy {
         return boolValues;
     }
 
+    closeModal() {
+        // using the injected ModalController this page
+        // can "dismiss" itself and optionally pass back data
+        this.modalController.dismiss({
+            dismissed: true
+        });
+    }
+
     changePermissions() {
         this.ls.updatePermissions(this.permissions, this.userId).subscribe(async (val:any) => {
-            await this.utils.presentToast('User Permissions have been updated!');
+                await this.utils.presentToast('User Permissions have been updated!');
+                this.currCode = val.data.code;
         }, async (err)=> {
             console.error(err);
             await this.utils.presentToast('Whoops! Update failed');
@@ -181,6 +181,21 @@ export class UserprofilePage implements OnInit, OnDestroy {
             }]
         });
         await actionSheet.present();
+    }
+
+    doRefresh(event){
+        this.getOtherData();
+
+        this.userBasicSub = this.us.getUserBasic(this.userId).subscribe({
+            next: (data:any) => {
+                this.userObj = data.data;
+                event.target.complete();
+            }, error: (err) => {
+                this.utils.presentToast('Whoops! Unable to get profile info');
+                console.error(err.error);
+                event.target.complete();
+            }
+        });
     }
 
     async showLocation() {
