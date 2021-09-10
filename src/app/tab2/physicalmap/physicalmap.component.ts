@@ -819,7 +819,16 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     async checkIn(id: string, title: string) {
 		if(this.checkedIn === ''){
-			this.es.checkin(id).subscribe(() => {
+			const loading = await this.loadingController.create({
+				spinner: 'bubbles',
+				duration: 500000,
+				message: 'Checking you in',
+			  });
+			  await loading.present();
+
+
+			this.es.checkin(id).subscribe(async () => {
+				await loading.dismiss();
 				this.utils.presentToast('Welcome to ' + title);
 			}, (err) => {
 				console.error(err);
