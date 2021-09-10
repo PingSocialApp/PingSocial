@@ -39,13 +39,13 @@
                 loadingText="Loading more data...">
         </ion-infinite-scroll-content>
     </ion-infinite-scroll>
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="closeModal()">
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="closeModal(true)">
         <ion-fab-button>
             <ion-icon name="checkmark-outline"></ion-icon>
         </ion-fab-button>
     </ion-fab>
     <ion-chip id="peopleCount">
         <ion-icon name="people"></ion-icon>
-        <ion-label [ngStyle]="{'color' : this.ids.length > 20 ? 'red' : 'black'}">{{this.ids.length}} / 20</ion-label>
+        <ion-label [ngStyle]="{'color' : this.userArray.length > 20 ? 'red' : 'black'}">{{this.userArray.length}} / 20</ion-label>
     </ion-chip>
 </ion-content>

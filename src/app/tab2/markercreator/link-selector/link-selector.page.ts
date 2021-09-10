@@ -2,6 +2,7 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
 import {ModalController} from '@ionic/angular';
 import { LinksService } from 'src/app/services/links.service';
+import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
     selector: 'app-link-selector',
@@ -16,7 +17,7 @@ export class LinkSelectorPage implements OnInit, OnDestroy {
     linksBS: BehaviorSubject<number>;
     @Input() ids: Array<string>;
 
-    constructor(private modalController: ModalController, private ls: LinksService) {
+    constructor(private modalController: ModalController, private ls: LinksService, private utils: UtilsService) {
     }
 
     ngOnInit() {
@@ -41,12 +42,16 @@ export class LinkSelectorPage implements OnInit, OnDestroy {
         }
     }
 
-    async closeModal() {
-        await this.modalController.dismiss(this.userArray)
+    async closeModal(isSubmit = false) {
+        if(isSubmit && this.userArray.length > 20){
+            await this.utils.presentToast('Whoops! Too many people');
+        } else {
+            await this.modalController.dismiss(this.userArray);
+        }
     }
 
     updateLinkList() {
-        const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
+        const toggle = (document.getElementsByTagName('ion-checkbox') as unknown as Array<HTMLIonCheckboxElement>);
         this.userArray = [];
         for (const element of toggle) {
             if (element.checked) {
