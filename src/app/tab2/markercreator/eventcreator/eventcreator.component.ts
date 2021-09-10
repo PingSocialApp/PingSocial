@@ -233,7 +233,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             if (!this.editMode) {
                 this.es.createEvent(data).pipe(switchMap((output:any) => {
                     if(this.isPrivate){
-                        return this.es.inviteAttendee(output.data.id, this.links);
+                        return this.es.inviteAttendee(output.data.id, this.links, true);
                     }else{
                         return of('');
                     }
@@ -247,7 +247,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             } else {
                 this.es.editEvent(this.eventID, data).subscribe(() => {
                     if(this.isPrivate){
-                        this.es.inviteAttendee(this.eventID, this.links).subscribe(() => {
+                        this.es.inviteAttendee(this.eventID, this.links, false).subscribe(() => {
                             this.utils.presentToast('Event Updated!');
                             this.closeModal();
                         }, (error)=> {

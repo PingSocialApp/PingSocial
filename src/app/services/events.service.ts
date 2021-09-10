@@ -118,8 +118,8 @@ export class EventsService {
     return this.http.delete(environment.apiURL.events + id).pipe(retry(3), first());
   }
 
-  inviteAttendee(id: string, uid: string[]){
-    return this.http.post(environment.apiURL.events + id + '/invites', {uids: uid}).pipe(retry(3), first())
+  inviteAttendee(id: string, uid: string[], isNew: boolean){
+    return this.http.post(environment.apiURL.events + id + '/invites', {uids: uid, isNew}).pipe(retry(3), first())
   }
 
   viewAttendees(id: string, offset: number, limit?: number){
