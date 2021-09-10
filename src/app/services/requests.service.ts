@@ -98,7 +98,7 @@ export class RequestsService {;
     }
 
     getTotalNumRequests(){
-        return this.db.object('userNumerics/pendingRequests/' + this.auth.getUID())
+        return this.db.object('userNumerics/numRequests/' + this.auth.getUID())
             .valueChanges();
     }
 }
