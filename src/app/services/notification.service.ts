@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { ActionPerformed, PushNotifications, PushNotificationSchema, Token } from '@capacitor/push-notifications';
+import { ModalController } from '@ionic/angular';
+import { RequestsPage } from '../requests/requests.page';
+import { MarkercreatorPage } from '../tab2/markercreator/markercreator.page';
 import { UsersService } from './users.service';
 
 @Injectable({
@@ -9,7 +12,7 @@ import { UsersService } from './users.service';
 })
 export class NotificationService {
 
-  constructor(private us: UsersService, private r: Router) { }
+  constructor(private us: UsersService, private r: Router, private modalController: ModalController) { }
 
   initPush() {
     if (Capacitor.getPlatform() !== 'web') {
@@ -49,17 +52,28 @@ export class NotificationService {
     PushNotifications.addListener(
       'pushNotificationActionPerformed',
       async (notification: ActionPerformed) => {
+        let modal: HTMLIonModalElement;
         switch(notification.notification.title){
+          case 'New Request!':
+            modal = await this.modalController.create({
+              component: RequestsPage
+            });
+            return await modal.present();
           case 'New Ping!':
-            this.r.navigate(['/circledash']);
-            break;
           case 'Ping Reply!':
-            this.r.navigate(['/circledash']);
-            break;
+            return this.r.navigate(['/circledash']);
+          case 'Event Invite!':
+          case 'Updated Event!':
+            modal = await this.modalController.create({
+              component: MarkercreatorPage,
+              componentProps: {
+                eventID: notification.notification.data.id,
+              }
+            });
+            return await modal.present();
           default:
-            break;
+            return;
         }
-        const data = notification.notification.data;
       }
     );
   }
