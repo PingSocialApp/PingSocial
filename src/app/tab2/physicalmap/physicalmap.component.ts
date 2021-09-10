@@ -100,7 +100,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					maximumAge: 30*1000
                 },(position, err) => {
 					if(err){
-						this.utils.presentToast(err);
+						this.utils.presentToast('Whoops! Problem getting your location');
                         console.error(err);
 						return;
                     }
@@ -114,7 +114,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
             });
         }).catch((error) => {
-			this.utils.presentToast(error);
+			this.utils.presentToast('Whoops! Problem getting your location');
             console.error('Error getting location', error);
         });
     }
