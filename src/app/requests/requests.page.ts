@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {ModalController} from '@ionic/angular';
+import {AlertController, ModalController} from '@ionic/angular';
 import { BehaviorSubject } from 'rxjs';
 import { RequestsService } from '../services/requests.service';
 import { UtilsService } from '../services/utils.service';
@@ -16,7 +16,8 @@ export class RequestsPage implements OnInit {
     links: any;
 
 
-    constructor(private modalCtrl: ModalController, private rs: RequestsService, private utils: UtilsService) {
+    constructor(private modalCtrl: ModalController, private rs: RequestsService, private utils: UtilsService,
+        private alertController: AlertController) {
     }
 
     ngOnInit() {
@@ -67,5 +68,25 @@ export class RequestsPage implements OnInit {
         ++this.offset;
         this.pendingRequestsBS.next(this.offset);
         event.target.complete();
+    }
+
+    async showRequestAlert(name:string, linkID: string){
+        const alert = await this.alertController.create({
+            header: 'Accept Request',
+            message: `Do you wish to accept ${name}'s request?`,
+            buttons: [
+                {
+                    text: 'Cancel',
+                    role: 'cancel'
+                },
+                {
+                    text: 'Okay',
+                    handler: () => {
+                        this.acceptUser(linkID);
+                    }
+                }
+            ]
+        });
+        await alert.present();
     }
 }

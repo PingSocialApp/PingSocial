@@ -26,7 +26,7 @@
                     <ion-icon name="checkmark-circle"></ion-icon>
                 </ion-item-option>
             </ion-item-options>
-            <ion-item>
+            <ion-item (click)="showRequestAlert(link.user.name, link.linkId)">
                 <ion-avatar slot="start">
                     <img src="{{link.user.profilepic}}">
                 </ion-avatar>
