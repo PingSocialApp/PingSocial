@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http'
 import { environment } from 'src/environments/environment';
 import {catchError, retry, scan, share } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -45,7 +45,16 @@ export class LinksService {
   }
 
   getFromSocials(id: string){
-    return this.http.get(environment.apiURL.links + 'fromsocials/' + id).pipe(retry(3));
+    return this.http.get(environment.apiURL.links + 'fromsocials/' + id).pipe(catchError(err => {
+      switch (err.error.error){
+        case 'This relationship is currently a request':
+          return of({data:'isRequest'});
+        case 'Link not found':
+          return of({data:null})
+        default:
+          return throwError(err);
+      }
+    }),retry(3));
   }
 
   updatePermissions(permissions: boolean[], id: string){
