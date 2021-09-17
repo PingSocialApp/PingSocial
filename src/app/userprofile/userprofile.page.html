@@ -6,6 +6,11 @@
         <ion-title>
             <ion-img class="mainlogo" src="../assets/PingWordsLogo.png"></ion-img>
         </ion-title>
+        <ion-buttons slot="end" *ngIf="!displayTF">
+            <ion-button (click)="changePermissions()">
+                <ion-icon name="save"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 <ion-content>
@@ -173,7 +178,6 @@
                     <ion-toggle [(ngModel)]="permissions[0]" ></ion-toggle>
                 </ion-item>
             </ion-list>
-            <ion-button (click)="changePermissions()" expand="full"><ion-icon name="save"></ion-icon></ion-button>
         </div>
         <div *ngIf="!myInfo">
             <ion-img  src="assets/undraw_receipt_ecdd.svg" class="minoneimg">

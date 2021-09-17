@@ -9,7 +9,7 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
-    <ion-segment (ionChange)="segmentChanged($event)" [(ngModel)]="currentSlide">
+    <ion-segment (ionChange)="segmentChanged($event)" [(ngModel)]="currentSlide" *ngIf="this.isMe">
         <ion-segment-button value="0">
           <ion-label>Created</ion-label>
         </ion-segment-button>

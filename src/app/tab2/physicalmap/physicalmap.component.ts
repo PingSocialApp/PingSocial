@@ -50,6 +50,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	showCheckIn: boolean;
 	checkedIn: string;
 	locationSub: Subscription;
+	otherLastOnline: string;
 
 	constructor(private ms: MarkersService,
 		private us: UsersService, private modalController: ModalController, private loadingController: LoadingController,
@@ -698,6 +699,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.showEventDetails = false;
                     this.otherUserName = doc.properties.name;
                     this.otherUserId = doc.properties.uid;
+					this.otherLastOnline = this.utils.convertTime(new Date().getTime() - new Date(doc.properties.lastOnline).getTime());
                 });
                 this.renderUser(oMark, doc.geometry.coordinates);
             });
@@ -855,4 +857,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     degreesToRadians(degrees: number): number {
         return degrees * Math.PI / 180;
     }
+
+	centerBack(): void{
+		this.map.flyTo({
+			essential:true,
+			center: this.us.latestLocation
+		});
+	}
 }

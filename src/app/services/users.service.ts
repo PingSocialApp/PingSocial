@@ -17,14 +17,21 @@ export class UsersService {
   myObj: any;
   latestLocation: Array<number>
 
-  constructor(private http: HttpClient, private auth: AuthHandler,
-    private firestore: AngularFirestore, private storage: AngularFireStorage, private utils: UtilsService) {
+  constructor(private http: HttpClient, private auth: AuthHandler, private firestore: AngularFirestore,
+    private storage: AngularFireStorage, private utils: UtilsService) {
       this.myObj = null;
       this.latestLocation = [0,0];
   }
 
   handleFile(files: FileList) {
     const file = files.item(0);
+
+    const filesize = ((file.size/1024)/1024); // MB
+
+    if(filesize > 3.0){
+      this.utils.presentToast('Whoops! Profile picture bigger than 3MB', 'warning');
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -58,7 +65,7 @@ export class UsersService {
   }
 
   createUser(){
-    const seed = Math.floor(Math.random() * Math.floor(10000));
+     const seed = Math.floor(Math.random() * Math.floor(10000));
 
       const userObject = {
           name: 'User' + seed,

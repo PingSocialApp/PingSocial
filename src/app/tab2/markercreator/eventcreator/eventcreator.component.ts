@@ -206,9 +206,9 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
         }else if(this.eventDes === ''){
             this.utils.presentToast('Whoops! Missing Event Des', 'warning');
         }else if((document.getElementById('startTime') as HTMLInputElement).value === undefined){
-            this.utils.presentToast('Whoops! Missing Start Time');
-        }else if(this.eventType === ''){
-            this.utils.presentToast('Whoops! Missing Event Type');
+        this.utils.presentToast('Whoops! Missing Start Time', 'warning');
+        }else if(this.eventType === '' || this.eventType === null || this.eventType === undefined){
+            this.utils.presentToast('Whoops! Missing Event Type', 'warning');
         }else if((document.getElementById('endTime') as HTMLInputElement).value === undefined){
             this.utils.presentToast('Whoops! Missing End Time', 'warning');
         }else if(new Date((document.getElementById('startTime') as HTMLInputElement).value) >

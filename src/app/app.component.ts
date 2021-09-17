@@ -3,6 +3,7 @@ import {Platform} from '@ionic/angular';
 import {SplashScreen} from '@capacitor/splash-screen';
 import {StatusBar, Style, StyleOptions} from '@capacitor/status-bar';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
     selector: 'app-root',
@@ -22,7 +23,10 @@ export class AppComponent{
                 style: Style.Light,
             }
 
-            StatusBar.setStyle(options);
+            if(Capacitor.getPlatform() !== 'web'){
+                StatusBar.setStyle(options);
+            }
+
             SplashScreen.hide();
         });
     }

@@ -6,6 +6,9 @@
         <ion-fab-button [routerLink]="['/eventmanager/', this.auth.getUID()]" class="filterButton" style="margin-top: 20%">
             <ion-icon name="calendar-outline"></ion-icon>
         </ion-fab-button>
+        <ion-fab-button (click)="centerBack()" class="filterButton" style="margin-top: 20%">
+            <ion-icon name="locate"></ion-icon>
+        </ion-fab-button>
     </ion-fab>
     <!-- <ion-card *ngIf="showFilter" id="filterList">
         <ion-card-content>
@@ -79,19 +82,20 @@
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
             <ion-button *ngIf="showCheckIn && (checkedIn === '')" (click)="checkIn(currentEventId, currentEventTitle)" style="width: 79%">
-                <ion-icon name="log-in"></ion-icon>
+                <ion-icon name="enter"></ion-icon>
             </ion-button>
             <ion-button *ngIf='checkedIn == currentEventId' (click)="checkOut(currentEventId)" style="width: 79%">
-                <ion-icon name="log-out"></ion-icon>
+                <ion-icon name="exit"></ion-icon>
             </ion-button>
         </ion-card-content>
     </ion-card>
     <ion-card style="z-index: 3" *ngIf="showUserDetails">
         <ion-card-content>
             <ion-card-title>{{otherUserName}}</ion-card-title>
+            <ion-card-subtitle>{{otherLastOnline}}</ion-card-subtitle>
             <ion-button expand="block" *ngIf='otherUserId !== "currentLocation"'
                         [routerLink]="['/userprofile/', otherUserId]">
-                <ion-icon name="expand-outline"></ion-icon>
+                <ion-icon name="person"></ion-icon> Open Profile
             </ion-button>
         </ion-card-content>
     </ion-card>
@@ -105,10 +109,10 @@
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
             <ion-button *ngIf="showCheckIn && (checkedIn === '')" (click)="checkIn(event.properties.id, event.properties.name)" style="width: 79%">
-                <ion-icon name="log-in"></ion-icon>
+                <ion-icon name="enter"></ion-icon>
             </ion-button>
             <ion-button *ngIf='checkedIn == event.properties.id' (click)="checkOut(event.properties.id)" style="width: 79%">
-                <ion-icon name="log-out"></ion-icon>
+                <ion-icon name="exit"></ion-icon>
             </ion-button>
           </ion-card-content>
           <ng-template #geoPing>

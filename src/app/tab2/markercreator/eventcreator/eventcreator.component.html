@@ -2,8 +2,9 @@
 
 <div class="eventMenu">
     <!-- TODO this is only for iPhone Release -->
-    <ion-button *ngIf="editMode" href="http://maps.apple.com/?daddr={{this.location[0]}},{{this.location[1]}}">
+    <ion-button *ngIf="editMode" href="maps://?q={{this.location[1]}},{{this.location[0]}}">
         <ion-icon name="location"></ion-icon>
+        Get Directions
     </ion-button>
 </div>
 <div class="eventCreateContainer">

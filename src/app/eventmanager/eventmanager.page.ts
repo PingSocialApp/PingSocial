@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {MarkercreatorPage} from '../tab2/markercreator/markercreator.page';
 import {IonSlides, ModalController} from '@ionic/angular';
 import {ActivatedRoute} from '@angular/router';
@@ -11,7 +11,7 @@ import { EventsService } from '../services/events.service';
     templateUrl: './eventmanager.page.html',
     styleUrls: ['./eventmanager.page.scss'],
 })
-export class EventmanagerPage implements OnInit, OnDestroy {
+export class EventmanagerPage implements OnInit, OnDestroy, AfterViewInit {
     isMe: boolean;
     invitedSub: Observable<any>;
     createdSub: Observable<any>;
@@ -22,9 +22,9 @@ export class EventmanagerPage implements OnInit, OnDestroy {
 
     @ViewChild('mySlides') slides: IonSlides;
 
-    slideOpts = {
+    slideOpts:any = {
         initialSlide: 0,
-        speed: 400
+        speed: 400,
     };
 
     constructor(private acr: ActivatedRoute, private modalController: ModalController,
@@ -39,6 +39,12 @@ export class EventmanagerPage implements OnInit, OnDestroy {
         this.eventsBS.subscribe(() => this.getEvents());
         this.invitedSub = this.es.getInvitedEvents(this.invitedOffset);
         this.createdSub = this.es.getUserEvents(this.acr.snapshot.params.id, this.createdOffset);
+    }
+
+    ngAfterViewInit(){
+        if(!this.isMe){
+            this.slides.lockSwipes(true);
+        }
     }
 
     ngOnDestroy(): void {
