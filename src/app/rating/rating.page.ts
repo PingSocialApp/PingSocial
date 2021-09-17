@@ -30,7 +30,7 @@ export class RatingPage implements OnInit, OnDestroy {
 
     async checkout() {
         if(this.review.length > 1000){
-            await this.utils.presentToast('Whoops! Your review is too long');
+            await this.utils.presentToast('Whoops! Your review is too long', 'warning');
             return;
         }else if(this.review.length === 0){
             this.review = ' ';
@@ -40,13 +40,13 @@ export class RatingPage implements OnInit, OnDestroy {
             await this.modalController.dismiss({
                 isSuccesful: true
             });
-            this.utils.presentToast('Checkout Successful!');
+            this.utils.presentToast('Checkout Successful!', 'success');
         }, async (err) => {
             console.error(err);
             await this.modalController.dismiss({
                 isSuccesful: false
             });
-           this.utils.presentToast('Whoops! Checkout failed');
+           this.utils.presentToast('Whoops! Checkout failed', 'error');
         });
     }
 }

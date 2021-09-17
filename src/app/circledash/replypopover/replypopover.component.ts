@@ -23,7 +23,7 @@ export class ReplypopoverComponent implements OnInit {
 
     sendReplyData() {
         if (this.responseMessage === '') {
-            this.utils.presentToast('Whoops! You have an empty message');
+            this.utils.presentToast('Whoops! You have an empty message', 'warning');
             return;
         }
 
@@ -38,11 +38,11 @@ export class ReplypopoverComponent implements OnInit {
                 });
             })
         }).then(() => {
-            this.utils.presentToast('Reply Sent!');
+            this.utils.presentToast('Reply Sent!', 'success');
             this.popoverController.dismiss();
         }).catch(err => {
             console.error(err);
-            this.utils.presentToast('Whoops! Unable to Send Ping');
+            this.utils.presentToast('Whoops! Unable to Send Ping', 'error');
         });
     }
 }

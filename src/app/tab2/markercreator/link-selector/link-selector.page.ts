@@ -44,7 +44,7 @@ export class LinkSelectorPage implements OnInit, OnDestroy {
 
     async closeModal(isSubmit = false) {
         if(isSubmit && this.userArray.length > 20){
-            await this.utils.presentToast('Whoops! Too many people');
+            await this.utils.presentToast('Whoops! Too many people', 'warning');
         } else {
             await this.modalController.dismiss(this.userArray);
         }

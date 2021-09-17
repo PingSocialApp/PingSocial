@@ -100,7 +100,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					maximumAge: 30*1000
                 },(position, err) => {
 					if(err){
-						this.utils.presentToast('Whoops! Problem getting your location');
+						this.utils.presentToast('Whoops! Problem getting your location', 'error');
                         console.error(err);
 						return;
                     }
@@ -114,7 +114,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
             });
         }).catch((error) => {
-			this.utils.presentToast('Whoops! Problem getting your location');
+			this.utils.presentToast('Whoops! Problem getting your location', 'error');
             console.error('Error getting location', error);
         });
     }
@@ -703,7 +703,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             });
         }, error => {
             console.error(error);
-            this.utils.presentToast('Whoops! Unable to get links');
+            this.utils.presentToast('Whoops! Unable to get links', 'error');
         });
     }
 
@@ -741,7 +741,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             el.id = 'currentLocation';
         }, err => {
             console.error(err);
-            this.utils.presentToast('Whoops! Unable to get your marker');
+            this.utils.presentToast('Whoops! Unable to get your marker', 'error');
         });
     }
 
@@ -829,10 +829,10 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 			this.es.checkin(id).subscribe(async () => {
 				await loading.dismiss();
-				this.utils.presentToast('Welcome to ' + title);
+				this.utils.presentToast('Welcome to ' + title, 'success');
 			}, (err) => {
 				console.error(err);
-				this.utils.presentToast('Whoops! Unable to checkin');
+				this.utils.presentToast('Whoops! Unable to checkin', 'error');
 			});
 		}
     }
@@ -852,7 +852,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
         return earthRadiusKm * c; // KM
     }
 
-    degreesToRadians(degrees: number) {
+    degreesToRadians(degrees: number): number {
         return degrees * Math.PI / 180;
     }
 }

@@ -120,7 +120,7 @@ export class QrcodePage implements OnInit, OnDestroy {
 
     async presentAlertConfirm(dataArray: Array<string>) {
         if (this.userId === dataArray[0]) {
-            this.utils.presentToast('Whoops, this is your code!');
+            this.utils.presentToast('Whoops, this is your code!', 'warning');
             return;
         }
         this.us.getUserBasic(dataArray[0])
@@ -141,11 +141,11 @@ export class QrcodePage implements OnInit, OnDestroy {
                         handler: () => {
                             this.rs.sendRequest(dataArray[0], parseInt(dataArray[1], 10)).subscribe({
                                 next: () => {
-                                    this.utils.presentToast('Successfull added ' + data.data.name);
+                                    this.utils.presentToast('Successfully added ' + data.data.name, 'success');
                                 },
                                 error: (error) => {
                                     console.error(error);
-                                    this.utils.presentToast('Whoops! Unexpected error, try again')
+                                    this.utils.presentToast('Whoops! Unexpected error, try again', 'error')
                                 }
                             });
                         }
@@ -155,7 +155,7 @@ export class QrcodePage implements OnInit, OnDestroy {
             await alert.present();
         }, err => {
             console.error(err);
-            this.utils.presentToast('Whoops! Unable to get link data');
+            this.utils.presentToast('Whoops! Unable to get link data', 'error');
         })
     }
 

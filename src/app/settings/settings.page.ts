@@ -46,11 +46,13 @@ export class SettingsPage implements OnInit {
         this.currentUserSocials = this.firestore.collection('socials').doc(this.currentUserId).get().pipe(map(ret => ret.data()));
     }
 
-    updateSettings() {
-        this.us.updateProfile().subscribe(val => {
-            this.utils.presentToast('Profile Updated!');
+    async updateSettings() {
+        const loading = await this.utils.presentAlert('Updating Profile');
+
+        this.us.updateProfile().subscribe(() => {
+            Promise.all([this.utils.presentToast('Profile Updated!', 'success'), loading.dismiss()]);
         }, err => {
-            this.utils.presentToast('Whoops! Update Failed');
+            Promise.all([this.utils.presentToast('Whoops! Update Failed', 'error'), loading.dismiss()]);
             console.error(err.error);
         });
     }

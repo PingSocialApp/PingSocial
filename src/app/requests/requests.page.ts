@@ -32,20 +32,20 @@ export class RequestsPage implements OnInit {
 
     acceptUser(linkId: string) {
         this.rs.acceptRequest(linkId).subscribe(() => {
-            this.utils.presentToast('Accepted!');
+            this.utils.presentToast('Accepted!', 'success');
             this.refreshContent();
         }, err => {
-            this.utils.presentToast('Whoops! Try again');
+            this.utils.presentToast('Whoops! Try again', 'error');
             console.error(err);
         });
     }
 
     deleteUser(linkId: string) {
         this.rs.cancelRequest(linkId).subscribe(() => {
-            this.utils.presentToast('Declined!');
+            this.utils.presentToast('Declined!', 'success');
             this.refreshContent();
         }, err => {
-            this.utils.presentToast('Whoops! Try again');
+            this.utils.presentToast('Whoops! Try again', 'error');
             console.error(err);
         });
     }

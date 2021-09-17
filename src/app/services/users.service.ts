@@ -102,7 +102,7 @@ export class UsersService {
         if (this.fileName != null && typeof this.latestPhoto === 'string') {
             ref.putString(this.latestPhoto, 'data_url').then(snapshot => {
             }).catch((er) => {
-              this.utils.presentToast('Whoops! Profile pic had a problem');
+              this.utils.presentToast('Whoops! Profile pic had a problem', 'error');
               console.error(er);
             })
              // TODO only send profilepic on new update

@@ -51,7 +51,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
             next: (data:any) => {
                 this.userObj = data.data;
         }, error: (err) => {
-            this.utils.presentToast('Whoops! Unable to get profile info');
+            this.utils.presentToast('Whoops! Unable to get profile info', 'error');
             console.error(err.error);
         }});
     }
@@ -71,7 +71,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
                 this.myInfo = false;
             }
         }, err => {
-            this.utils.presentToast('Whoops! Unable to get you socials');
+            this.utils.presentToast('Whoops! Unable to get you socials', 'error');
             console.error(err.error);
         });
     }
@@ -96,7 +96,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
             }
         }, err => {
             console.error(err.error);
-            this.utils.presentToast('Whoops! Unable to get their socials');
+            this.utils.presentToast('Whoops! Unable to get their socials', 'error');
         });
     }
 
@@ -105,28 +105,10 @@ export class UserprofilePage implements OnInit, OnDestroy {
     }
 
     createRequest(id: string) {
-        this.rps.sendRequest(id, 2047).subscribe(() => this.utils.presentToast('Request Sent!'), (err) => {
+        this.rps.sendRequest(id, 2047).subscribe(() => this.utils.presentToast('Request Sent!', 'success'), (err) => {
             console.error(err.error.data);
-            this.utils.presentToast('Whoops! Unable to send request');
+            this.utils.presentToast('Whoops! Unable to send request', 'error');
         });
-    }
-
-    convertTime(t) {
-        if (t >= 86_400_000) {
-            // days
-            return Math.floor(t / 86_400_000) + 'd ago';
-        } else if (t >= 3_600_000) {
-            // hours
-            return Math.floor(t / 3_600_000) + 'h ago';
-        } else if (t >= 60_000) {
-            // mins
-            return Math.floor(t / 60_000) + 'm ago';
-        } else if (t >= 1000) {
-            // secs
-            return Math.floor(t / 1000) + 's ago';
-        } else {
-            return 'Just Now';
-        }
     }
 
     getPermission(value: any) {
@@ -149,13 +131,15 @@ export class UserprofilePage implements OnInit, OnDestroy {
         });
     }
 
-    changePermissions() {
-        this.ls.updatePermissions(this.permissions, this.userId).subscribe(async (val:any) => {
-                await this.utils.presentToast('User Permissions have been updated!');
-                this.currCode = val.data.code;
+    async changePermissions() {
+        const loading = await this.utils.presentAlert('Updating Permissions');
+
+        this.ls.updatePermissions(this.permissions, this.userId).subscribe((val:any) => {
+            Promise.all([this.utils.presentToast('User Permissions have been updated!', 'success'),loading.dismiss()]);
+            this.currCode = val.data.code;
         }, async (err)=> {
             console.error(err);
-            await this.utils.presentToast('Whoops! Update failed');
+            Promise.all([this.utils.presentToast('Whoops! Update failed', 'error'),loading.dismiss()]);
         })
     }
 
@@ -191,7 +175,7 @@ export class UserprofilePage implements OnInit, OnDestroy {
                 this.userObj = data.data;
                 event.target.complete();
             }, error: (err) => {
-                this.utils.presentToast('Whoops! Unable to get profile info');
+                this.utils.presentToast('Whoops! Unable to get profile info', 'error');
                 console.error(err.error);
                 event.target.complete();
             }

@@ -59,25 +59,18 @@ export class RegistrationPage implements OnInit, OnDestroy {
     }
 
     async createProfile() {
-        const loading = await this.loadingController.create({
-            message: 'Creating Profile...',
-        });
         if ((document.getElementById('username') as HTMLInputElement).value === '') {
-            this.utils.presentToast('Whoops! Looks like you forgot your name');
+            this.utils.presentToast('Whoops! Looks like you forgot your name', 'warning');
             return;
         }
-        await loading.present();
+
+        const loading = await this.utils.presentAlert('Creating Profile...');
+
         this.us.updateProfile().subscribe(() => {
-            loading.dismiss();
-            this.r.navigate(['']);
+            Promise.all([loading.dismiss(),this.r.navigate([''])]);
         }, async (err) => {
             loading.dismiss();
-            const errorToast = await this.loadingController.create({
-                message: 'Whoops! Something happened. Try again!',
-                duration: 2000
-            });
             console.error(err);
-            errorToast.present();
         });
     }
 }

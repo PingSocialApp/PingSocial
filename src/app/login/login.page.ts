@@ -35,40 +35,44 @@ export class LoginPage implements OnInit {
         this.password = '';
     }
 
-    createAccount() {
+    async createAccount() {
         if(this.newEmail === '') {
-            this.utils.presentToast('Whoops! Missing Email');
+            this.utils.presentToast('Whoops! Missing Email', 'warning');
         }else if(this.newPass === ''){
-            this.utils.presentToast('Whoops! Missing Password');
+            this.utils.presentToast('Whoops! Missing Password', 'warning');
         }else if(this.newPass !== this.rePass){
-            this.utils.presentToast('Whoops! Passwords don\'t match');
+            this.utils.presentToast('Whoops! Passwords don\'t match', 'warning');
         }else {
-            this.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then((value) => {
+            const alert = await this.utils.presentAlert('Creating Account');
+
+            this.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then(() => {
                 this.us.createUser().subscribe(success => {
-                    this.router.navigate(['/registration']);
+                    Promise.all([this.router.navigate(['/registration']),alert.dismiss()]);
                 }, fail => {
-                    this.utils.presentToast(fail.error);
+                    Promise.all([this.utils.presentToast(fail.error, 'error'),alert.dismiss()]);
                     console.error(fail.error);
                 });
             }).catch((error) => {
-                this.utils.presentToast(error.message);
+                Promise.all([this.utils.presentToast(error.message, 'error')]);
                 console.error(error.message);
             });
         }
     }
 
-    login() {
+    async login() {
         if(this.email === ''){
-            this.utils.presentToast('Whoops! Empty Email');
+            this.utils.presentToast('Whoops! Empty Email', 'warning');
         } else if(this.password === ''){
-            this.utils.presentToast('Whoops! Empty Email');
+            this.utils.presentToast('Whoops! Empty Email', 'warning');
         } else {
+            const alert = await this.utils.presentAlert('Logging In');
+
             this.auth.signInWithEmailAndPassword(this.email, this.password).then(() => {
                 this.email = '';
                 this.password = '';
-                this.router.navigate(['/tabs']);
+                Promise.all([this.router.navigate(['/tabs']), alert.dismiss()]);
             }).catch((error) => {
-                this.utils.presentToast(error.message);
+                Promise.all([this.utils.presentToast(error.message, 'error'),alert.dismiss()]);
                 console.error(error.message);
             });
         }

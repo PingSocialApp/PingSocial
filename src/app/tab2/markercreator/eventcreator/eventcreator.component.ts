@@ -87,8 +87,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value)
         .toDateString()
       ).getTime() - this.offset + 300000).toISOString();
-       this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() + 86400000*3 - this.offset - 60000).toISOString();
-      //this.maximumEndTime = new Date(new Date(new Date(new Date(this.minimumEndTime).getTime() + 86400000*2 - this.offset).toDateString()).getTime() - 60000).toISOString();
+       this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() 
+       + 86400000*3 - this.offset - 60000).toISOString();
     }
 
 
@@ -120,7 +120,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             (document.getElementById('startTime') as HTMLInputElement).value = data.startTime;
             (document.getElementById('endTime') as HTMLInputElement).value = data.endTime;
             this.eventName = data.eventName;
-            this.eventCreator = data.creator.id;
+            this.eventCreator = data.creator.uid;
             this.eventCreatorName = data.creator.name;
             this.eventDes = data.description;
             this.isPrivate = data.isPrivate;
@@ -134,7 +134,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             this.isCreator = data.creator.uid === this.auth.getUID();
             new mapboxgl.Marker().setLngLat(this.location).addTo(this.map);
         }, (error) => {
-            this.utils.presentToast('Whoops! Unable to get Event Details');
+            this.utils.presentToast('Whoops! Unable to get Event Details', 'error');
             console.error(error)
         });
 
@@ -145,7 +145,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             }, (error) => {
                 console.error(error);
-                this.utils.presentToast('Whoops! Unable to get links');
+                this.utils.presentToast('Whoops! Unable to get links', 'error');
             });
         }
     }
@@ -202,20 +202,20 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     async manageEvent() {
         if(this.eventName === ''){
-            this.utils.presentToast('Whoops! Missing Event Name');
+            this.utils.presentToast('Whoops! Missing Event Name', 'warning');
         }else if(this.eventDes === ''){
-            this.utils.presentToast('Whoops! Missing Event Des');
+            this.utils.presentToast('Whoops! Missing Event Des', 'warning');
         }else if((document.getElementById('startTime') as HTMLInputElement).value === undefined){
             this.utils.presentToast('Whoops! Missing Start Time');
         }else if(this.eventType === ''){
             this.utils.presentToast('Whoops! Missing Event Type');
         }else if((document.getElementById('endTime') as HTMLInputElement).value === undefined){
-            this.utils.presentToast('Whoops! Missing End Time');
+            this.utils.presentToast('Whoops! Missing End Time', 'warning');
         }else if(new Date((document.getElementById('startTime') as HTMLInputElement).value) >
-                    new Date((document.getElementById('startTime') as HTMLInputElement).value)){
-            this.utils.presentToast('Whoops! Your event ended before it started');
+                    new Date((document.getElementById('endTime') as HTMLInputElement).value)){
+            this.utils.presentToast('Whoops! Your event ended before it started', 'warning');
         }else if(this.isPrivate && this.links.length === 0){
-            this.utils.presentToast('Whoops! Your didn\'t invite anyone');
+            this.utils.presentToast('Whoops! Your didn\'t invite anyone', 'warning');
         }else {
             const data = {
                 eventName: this.eventName,
@@ -231,6 +231,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
             };
 
             if (!this.editMode) {
+                const loading = await this.utils.presentAlert('Creating Event');
+
                 this.es.createEvent(data).pipe(switchMap((output:any) => {
                     if(this.isPrivate){
                         return this.es.inviteAttendee(output.data.id, this.links, true);
@@ -238,28 +240,25 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                         return of('');
                     }
                 })).subscribe(() => {
-                    this.utils.presentToast('Event Created!');
-                    this.closeModal();
+                    Promise.all([loading.dismiss(),this.utils.presentToast('Event Created!', 'success'),this.closeModal()]);
                 }, err => {
                     console.error(err);
-                    this.utils.presentToast('Whoops! Problem making event');
+                    Promise.all([this.utils.presentToast('Whoops! Problem making event', 'error'),loading.dismiss()]);
                 });
             } else {
-                this.es.editEvent(this.eventID, data).subscribe(() => {
+                const loading = await this.utils.presentAlert('Updating Event');
+
+                this.es.editEvent(this.eventID, data).pipe(switchMap(() => {
                     if(this.isPrivate){
-                        this.es.inviteAttendee(this.eventID, this.links, false).subscribe(() => {
-                            this.utils.presentToast('Event Updated!');
-                            this.closeModal();
-                        }, (error)=> {
-                            console.error(error);
-                            this.utils.presentToast('Whoops! Problem sharing event');
-                        });
+                        return this.es.inviteAttendee(this.eventID, this.links, true);
+                    }else{
+                        return of('');
                     }
-                    this.utils.presentToast('Event Updated!');
-                    this.closeModal();
+                })).subscribe(() => {
+                    Promise.all([loading.dismiss(),this.utils.presentToast('Event Updated!', 'success'),this.closeModal()]);
                 }, err => {
                     console.error(err);
-                    this.utils.presentToast('Whoops! Problem updating event');
+                    Promise.all([this.utils.presentToast('Whoops! Problem updating event', 'error'),loading.dismiss()]);
                 });
             }
         }
@@ -289,7 +288,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                             this.modalController.dismiss();
                         }, (err) => {
                             console.error(err);
-                            this.utils.presentToast('Whoops! Event Delete Failed');
+                            this.utils.presentToast('Whoops! Event Delete Failed', 'error');
                         });
                     }
                 }
@@ -315,7 +314,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                             this.modalController.dismiss();
                         }, (err) => {
                             console.error(err);
-                            this.utils.presentToast('Whoops! Event Ending Failed');
+                            this.utils.presentToast('Whoops! Event Ending Failed', 'error');
                         });
                     }
                 }
@@ -335,14 +334,14 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.cal.createEventInteractively(this.eventName, data.features[0].place_name, this.eventDes,
                     new Date((document.getElementById('startTime') as HTMLInputElement).value),
                     new Date((document.getElementById('endTime') as HTMLInputElement).value)).then(r => {
-                    this.utils.presentToast('Event Downloaded!');
+                    this.utils.presentToast('Event Downloaded!', 'success');
                 }).catch(error => {
                     console.error(error);
-                    this.utils.presentToast('Whoops! Unable to create calendar event');
+                    this.utils.presentToast('Whoops! Unable to create calendar event', 'error');
                 });
             }).catch(error => {
                 console.error(error);
-                this.utils.presentToast('Whoops! Unable to create calendar event');
+                this.utils.presentToast('Whoops! Unable to create calendar event', 'error');
             });
     }
 

@@ -69,14 +69,14 @@ export class InEventComponent implements OnInit, OnChanges {
                     handler: (alertData) => {
                         this.us.getUserBasic(attendee).subscribe(val => {
                             this.ps.sendPing(val.data, alertData).then(() => {
-                                this.utils.presentToast('Ping Sent!');
+                                this.utils.presentToast('Ping Sent!', 'success');
                             }, err => {
                                 console.error(err);
-                                this.utils.presentToast('Whoops! Couldn\'t Send Ping');
+                                this.utils.presentToast('Whoops! Couldn\'t Send Ping', 'error');
                             })
                         }, userError => {
                             console.error(userError);
-                            this.utils.presentToast('Whoops! Couldn\'t Send Ping');
+                            this.utils.presentToast('Whoops! Couldn\'t Send Ping', 'error');
                         });
 
                     }
@@ -102,9 +102,9 @@ export class InEventComponent implements OnInit, OnChanges {
     }
 
     sendRequest(id: string) {
-        this.requestService.sendRequest(id, 2047).subscribe(() => this.utils.presentToast('Request Sent!'), err => {
+        this.requestService.sendRequest(id, 2047).subscribe(() => this.utils.presentToast('Request Sent!', 'success'), err => {
             console.error(err);
-            this.utils.presentToast('Whoops! Couldn\'t Send Request');
+            this.utils.presentToast('Whoops! Couldn\'t Send Request', 'error');
         });
     }
 

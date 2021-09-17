@@ -29,7 +29,7 @@ export class Tab1Page implements OnInit, OnDestroy {
             },
             error: (err) => {
                 console.error(err);
-                this.utils.presentToast('whoops! Unable to get Event Details');
+                this.utils.presentToast('whoops! Unable to get Event Details', 'error');
             }
         });
     }

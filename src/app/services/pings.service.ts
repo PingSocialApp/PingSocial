@@ -17,7 +17,7 @@ export class PingsService {
   sendPing(members: Array<any>, message: string): Promise<void> {
     if(!this.us.myObj){
       console.log('No myObj');
-      this.utils.presentToast('Whoops! Failed to send Ping');
+      this.utils.presentToast('Whoops! Failed to send Ping', 'error');
       return;
     }
 

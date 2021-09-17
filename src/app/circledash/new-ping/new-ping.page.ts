@@ -38,7 +38,7 @@ export class NewPingPage implements OnInit, OnDestroy {
             this.myPic = val.data.profilepic;
         }, (error)=>{
             console.error(error);
-            this.utils.presentToast('Whoops! Network Error');
+            this.utils.presentToast('Whoops! Network Error', 'error');
         });
     }
 
@@ -64,7 +64,7 @@ export class NewPingPage implements OnInit, OnDestroy {
 
     sendPing() {
         if (this.pingMessage === '' || this.pingMessage === undefined) {
-            this.utils.presentToast('Whoops! You have an empty message');
+            this.utils.presentToast('Whoops! You have an empty message', 'warning');
             return;
         }
         const toggles = (document.getElementsByTagName('ion-checkbox') as unknown as Array<any>);
@@ -81,15 +81,15 @@ export class NewPingPage implements OnInit, OnDestroy {
         }
 
         if(links.length === 0){
-            this.utils.presentToast('Whoops! You haven\'t selected anyone');
+            this.utils.presentToast('Whoops! You haven\'t selected anyone', 'warning');
         }
 
         this.ps.sendPing(links, this.pingMessage).then(() => {
-            this.utils.presentToast('Ping Sent!');
+            this.utils.presentToast('Ping Sent!', 'success');
             this.closeModal()
         }).catch(e => {
             console.error(e);
-            this.utils.presentToast('Whoops! Pings not sent');
+            this.utils.presentToast('Whoops! Pings not sent', 'error');
         })
     }
 

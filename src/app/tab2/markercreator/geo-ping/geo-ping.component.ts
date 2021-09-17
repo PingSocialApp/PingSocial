@@ -3,7 +3,6 @@ import * as mapboxgl from 'mapbox-gl';
 import {environment} from '../../../../environments/environment';
 import {ModalController} from '@ionic/angular';
 import {LinkSelectorPage} from '../link-selector/link-selector.page';
-import { AuthHandler } from 'src/app/services/authHandler.service';
 import { GeopingsService } from 'src/app/services/geopings.service';
 import { concatMap } from 'rxjs/operators';
 import { UtilsService } from 'src/app/services/utils.service';
@@ -32,7 +31,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
 
-    constructor(private utils: UtilsService, private auth: AuthHandler, private gs: GeopingsService,
+    constructor(private utils: UtilsService, private gs: GeopingsService,
          private modalController: ModalController) {
         mapboxgl.accessToken = environment.mapbox.accessToken;
     }
@@ -115,10 +114,10 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     closeModal() {
-        this.modalController.dismiss();
+        return this.modalController.dismiss();
     }
 
-    sendPing() {
+    async sendPing() {
         let duration: number;
         if (this.durationString === '5 Min') {
             duration = 5;
@@ -130,16 +129,16 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
 
         if (!this.isPublic) {
             if (this.links.length > 20) {
-                this.utils.presentToast('Whoops! You have more than 20 people');
+                this.utils.presentToast('Whoops! You have more than 20 people','warning');
                 return;
             } else if(this.links.length === 0) {
-                this.utils.presentToast('Whoops! You didn\'t add anyone');
+                this.utils.presentToast('Whoops! You didn\'t add anyone', 'warning');
                 return;
             }
         }
 
         if(this.message.length === 0){
-            this.utils.presentToast('Whoops! Missing Content');
+            this.utils.presentToast('Whoops! Missing Content', 'warning');
             return;
         }
 
@@ -153,16 +152,16 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
             timeLimit: duration
         }
 
+        const loading = await this.utils.presentAlert('Creating Geo-Ping');
+
         this.gs.createGeoPing(geoPing).pipe(concatMap((val:any) => {
-            if(this.isPublic){
-              return of('');
-            }
-            return this.gs.shareGeoPing(val.data.id, this.links);
+            return this.isPublic ? of('') : this.gs.shareGeoPing(val.data.id, this.links);
         })).subscribe(() => {
-            this.utils.presentToast('GeoPing Made!');
-            this.closeModal();
+            Promise.all([loading.dismiss(),
+                this.utils.presentToast('GeoPing Made!', 'success'),
+                this.closeModal()]);
         }, err => {
-            this.utils.presentToast('Whoops! Unexpected Problem');
+            Promise.all([this.utils.presentToast('Whoops! Unexpected Problem', 'error'), loading.dismiss()]);
             console.error(err);
         });
     }
