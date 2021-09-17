@@ -18,7 +18,7 @@
 	},
 	"plugins": {
 		"Keyboard": {
-			"resize": "body"
+			"resize": "ionic"
 		},
 		"PushNotifications": {
 			"presentationOptions": [

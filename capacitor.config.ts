@@ -21,10 +21,10 @@ const config: CapacitorConfig = {
   },
   plugins: {
     Keyboard: {
-      resize: KeyboardResize.Body
+      resize: KeyboardResize.Ionic
     },
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"]
+      presentationOptions: ['badge', 'sound', 'alert']
     }
   }
 };
