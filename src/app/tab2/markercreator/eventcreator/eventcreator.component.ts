@@ -62,6 +62,8 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.isCreator = true;
+        this.afterStartTime = false;
         this.editMode = this.eventID !== '';
         this.offset = (new Date().getTimezoneOffset())*60000;
         this.minimumStartTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset).toISOString();
@@ -87,7 +89,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.minimumEndTime = new Date(new Date(new Date((document.getElementById('startTime') as HTMLInputElement).value)
         .toDateString()
       ).getTime() - this.offset + 300000).toISOString();
-       this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime() 
+       this.maximumEndTime = new Date(new Date(new Date(this.minimumEndTime).toDateString()).getTime()
        + 86400000*3 - this.offset - 60000).toISOString();
     }
 
