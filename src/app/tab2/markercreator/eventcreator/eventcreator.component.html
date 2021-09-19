@@ -36,7 +36,7 @@
             <ion-item>
                 <ion-label position="stacked">Start Time</ion-label>
                 <ion-datetime displayFormat="D MMM YYYY h:mm a" [min]="minimumStartTime" [max]="maximumStartTime"
-                              id='startTime' [readonly]="!isCreator || (isCreator && afterStartTime)" (ionChange)="updateEndTimeMinimum()"></ion-datetime>       
+                              id='startTime' [readonly]="!isCreator || (isCreator && afterStartTime)" (ionChange)="updateEndTimeMinimum()"></ion-datetime>
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">End Time</ion-label>
@@ -71,7 +71,7 @@
         </ion-button>
     </div>
 </div>
-<ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator && !afterEndTime">
+<ion-fab vertical="bottom" horizontal="end" style="position: fixed" *ngIf="isCreator && !afterStartTime">
     <ion-fab-button (click)="manageEvent()">
         <ion-icon name="checkmark"></ion-icon>
     </ion-fab-button>
