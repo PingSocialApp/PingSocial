@@ -460,7 +460,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				el.classList += (' ' + EventTypeEnums.PARTY + EventTypeEnums.PROFESSIONAL);
 			} else if (el.classList.contains(EventTypeEnums.HANGOUT)) {
 				el.classList.remove(EventTypeEnums.HANGOUT);
-				el.classList += (' ' + EventTypeEnums.PARTY + EventTypeEnums.HANGOUT);
+				el.classList += (' ' + EventTypeEnums.PROFESSIONAL + EventTypeEnums.HANGOUT);
 			} else if (el.classList.contains(EventTypeEnums.PARTY + EventTypeEnums.HANGOUT)) {
 				el.classList.remove(EventTypeEnums.PARTY + EventTypeEnums.HANGOUT);
 				el.classList += ' all';
