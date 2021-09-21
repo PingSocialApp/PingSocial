@@ -7,7 +7,8 @@ const routes: Routes = [
   {
     path: '',
     component: RegistrationPage
-  },  {
+  },
+  {
     path: 'tutorial',
     loadChildren: () => import('./tutorial/tutorial.module').then( m => m.TutorialPageModule)
   }

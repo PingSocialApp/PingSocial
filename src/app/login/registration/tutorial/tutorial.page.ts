@@ -12,16 +12,10 @@ export class TutorialPage implements OnInit {
   constructor(public router: Router) { }
 
   ngOnInit() {
-    console.log("we in the tutorial!!");
-    console.log(this);
-    //TODO: look at how to pass to navigate['']
-    //Promise.all(this.r.navigate(['']));
   }
 
   endTutorial(){
-    console.log(this.router);
     this.router.navigate(['']);
-    console.log("ended");
   }
 
 }

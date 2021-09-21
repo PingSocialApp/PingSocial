@@ -1,27 +1,22 @@
 <ion-content fullscreen class="ion-padding" scroll-y="false">
-      <ion-slides>
+  <ion-slides>
+    <ion-slide>
+      <img src="TutorialMap.png"/>
+    </ion-slide>
 
-        <ion-slide>
-          <!-- <div class="tutorial-map">
-          </div> -->
-          <img src="TutorialMap.png"/>
-          <!-- <img src="./slide-1.png"/> -->
-        </ion-slide>
+    <ion-slide>
+      <img src="TutorialEventButton.png"/>
+    </ion-slide>
 
-        <ion-slide>
-          <img src="TutorialEventButton.png"/>
-        </ion-slide>
+    <ion-slide>
+      <img src="TutorialQRCodeAndMessenger.png"/>
+    </ion-slide>
 
-        <ion-slide>
-          <img src="TutorialQRCodeAndMessenger.png"/>
-        </ion-slide>
-
-        <ion-slide>
-          <img src="TutorialActivityPage.png"/>
-          <ion-button class="start-ping" (click)="endTutorial()">
-              <ion-label>Finish Tutorial</ion-label>
-          </ion-button>
-        </ion-slide>
-
-      </ion-slides>
-    </ion-content>
+    <ion-slide>
+      <img src="TutorialActivityPage.png"/>
+      <ion-button class="start-ping" (click)="endTutorial()">
+          <ion-label>Finish Tutorial</ion-label>
+      </ion-button>
+    </ion-slide>
+  </ion-slides>
+</ion-content>
