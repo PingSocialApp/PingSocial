@@ -1,28 +1,27 @@
-<!-- <ion-header>
-  <ion-toolbar>
-    <ion-title>tutorial</ion-title>
-  </ion-toolbar>
-</ion-header> -->
+<ion-content fullscreen class="ion-padding" scroll-y="false">
+      <ion-slides>
 
-<ion-content>
-  <ion-slides pager="true">
-    <ion-slide>
-      <div class="tutorial-map">
-      <!-- <img src="./tutorial_images/TutorialMap.png"> -->
-        <img src="TutorialMapTest.png">
-      </div>
-    </ion-slide>
-    <ion-slide>
-      <div class="tutorial-event">
-      <!-- <img src="./tutorial_images/TutorialMap.png"> -->
-        <img src="TutorialEventButtonTest.png">
-      </div>
-    </ion-slide>
-    <ion-slide>
-      <div class="tutorial-friends">
-      <!-- <img src="./tutorial_images/TutorialMap.png"> -->
-        <img src="TutorialMapTest.png">
-      </div>
-    </ion-slide>
-  </ion-slides>
-</ion-content>
+        <ion-slide>
+          <!-- <div class="tutorial-map">
+          </div> -->
+          <img src="TutorialMap.png"/>
+          <!-- <img src="./slide-1.png"/> -->
+        </ion-slide>
+
+        <ion-slide>
+          <img src="TutorialEventButton.png"/>
+        </ion-slide>
+
+        <ion-slide>
+          <img src="TutorialQRCodeAndMessenger.png"/>
+        </ion-slide>
+
+        <ion-slide>
+          <img src="TutorialActivityPage.png"/>
+          <ion-button class="start-ping" (click)="endTutorial()">
+              <ion-label>Finish Tutorial</ion-label>
+          </ion-button>
+        </ion-slide>
+
+      </ion-slides>
+    </ion-content>
