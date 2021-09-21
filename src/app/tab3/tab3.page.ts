@@ -1,8 +1,8 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewChecked, Component, OnDestroy, OnInit} from '@angular/core';
 import {SettingsPage} from '../settings/settings.page';
 import {ModalController} from '@ionic/angular';
 import {RequestsPage} from '../requests/requests.page';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
+import {BehaviorSubject, Subscription} from 'rxjs';
 import { LinksService } from '../services/links.service';
 import { RequestsService } from '../services/requests.service';
 import { AngularFireDatabase } from '@angular/fire/database';
@@ -14,12 +14,13 @@ import { AngularFireDatabase } from '@angular/fire/database';
     providers: [AngularFireDatabase]
 })
 
-export class Tab3Page implements OnInit, OnDestroy {
+export class Tab3Page implements OnInit, OnDestroy, AfterViewChecked{
     requestNumSub: Subscription;
     requestNum: number;
     links: any;
     offset: number;
     linksBS: BehaviorSubject<number>;
+    searchQuery: string;
 
     constructor(private modalController: ModalController, private ls: LinksService, private rs: RequestsService) {
     }
@@ -31,6 +32,11 @@ export class Tab3Page implements OnInit, OnDestroy {
         this.requestNumSub = this.rs.getTotalNumRequests().subscribe((val:number) => {
             this.requestNum = val;
         });
+        this.searchQuery = '';
+    }
+
+    ngAfterViewChecked(){
+        this.runSearch(this.searchQuery);
     }
 
     ngOnDestroy() {
@@ -42,7 +48,11 @@ export class Tab3Page implements OnInit, OnDestroy {
     }
 
     handleInput(event) {
-        const query = event.target.value.toLowerCase();
+        this.runSearch(event.target.value);
+    }
+
+    runSearch(query: string){
+        query = query.toLowerCase();
         for (let i = 0; i < document.getElementsByTagName('ion-item').length; i++) {
             const shouldShow = document.getElementsByTagName('h2')[i].textContent.toLowerCase().indexOf(query) > -1;
             document.getElementsByTagName('ion-item')[i].style.display = shouldShow ? 'block' : 'none';

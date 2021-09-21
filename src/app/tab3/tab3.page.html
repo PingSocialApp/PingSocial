@@ -26,7 +26,7 @@
                 refreshingText="Refreshing...">
         </ion-refresher-content>
     </ion-refresher>
-    <ion-searchbar animated (ionInput)="handleInput($event)"></ion-searchbar>
+    <ion-searchbar animated (ionInput)="handleInput($event)" [(ngModel)]="searchQuery"></ion-searchbar>
     <ion-list>
         <ion-img *ngIf="(links | async)?.data.length === 0" src="assets/nolinks.svg" class="addLinksImg"></ion-img>
         <h1 *ngIf="(links | async)?.data.length === 0" class="addLinkDisplay">No Links Yet!</h1>
