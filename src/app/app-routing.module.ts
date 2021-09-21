@@ -22,6 +22,12 @@ const routes: Routes = [
         canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
         loadChildren: () => import('./login/registration/registration.module').then( m => m.RegistrationPageModule)
     },
+    //NEELEY
+    {
+        path: 'tutorial',
+        canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},
+        loadChildren: () => import('./login/registration/tutorial/tutorial.module').then( m => m.TutorialPageModule)
+    },
     {
         path: 'settings',
         canActivate: [AngularFireAuthGuard], data: {authGuardPipe: redirectUnauthorizedToLogin},

@@ -67,9 +67,9 @@ export class RegistrationPage implements OnInit, OnDestroy {
         }
 
         const loading = await this.utils.presentAlert('Creating Profile...');
-
+        //NEELEY
         this.us.updateProfile().subscribe(() => {
-            Promise.all([loading.dismiss(),this.r.navigate([''])]);
+            Promise.all([loading.dismiss(),this.r.navigate(['tutorial'])]);
         }, async (err) => {
             loading.dismiss();
             console.error(err);
