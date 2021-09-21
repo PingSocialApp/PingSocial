@@ -2,6 +2,12 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+const BASE_URL = 'https://ping-dev.heroku.com/'
+const API = 'api'
+const VERSION = 'v1'
+const API_URL = BASE_URL + API + '/' + VERSION;
+
+
 export const environment = {
     production: false,
     firebase: {
@@ -19,15 +25,16 @@ export const environment = {
         accessToken: 'pk.eyJ1Ijoic3JlZWdyYW5kaGUiLCJhIjoiY2thanhpaDByMDBxZDJybGdxMnQ5ZnNxaiJ9.mkcuMoDmiPapnplpJ_lgaQ'
     },
     apiURL: {
-        default: 'https://ping-dev.herokuapp.com/api/v1/',
-        events: 'https://ping-dev.herokuapp.com/api/v1/events/',
-        users:'https://ping-dev.herokuapp.com/api/v1/users/',
-        geoPing:'https://ping-dev.herokuapp.com/api/v1/geoping/',
-        links:'https://ping-dev.herokuapp.com/api/v1/links/',
-        requests:'https://ping-dev.herokuapp.com/api/v1/requests/',
-        markers: 'https://ping-dev.herokuapp.com/api/v1/markers/'
+        default: API_URL,
+        events: API_URL + '/events/',
+        users: API_URL + '/users/',
+        geoPing: API_URL + '/geoping/',
+        links: API_URL + '/links/',
+        requests: API_URL + '/requests/',
+        markers: API_URL + '/markers/'
     }
 };
+
 
 /*
  * For easier debugging in development mode, you can import the following file
