@@ -10,10 +10,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "loginDocker": "docker login repo.treescale.com",
-    "getServer": "docker pull repo.treescale.com/techster10173/ping_dev:latest",
-    "runServer": "docker run --name pingserver repo.treescale.com/techster10173/ping_dev",
-    "stopServer": "docker stop pingserver"
+    "iosrun": "ionic capacitor run ios"
   },
   "private": true,
   "dependencies": {

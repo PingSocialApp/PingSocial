@@ -31,9 +31,10 @@
         </ion-refresher-content>
     </ion-refresher>
     <ion-card-content>
-        <ion-img *ngIf="(attendees | async)?.data.length === 0" src="assets/nolinks.svg" class="emptyRequests"></ion-img>
-        <h1 *ngIf="(attendees | async)?.data.length === 0" class="emptyRequestsLabel">No attendees Yet!</h1>
-
+        <div *ngIf="(attendees | async)?.data.length === 0">
+            <ion-img src="assets/nolinks.svg" class="emptyRequests"></ion-img>
+            <h1 class="emptyRequestsLabel">No attendees Yet!</h1>    
+        </div>
         <ion-list>
             <ion-item-sliding *ngFor="let attendee of (attendees | async)?.data">
                 <ion-item>

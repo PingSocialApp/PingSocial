@@ -46,7 +46,7 @@ export class LoginPage implements OnInit {
             const alert = await this.utils.presentAlert('Creating Account');
 
             this.auth.createUserWithEmailAndPassword(this.newEmail, this.newPass).then(() => {
-                this.us.createUser().subscribe(success => {
+                this.us.createUser().subscribe(() => {
                     Promise.all([this.router.navigate(['/registration']),alert.dismiss()]);
                 }, fail => {
                     Promise.all([this.utils.presentToast(fail.error, 'error'),alert.dismiss()]);
