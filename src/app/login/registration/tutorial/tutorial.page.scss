@@ -23,38 +23,38 @@ ion-label{
   object-fit: contain;
 }
 
-:host ::ng-deep .tutorial-map{
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
-  background-repeat: no-repeat;
-  background-image: url('src/assets/tutorial_images/TutorialMap.png');
-}
-
-:host ::ng-deep .tutorial-event{
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
-  background-repeat: no-repeat;
-  background-image: url('src/assets/tutorial_images/TutorialEventButton.png');
-}
-
-
-:host ::ng-deep .tutorial-friends{
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
-  background-repeat: no-repeat;
-  background-image: url('src/assets/tutorial_images/TutorialQRCodeAndMessenger.png');
-}
-
-:host ::ng-deep .tutorial-activity{
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
-  background-repeat: no-repeat;
-  background-image: url('src/assets/tutorial_images/TutorialActivityPage.png');
-}
+// :host ::ng-deep .tutorial-map{
+//   height: 100%;
+//   width: 100%;
+//   object-fit: contain;
+//   background-repeat: no-repeat;
+//   background-image: url('src/assets/tutorial_images/TutorialMap.png');
+// }
+//
+// :host ::ng-deep .tutorial-event{
+//   height: 100%;
+//   width: 100%;
+//   object-fit: contain;
+//   background-repeat: no-repeat;
+//   background-image: url('src/assets/tutorial_images/TutorialEventButton.png');
+// }
+//
+//
+// :host ::ng-deep .tutorial-friends{
+//   height: 100%;
+//   width: 100%;
+//   object-fit: contain;
+//   background-repeat: no-repeat;
+//   background-image: url('src/assets/tutorial_images/TutorialQRCodeAndMessenger.png');
+// }
+//
+// :host ::ng-deep .tutorial-activity{
+//   height: 100%;
+//   width: 100%;
+//   object-fit: contain;
+//   background-repeat: no-repeat;
+//   background-image: url('src/assets/tutorial_images/TutorialActivityPage.png');
+// }
 
 :host ::ng-deep .start-ping{
   color: #8FDEE6;

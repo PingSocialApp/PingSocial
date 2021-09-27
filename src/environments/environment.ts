@@ -2,7 +2,7 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-const BASE_URL = 'https://ping-dev.heroku.com/'
+const BASE_URL = 'https://ping-dev.herokuapp.com/'
 const API = 'api'
 const VERSION = 'v1'
 const API_URL = BASE_URL + API + '/' + VERSION;

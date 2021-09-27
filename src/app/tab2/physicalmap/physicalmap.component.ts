@@ -628,12 +628,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	buildMap(coords: any) {
+		const tempThis = this;
 		this.map = new mapboxgl.Map({
 			container: 'map',
 			style: environment.mapbox.style,
 			zoom: 17,
 			maxZoom:17,
       minZoom: 10,
+			doubleClickZoom: false,
 			// pitchWithRotate: false,
 			// dragRotate: false,
 			// touchZoomRotate: false,
@@ -654,6 +656,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.map.on('zoomend', () => {
 			this.refreshContent();
 		});
+		this.map.on('dblclick', e => {
+			console.log(JSON.stringify(e.lngLat));
+			e.preventDefault();
+			tempThis.presentEventCreatorModal('');
+		})
 	}
 
 	async checkOut(id:string) {
@@ -694,12 +701,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 el.id = doc.properties.uid;
                 const oMark = new mapboxgl.Marker(el);
                 this.allUserMarkers.push(oMark);
+								this.otherLastOnline = null;
                 el.addEventListener('click', async (e) => {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
+										this.showClusterDetails = false;
                     this.otherUserName = doc.properties.name;
                     this.otherUserId = doc.properties.uid;
-					this.otherLastOnline = this.utils.convertTime(new Date().getTime() - new Date(doc.properties.lastOnline).getTime());
+										this.otherLastOnline = this.utils.convertTime(new Date().getTime() - new Date(doc.properties.lastOnline).getTime());
                 });
                 this.renderUser(oMark, doc.geometry.coordinates);
             });
