@@ -1,6 +1,7 @@
 ion-slides {
   height: 100%;
   background-color: black;
+  margin: 0px;
 }
 
 ion-label{
@@ -9,7 +10,7 @@ ion-label{
 
 ion-button{
   position: absolute;
-  top: 85.5%;
+  top: 90%;
   left: 33%;
 }
 
@@ -18,12 +19,13 @@ ion-button{
 }
 
 .swiper-slide h2 {
-  //margin-top: 2.8rem;
+  margin-top: 2.8rem;
 }
 
 .swiper-slide img {
   max-height: 100%;
   max-width: 100%;
+  margin: 0px;
   //margin: 0px 0 0px;
   pointer-events: none;
   object-fit: contain;
