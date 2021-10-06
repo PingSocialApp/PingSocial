@@ -12,6 +12,7 @@ import { UsersService } from 'src/app/services/users.service';
 
 export class MarkercreatorPage implements OnInit {
     @Input() eventID: string;
+    @Input() tapLocation: Array<any>;
     segmentShown: string;
     editMode: boolean;
 

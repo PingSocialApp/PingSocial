@@ -25,6 +25,7 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     geocoder: any;
     private location: any;
     @Input() currentLocation: Array<number>;
+    @Input() tapLocation: Array<any>;
     customAlertOptions: any = {
         header: 'Geo-Ping Duration',
         translucent: true
@@ -54,7 +55,11 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit() {
-        this.location = this.currentLocation;
+        if(this.tapLocation){
+          this.location = this.tapLocation;
+        }else{
+          this.location = this.currentLocation;
+        }
         this.buildMap();
         (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.width = '100%';
         (document.querySelector('#pingmap .mapboxgl-canvas') as HTMLElement).style.height = 'auto';
@@ -74,8 +79,15 @@ export class GeoPingComponent implements OnInit, AfterViewInit, OnDestroy {
             mapboxgl,
             marker: false
         });
-
-        const marker = new mapboxgl.Marker({draggable: true}).setLngLat(this.currentLocation).addTo(this.map);
+        const marker = new mapboxgl.Marker({draggable: true});
+        console.log(this.tapLocation);
+        if(this.tapLocation){
+          marker.setLngLat(this.tapLocation);
+        }else{
+          marker.setLngLat(this.currentLocation);
+        }
+        marker.addTo(this.map);
+        //const marker = new mapboxgl.Marker({draggable: true}).setLngLat(this.currentLocation).addTo(this.map);
             marker.on('dragend', () => {
                 const lngLat = marker.getLngLat();
                 this.location = [lngLat.lng,lngLat.lat];

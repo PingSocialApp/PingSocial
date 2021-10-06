@@ -30,6 +30,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     eventDes: string;
     eventType: string;
     @Input() eventID: string;
+    @Input() tapLocation: Array<any>;
     editMode: boolean;
     isCreator: boolean;
     eventCreator: any;
@@ -153,16 +154,32 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     buildMap() {
+        let tempLocation = [];
+        if(this.tapLocation){
+          tempLocation = this.tapLocation;
+        }else{
+          tempLocation = this.currentLocation;
+        }
         this.map = new mapboxgl.Map({
             container: 'choosermap',
             style: environment.mapbox.style,
             zoom: 15,
-            center: this.currentLocation
+            center: tempLocation
         });
-        new mapboxgl.Marker({color: '#8FDEE6'}).setLngLat(this.currentLocation).addTo(this.map);
+        const marker = new mapboxgl.Marker({color: '#8FDEE6'});
+        if(this.tapLocation){
+          marker.setLngLat(this.tapLocation);
+        }else{
+          marker.setLngLat(this.currentLocation);
+        }
+        marker.addTo(this.map);
 
         if(!this.editMode){
+          if(this.tapLocation){
+            this.location = [this.tapLocation[1],this.tapLocation[0]];
+          }else{
             this.location = [this.currentLocation[1],this.currentLocation[0]];
+          }
         }
 
         if(this.isCreator && !this.afterStartTime){

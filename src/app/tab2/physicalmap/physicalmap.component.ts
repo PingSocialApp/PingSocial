@@ -657,9 +657,11 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.refreshContent();
 		});
 		this.map.on('dblclick', e => {
-			console.log(JSON.stringify(e.lngLat));
+			let location = [];
+			location[0] = e.lngLat.lng;
+			location[1] = e.lngLat.lat;
 			e.preventDefault();
-			tempThis.presentEventCreatorModal('');
+			tempThis.presentEventCreatorModal('', location);
 		})
 	}
 
@@ -809,7 +811,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     //     }
     // }
 
-    async presentEventCreatorModal(data: string) {
+    async presentEventCreatorModal(data: string, tapLocation) {
 			const list = document.getElementsByClassName('clusterList');
 			if(list.length){
 				list[0].parentNode.removeChild(list[0]);
@@ -819,6 +821,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
             component: MarkercreatorPage,
             componentProps: {
                 eventID: data,
+								tapLocation: tapLocation
             }
         });
 		await modal.present();
