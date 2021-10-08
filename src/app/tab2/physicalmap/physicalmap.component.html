@@ -78,7 +78,7 @@
         <ion-card-content>
             <ion-card-title>{{currentEventTitle}}</ion-card-title>
             <ion-card-subtitle>{{currentEventDes}}</ion-card-subtitle>
-            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(currentEventId)">
+            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? undefined : 'block'" (click)="presentEventCreatorModal(currentEventId, '')">
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
             <ion-button *ngIf="showCheckIn && (checkedIn === '')" (click)="checkIn(currentEventId, currentEventTitle)" style="width: 79%">
@@ -105,7 +105,7 @@
           <ion-card-content *ngIf="!event.properties.sentMessage; else geoPing">
             <ion-card-title>{{event.properties.name}}</ion-card-title>
             <ion-card-subtitle>{{event.properties.type}} @ {{event.properties.startTime}}</ion-card-subtitle>
-            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? '' : 'block'" (click)="presentEventCreatorModal(event.properties.id)">
+            <ion-button [expand]="(showCheckIn && checkedIn === '') || checkedIn == currentEventId ? '' : 'block'" (click)="presentEventCreatorModal(event.properties.id, '')">
                 <ion-icon name="expand-outline"></ion-icon>
             </ion-button>
             <ion-button *ngIf="showCheckIn && (checkedIn === '')" (click)="checkIn(event.properties.id, event.properties.name)" style="width: 79%">
@@ -134,7 +134,7 @@
 </div>
 <div id="map"></div>
 <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="bottom: 11%">
-    <ion-fab-button (click)="presentEventCreatorModal('')">
+    <ion-fab-button (click)="presentEventCreatorModal('', '')">
         <ion-icon name="add-circle"></ion-icon>
     </ion-fab-button>
 </ion-fab>
