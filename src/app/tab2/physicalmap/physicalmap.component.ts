@@ -34,7 +34,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 	currentEventId: string;
 	showUserDetails: boolean;
 	otherUserName = '';
-	otherUserStatus = '';
 	otherUserId: string;
 	showClusterDetails: boolean;
 	markerArray: Array<any>;
@@ -351,7 +350,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 							this.showUserDetails = false;
 							this.showPing = false;
 							this.showClusterDetails = true;
-							this.markerArrayForCluster = this.clusterTimeOrder(this.markerArrayForCluster);
+							this.markerArrayForCluster.sort((m1, m2) => m1.properties.startTime - m2.properties.startTime);
 							for(const element of this.markerArrayForCluster){
 								if(element.properties.sentMessage){
 									const timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
@@ -369,21 +368,14 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 									let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
 									startMinutes += startTime.getMinutes();
 									let currentHours = startTime.getHours();
-									let hourFlag = 0;
+									let hourFlag = false;
 									if(currentHours >= 12){
-										hourFlag = 1;
-										if(currentHours > 12){
-											currentHours = currentHours - 12;
-										}
-									}else if(currentHours == 0){
+										hourFlag = true;
+										currentHours = currentHours > 12 ? currentHours - 12 : currentHours;
+									}else if(currentHours === 0){
 										currentHours = 12;
 									}
-									console.log(currentHours);
-									if(hourFlag){
-										element.properties.startTime = startTime.toDateString() + ' ' + currentHours + ':' + startMinutes + " pm";
-									}else{
-										element.properties.startTime = startTime.toDateString() + ' ' + currentHours + ':' + startMinutes + " am";
-									}
+									element.properties.startTime = `${startTime.toDateString()} ${currentHours}:${startMinutes} ${hourFlag ? 'AM' : 'PM'}`;
 								}
 							}
 							break;
@@ -419,20 +411,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
-	}
-	//order in terms of time
-	clusterTimeOrder(array){
-		console.log(array);
-		for(let i = 0; i < array.length; i++){
-			for(let j = i + 1; j < array.length; j++){
-				if(array[j].properties.startTime < array[i].properties.startTime){
-					let temp = array[j];
-					array[j] = array[i];
-					array[i] = temp;
-				}
-			}
-		}
-		return array;
 	}
 	// gets distance from points to given cluster
 	getClusterDistances(feature, data, distArr, pointArr) {
@@ -635,13 +613,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			if(startHours > 12){
 				startHours = startHours - 12;
 				flag1 = 1;
-			}else if(startHours == 0){
+			}else if(startHours === 0){
 				startHours = 12;
 			}
 			if(endHours > 12){
 				endHours = endHours - 12;
 				flag2 = 1;
-			}else if(endHours == 0){
+			}else if(endHours === 0){
 				endHours = 12;
 			}
 			if(flag1 && flag2){
@@ -661,7 +639,6 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 					startHours + ':' + startMinutes + ' am - ' + endTime.toDateString() + ' ' +
 					endHours + ':' + endMinutes + ' am';
 			}
-			console.log(this.currentEventDes);
 			this.currentEventId = el.id;
 			if(((this.us.latestLocation[0] + 0.125 >= doc.geometry.coordinates[0])
 			 && (this.us.latestLocation[0] - 0.125 <= doc.geometry.coordinates[0]))
@@ -714,10 +691,13 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.refreshContent();
 		});
 
+		const _self = this;
+
 		this.map.on('dblclick', e => {
 			e.preventDefault();
-			this.presentEventCreatorModal('', [e.lngLat.lng, e.lngLat.lat]);
-		})
+			console.log(e);
+			_self.presentEventCreatorModal('', [e.lngLat.lng, e.lngLat.lat]);
+		});
 	}
 
 	async checkOut(id:string) {
@@ -758,7 +738,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 el.id = doc.properties.uid;
                 const oMark = new mapboxgl.Marker(el);
                 this.allUserMarkers.push(oMark);
-								this.otherLastOnline = null;
+				this.otherLastOnline = null;
                 el.addEventListener('click', async (e) => {
                     this.showUserDetails = true;
                     this.showEventDetails = false;
@@ -781,7 +761,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 						longitude: coords.longitude,
 						latitude: coords.latitude,
 					}
-			}).subscribe((val: any) => console.log(val.data) ,(err: any) => console.error(err));
+			}).subscribe((val: any) => {},(err: any) => console.error(err));
     }
 
     presentCurrentLocation() {
@@ -803,8 +783,8 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.showEventDetails = false;
                 this.showPing = false;
                 this.otherUserName = val.data.name;
-                this.otherUserStatus = 'Online';
                 this.otherUserId = 'currentLocation';
+				this.otherLastOnline = 'Online';
             });
             el.id = 'currentLocation';
         }, err => {
@@ -866,17 +846,18 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
     //     }
     // }
 
-    async presentEventCreatorModal(data: string, tapLocation) {
-			const list = document.getElementsByClassName('clusterList');
-			if(list.length){
-				list[0].parentNode.removeChild(list[0]);
-			}
-			this.showEventDetails = false;
+    async presentEventCreatorModal(data: string, loc?: Array<number>) {
+		const list = document.getElementsByClassName('clusterList');
+		if(list.length){
+			list[0].parentNode.removeChild(list[0]);
+		}
+		this.showEventDetails = false;
+
         const modal = await this.modalController.create({
             component: MarkercreatorPage,
             componentProps: {
                 eventID: data,
-								tapLocation
+				tapLocation: loc,
             }
         });
 		await modal.present();
@@ -898,7 +879,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 			this.es.checkin(id).subscribe(async () => {
 				await loading.dismiss();
-				this.utils.presentToast('Welcome to ' + title, 'success');
+				this.utils.presentToast(`Welcome to ${title}`, 'success');
 			}, (err) => {
 				console.error(err);
 				this.utils.presentToast('Whoops! Unable to checkin', 'error');
