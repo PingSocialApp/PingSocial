@@ -68,9 +68,10 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
         this.editMode = this.eventID !== '';
         this.offset = (new Date().getTimezoneOffset())*60000;
         this.minimumStartTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset).toISOString();
-        this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset + 604800000 - 500).toISOString();
+        this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset + 2628000000 - 500).toISOString();
         this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset).toISOString();
         this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 86400000 - this.offset).toISOString();
+        console.log(this.maximumStartTime);
 
         this.location = [0,0];
 
