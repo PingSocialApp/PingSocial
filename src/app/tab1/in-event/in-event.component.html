@@ -30,6 +30,7 @@
                 refreshingText="Refreshing...">
         </ion-refresher-content>
     </ion-refresher>
+    <div style="margin-top: 2%;">Last Updated: {{lastUpdated}}</div>
     <ion-card-content>
         <div *ngIf="(attendees | async)?.data.length === 0">
             <ion-img src="assets/nolinks.svg" class="emptyRequests"></ion-img>
