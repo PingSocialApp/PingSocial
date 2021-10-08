@@ -12,7 +12,7 @@ import { UsersService } from 'src/app/services/users.service';
 
 export class MarkercreatorPage implements OnInit {
     @Input() eventID: string;
-    @Input() tapLocation: Array<any>;
+    @Input() tapLocation: Array<number>;
     segmentShown: string;
     editMode: boolean;
 
@@ -24,7 +24,7 @@ export class MarkercreatorPage implements OnInit {
         this.segmentShown = this.editMode ? 'event' : 'geo-ping';
     }
 
-    closeModal(){
+    closeModal() {
         this.modalController.dismiss();
     }
 

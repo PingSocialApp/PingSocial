@@ -33,7 +33,6 @@ export class NotificationService {
     PushNotifications.addListener(
       'registration',
       (token: Token) => {
-        console.log('My token: ' + JSON.stringify(token));
         this.us.setNotifToken(token.value).subscribe();
       }
     );
@@ -45,7 +44,6 @@ export class NotificationService {
     PushNotifications.addListener(
       'pushNotificationReceived',
       async (notification: PushNotificationSchema) => {
-        console.log('Push received: ' + JSON.stringify(notification));
       }
     );
 

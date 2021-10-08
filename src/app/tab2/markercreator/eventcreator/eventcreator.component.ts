@@ -30,7 +30,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     eventDes: string;
     eventType: string;
     @Input() eventID: string;
-    @Input() tapLocation: Array<any>;
+    @Input() tapLocation: Array<number>;
     editMode: boolean;
     isCreator: boolean;
     eventCreator: any;
@@ -71,7 +71,6 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
         this.maximumStartTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset + 2628000000 - 500).toISOString();
         this.minimumEndTime = new Date(new Date(new Date().toDateString()).getTime() - this.offset).toISOString();
         this.maximumEndTime = new Date(new Date(new Date().toDateString()).getTime() + 86400000 - this.offset).toISOString();
-        console.log(this.maximumStartTime);
 
         this.location = [0,0];
 
@@ -155,24 +154,15 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     buildMap() {
-        let tempLocation = [];
-        if(this.tapLocation){
-          tempLocation = this.tapLocation;
-        }else{
-          tempLocation = this.currentLocation;
-        }
+        const tempLocation = this.tapLocation || this.currentLocation;
         this.map = new mapboxgl.Map({
             container: 'choosermap',
             style: environment.mapbox.style,
             zoom: 15,
             center: tempLocation
         });
-        const marker = new mapboxgl.Marker({color: '#8FDEE6'});
-        if(this.tapLocation){
-          marker.setLngLat(this.tapLocation);
-        }else{
-          marker.setLngLat(this.currentLocation);
-        }
+        let marker = new mapboxgl.Marker({color: '#8FDEE6'});
+        marker.setLngLat(tempLocation);
         marker.addTo(this.map);
 
         if(!this.editMode){
@@ -190,7 +180,7 @@ export class EventcreatorComponent implements OnInit, AfterViewInit, OnDestroy {
                 mapboxgl,
                 marker: false
             });
-            const marker = new mapboxgl.Marker({draggable: true}).setLngLat(this.currentLocation).addTo(this.map);
+            marker = new mapboxgl.Marker({draggable: true}).setLngLat(this.currentLocation).addTo(this.map);
             marker.on('dragend', () => {
                 const lngLat = marker.getLngLat();
                 this.location = [lngLat.lat,lngLat.lng];
