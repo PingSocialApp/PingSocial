@@ -24,6 +24,7 @@ export class InEventComponent implements OnInit, OnChanges {
     eventDetails: any;
     currentUserId: string;
     eventCreatorId: string;
+    lastUpdated: string;
 
     constructor(private modalController: ModalController,private utils: UtilsService,
                 private alertController: AlertController, private requestService: RequestsService,
@@ -109,6 +110,7 @@ export class InEventComponent implements OnInit, OnChanges {
     }
 
     getAttendees() {
+        this.lastUpdated = new Date().toLocaleTimeString();
         this.attendees = this.es.viewAttendees(this.eventId, this.offset);
     }
 
