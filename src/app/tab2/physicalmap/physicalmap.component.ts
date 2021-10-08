@@ -351,6 +351,7 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 							this.showUserDetails = false;
 							this.showPing = false;
 							this.showClusterDetails = true;
+							this.markerArrayForCluster = this.clusterTimeOrder(this.markerArrayForCluster);
 							for(const element of this.markerArrayForCluster){
 								if(element.properties.sentMessage){
 									const timeBetween = (new Date(element.properties.timeExpire)).getTime() - (new Date()).getTime();
@@ -367,7 +368,20 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 									const startTime = new Date(element.properties.startTime);
 									let startMinutes = startTime.getMinutes() < 10 ? '0' : '';
 									startMinutes += startTime.getMinutes();
-									element.properties.startTime = startTime.toDateString() + ' ' + startTime.getHours() + ':' + startMinutes;
+									let currentHours = startTime.getHours();
+									let hourFlag = 0;
+									if(currentHours > 12){
+										currentHours = currentHours - 12;
+										hourFlag = 1;
+									}else if(currentHours == 0){
+										currentHours = 12;
+									}
+									console.log(currentHours);
+									if(hourFlag){
+										element.properties.startTime = startTime.toDateString() + ' ' + currentHours + ':' + startMinutes + " am";
+									}else{
+										element.properties.startTime = startTime.toDateString() + ' ' + currentHours + ':' + startMinutes + " pm";
+									}
 								}
 							}
 							break;
@@ -403,6 +417,20 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 				}
 			}
 		}
+	}
+	//order in terms of time
+	clusterTimeOrder(array){
+		console.log(array);
+		for(let i = 0; i < array.length; i++){
+			for(let j = i + 1; j < array.length; j++){
+				if(array[j].properties.startTime < array[i].properties.startTime){
+					let temp = array[j];
+					array[j] = array[i];
+					array[i] = temp;
+				}
+			}
+		}
+		return array;
 	}
 	// gets distance from points to given cluster
 	getClusterDistances(feature, data, distArr, pointArr) {
@@ -598,9 +626,40 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.showPing = false;
 			this.showClusterDetails = false;
 			this.currentEventTitle = eventInfo.name;
-			this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
-				startTime.getHours() + ':' + startMinutes + ' - ' + endTime.toDateString() + ' ' +
-				endTime.getHours() + ':' + endMinutes;
+			let startHours = startTime.getHours();
+			let endHours = endTime.getHours();
+			let flag1 = 0;
+			let flag2 = 0;
+			if(startHours > 12){
+				startHours = startHours - 12;
+				flag1 = 1;
+			}else if(startHours == 0){
+				startHours = 12;
+			}
+			if(endHours > 12){
+				endHours = endHours - 12;
+				flag2 = 1;
+			}else if(endHours == 0){
+				endHours = 12;
+			}
+			if(flag1 && flag2){
+				this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
+					startHours + ':' + startMinutes + ' pm - ' + endTime.toDateString() + ' ' +
+					endHours + ':' + endMinutes + ' pm';
+			}else if(flag1 && !flag2){
+				this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
+					startHours + ':' + startMinutes + ' pm - ' + endTime.toDateString() + ' ' +
+					endHours + ':' + endMinutes + ' am';
+			}else if(!flag1 && flag2){
+				this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
+					startHours + ':' + startMinutes + ' am - ' + endTime.toDateString() + ' ' +
+					endHours + ':' + endMinutes + ' pm';
+			}else{
+				this.currentEventDes = eventInfo.type + ' @ ' + startTime.toDateString() + ' ' +
+					startHours + ':' + startMinutes + ' am - ' + endTime.toDateString() + ' ' +
+					endHours + ':' + endMinutes + ' am';
+			}
+			console.log(this.currentEventDes);
 			this.currentEventId = el.id;
 			if(((this.us.latestLocation[0] + 0.125 >= doc.geometry.coordinates[0])
 			 && (this.us.latestLocation[0] - 0.125 <= doc.geometry.coordinates[0]))
