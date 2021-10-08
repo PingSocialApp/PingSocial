@@ -61,16 +61,20 @@ export class EventmanagerPage implements OnInit, OnDestroy, AfterViewInit {
     }
 
     doRefresh(event) {
+        this.refreshData();
+        event.target.complete();
+    }
+
+    refreshData(){
         this.slides.getActiveIndex().then(index => {
             if(index === 1){
                 this.invitedOffset = 0;
             }else {
                 this.createdOffset = 0;
             }
-    }).catch(e => console.error(e));
+        }).catch(e => console.error(e));
 
         this.eventsBS.next();
-        event.target.complete();
     }
 
     loadData(event){
@@ -92,7 +96,10 @@ export class EventmanagerPage implements OnInit, OnDestroy, AfterViewInit {
                 eventID: data
             }
         });
-        return await modal.present();
+        await modal.present();
+        modal.onDidDismiss().then(() => {
+            this.refreshData();
+        });
     }
 
     segmentChanged(event){
