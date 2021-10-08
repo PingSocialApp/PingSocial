@@ -370,17 +370,19 @@ export class PhysicalmapComponent implements OnInit, AfterViewInit, OnDestroy {
 									startMinutes += startTime.getMinutes();
 									let currentHours = startTime.getHours();
 									let hourFlag = 0;
-									if(currentHours > 12){
-										currentHours = currentHours - 12;
+									if(currentHours >= 12){
 										hourFlag = 1;
+										if(currentHours > 12){
+											currentHours = currentHours - 12;
+										}
 									}else if(currentHours == 0){
 										currentHours = 12;
 									}
 									console.log(currentHours);
 									if(hourFlag){
-										element.properties.startTime = startTime.toDateString() + ' ' + currentHours + ':' + startMinutes + " am";
-									}else{
 										element.properties.startTime = startTime.toDateString() + ' ' + currentHours + ':' + startMinutes + " pm";
+									}else{
+										element.properties.startTime = startTime.toDateString() + ' ' + currentHours + ':' + startMinutes + " am";
 									}
 								}
 							}
