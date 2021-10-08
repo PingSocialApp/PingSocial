@@ -5,7 +5,7 @@
 const BASE_URL = 'https://ping-dev.herokuapp.com/'
 const API = 'api'
 const VERSION = 'v1'
-const API_URL = BASE_URL + API + '/' + VERSION;
+const API_URL = `${BASE_URL}${API}/${VERSION}`;
 
 
 export const environment = {
@@ -26,12 +26,12 @@ export const environment = {
     },
     apiURL: {
         default: API_URL,
-        events: API_URL + '/events/',
-        users: API_URL + '/users/',
-        geoPing: API_URL + '/geoping/',
-        links: API_URL + '/links/',
-        requests: API_URL + '/requests/',
-        markers: API_URL + '/markers/'
+        events: `${API_URL}/events/`,
+        users: `${API_URL}/users/`,
+        geoPing: `${API_URL}/geoping/`,
+        links: `${API_URL}/links/`,
+        requests: `${API_URL}/requests/`,
+        markers: `${API_URL}/markers/`,
     }
 };
 
