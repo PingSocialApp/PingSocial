@@ -42,7 +42,7 @@
     "cordova-plugin-calendar": "^5.1.5",
     "core-js": "^3.6.4",
     "firebase": "^7.15.0",
-    "i": "^0.3.6",
+    "i": "^0.3.7",
     "ionicons": "^5.1.2",
     "jsqr": "^1.2.0",
     "mapbox-gl": "^1.13.0",
